@@ -10,3 +10,7 @@ aiosqlite
 cachetools
 numpy
 scikit-learn
+fastapi
+uvicorn
+websockets
+httpx
