@@ -366,3 +366,33 @@ async def websocket_stream(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         await ws_manager.disconnect(websocket)
+
+
+from fastapi.responses import FileResponse
+from vaxguard.demo.orchestrator import DemoOrchestrator
+
+demo_orchestrator = DemoOrchestrator(
+    target_model="llama3-8b-8192",
+    ws_manager=ws_manager,
+    cache_manager=cache_manager,
+)
+
+
+@app.get("/", include_in_schema=False)
+async def serve_dashboard():
+    """Serves the single-page VaxGuard cybersecurity dashboard."""
+    frontend_index = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "frontend",
+        "index.html",
+    )
+    if os.path.exists(frontend_index):
+        return FileResponse(frontend_index)
+    return {"message": "VaxGuard API is operational. Frontend index.html not found."}
+
+
+@app.post("/api/demo/run")
+async def run_demo_pipeline():
+    """Triggers the 4-phase end-to-end live demonstration."""
+    return await demo_orchestrator.run_demo_pipeline()
+
