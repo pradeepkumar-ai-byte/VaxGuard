@@ -1204,14 +1204,22 @@ Awaiting input... Ready to test through ImmuneMiddleware and AnomalyDetector.
         if (res.ok) {
           const data = await res.json();
           const score = Math.round(data.immunity_score);
-          document.getElementById('metricImmunityScore').innerText = `${score}%`;
-          document.getElementById('navBadgeDashboard').innerText = `${score}%`;
-          document.getElementById('bubbleVaccines').innerText = data.active_vaccines;
-          document.getElementById('metricTotalVaccines').innerText = data.active_vaccines;
-          document.getElementById('navBadgeVaccines').innerText = data.active_vaccines;
-          document.getElementById('threatCountMetric').innerText = data.total_threats_detected;
-          document.getElementById('navBadgeThreats').innerText = `${data.total_threats_detected} Logged`;
-          document.getElementById('headerTargetModel').innerText = data.target_model.toUpperCase();
+          const scoreEl = document.getElementById('metricImmunityScore');
+          if (scoreEl) scoreEl.innerText = `${score}%`;
+          const navDash = document.getElementById('navBadgeDashboard');
+          if (navDash) navDash.innerText = `${score}%`;
+          const bubbleVac = document.getElementById('bubbleVaccines');
+          if (bubbleVac) bubbleVac.innerText = data.active_vaccines;
+          const metricVac = document.getElementById('metricTotalVaccines');
+          if (metricVac) metricVac.innerText = data.active_vaccines;
+          const navVac = document.getElementById('navBadgeVaccines');
+          if (navVac) navVac.innerText = data.active_vaccines;
+          const threatMetric = document.getElementById('threatCountMetric');
+          if (threatMetric) threatMetric.innerText = data.total_threats_detected;
+          const navThreats = document.getElementById('navBadgeThreats');
+          if (navThreats) navThreats.innerText = `${data.total_threats_detected} Logged`;
+          const headerModel = document.getElementById('headerTargetModel');
+          if (headerModel) headerModel.innerText = data.target_model.toUpperCase();
         }
       } catch (err) {
         console.warn("Status fetch error:", err);
