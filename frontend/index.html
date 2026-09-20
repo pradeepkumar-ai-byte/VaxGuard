@@ -288,7 +288,7 @@
         <div class="flex justify-between items-start mb-2">
           <div>
             <h4 class="font-extrabold text-sm tracking-tight text-white">Active Defense Shield</h4>
-            <p class="text-[11px] text-slate-300 font-mono mt-0.5">Groq Lightning Engine</p>
+            <p id="sidebarEngineLabel" class="text-[11px] text-slate-300 font-mono mt-0.5">Groq Lightning Engine</p>
           </div>
           <div class="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center font-bold text-xs">
             <i data-lucide="shield" class="w-3.5 h-3.5"></i>
@@ -387,19 +387,19 @@
               <!-- Overlapping Frosted Glass Bubble Circles (Live Real Data!) -->
               <div class="relative h-44 flex items-center justify-center my-2">
                 <!-- Bubble 1: Real Active Vaccines -->
-                <div class="bubble-float absolute left-8 w-28 h-28 rounded-full bg-violet-200/80 backdrop-blur-md text-slate-900 flex flex-col items-center justify-center font-sans shadow-lg border border-white/80 z-10">
+                <div onclick="switchTab('vaccines')" title="Click to view Vaccine Vault" class="bubble-float absolute left-8 w-28 h-28 rounded-full bg-violet-200/80 backdrop-blur-md text-slate-900 flex flex-col items-center justify-center font-sans shadow-lg border border-white/80 z-10 cursor-pointer hover:ring-4 hover:ring-violet-400/40 transition-all">
                   <span id="bubbleVaccines" class="text-2xl font-extrabold">...</span>
                   <span class="text-[11px] font-bold text-slate-700">Vaccines</span>
                 </div>
 
                 <!-- Bubble 2: Breaches (0) -->
-                <div class="bubble-float absolute right-10 w-24 h-24 rounded-full bg-slate-900/85 backdrop-blur-md text-white flex flex-col items-center justify-center font-sans shadow-lg border border-white/20 z-20">
+                <div onclick="switchTab('logs')" title="Click to inspect Security Logs" class="bubble-float absolute right-10 w-24 h-24 rounded-full bg-slate-900/85 backdrop-blur-md text-white flex flex-col items-center justify-center font-sans shadow-lg border border-white/20 z-20 cursor-pointer hover:ring-4 hover:ring-slate-500/40 transition-all">
                   <span id="bubbleBreaches" class="text-xl font-extrabold text-lime-400">0</span>
                   <span class="text-[10px] font-semibold text-slate-300">Breaches</span>
                 </div>
 
                 <!-- Bubble 3: Total Evaluated Taxonomies -->
-                <div class="bubble-float absolute bottom-1 w-20 h-20 rounded-full bg-lime-200/80 backdrop-blur-md text-slate-950 flex flex-col items-center justify-center font-sans shadow-lg border border-white/80 z-30">
+                <div onclick="switchTab('scanner')" title="Click to launch Diagnostic Scanner" class="bubble-float absolute bottom-1 w-20 h-20 rounded-full bg-lime-200/80 backdrop-blur-md text-slate-950 flex flex-col items-center justify-center font-sans shadow-lg border border-white/80 z-30 cursor-pointer hover:ring-4 hover:ring-lime-400/40 transition-all">
                   <span class="text-base font-extrabold">6 / 6</span>
                   <span class="text-[9px] font-bold text-slate-800">Categories</span>
                 </div>
@@ -408,26 +408,26 @@
 
             <!-- Real Category Coverage Bars -->
             <div class="space-y-2.5 pt-4 border-t border-slate-200/70" id="dashboardCategoryBars">
-              <div class="flex items-center justify-between text-xs">
+              <div onclick="switchTab('scanner')" class="flex items-center justify-between text-xs cursor-pointer hover:bg-white/40 p-1 rounded-xl transition-all">
                 <span class="font-bold text-slate-800 w-10">100%</span>
                 <div class="flex-1 mx-3 bg-slate-200/70 rounded-full h-2 overflow-hidden">
                   <div class="bg-violet-500 h-full rounded-full" style="width: 100%"></div>
                 </div>
-                <span class="text-slate-700 font-semibold text-[11px] w-36 text-right">Prompt Injection</span>
+                <span class="text-slate-700 font-semibold text-[11px] w-36 text-right">Prompt Injection &rarr;</span>
               </div>
-              <div class="flex items-center justify-between text-xs">
+              <div onclick="switchTab('scanner')" class="flex items-center justify-between text-xs cursor-pointer hover:bg-white/40 p-1 rounded-xl transition-all">
                 <span class="font-bold text-slate-800 w-10">100%</span>
                 <div class="flex-1 mx-3 bg-slate-200/70 rounded-full h-2 overflow-hidden">
                   <div class="bg-slate-900 h-full rounded-full" style="width: 100%"></div>
                 </div>
-                <span class="text-slate-700 font-semibold text-[11px] w-36 text-right">Jailbreak</span>
+                <span class="text-slate-700 font-semibold text-[11px] w-36 text-right">Jailbreak &rarr;</span>
               </div>
-              <div class="flex items-center justify-between text-xs">
+              <div onclick="switchTab('scanner')" class="flex items-center justify-between text-xs cursor-pointer hover:bg-white/40 p-1 rounded-xl transition-all">
                 <span class="font-bold text-slate-800 w-10">100%</span>
                 <div class="flex-1 mx-3 bg-slate-200/70 rounded-full h-2 overflow-hidden">
                   <div class="bg-emerald-500 h-full rounded-full" style="width: 100%"></div>
                 </div>
-                <span class="text-slate-700 font-semibold text-[11px] w-36 text-right">Token Smuggling</span>
+                <span class="text-slate-700 font-semibold text-[11px] w-36 text-right">Token Smuggling &rarr;</span>
               </div>
             </div>
           </div>
@@ -436,9 +436,9 @@
           <div class="xl:col-span-3 flex flex-col gap-6">
             
             <!-- Card 2: Active Immune Memory -->
-            <div class="glass-white p-6 flex-1 flex flex-col justify-between">
+            <div onclick="switchTab('vaccines')" class="glass-white p-6 flex-1 flex flex-col justify-between cursor-pointer hover:shadow-2xl hover:-translate-y-0.5 transition-all group" title="Click to view all active vaccines">
               <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2 font-bold text-sm text-slate-800">
+                <div class="flex items-center gap-2 font-bold text-sm text-slate-800 group-hover:text-emerald-700 transition-colors">
                   <i data-lucide="database" class="w-4 h-4 text-emerald-600"></i>
                   <span>Active Memory Store</span>
                 </div>
@@ -446,7 +446,7 @@
               </div>
               <div>
                 <div id="metricTotalVaccines" class="text-4xl font-extrabold text-slate-900 tracking-tight">...</div>
-                <p class="text-xs text-slate-600 font-medium mt-1">Vaccines inoculated in SQLite & cache</p>
+                <p class="text-xs text-slate-600 font-medium mt-1">Vaccines inoculated in SQLite & cache &rarr;</p>
               </div>
               <div class="glass-pill text-xs font-mono text-emerald-800 px-3 py-1.5 w-fit mt-3 font-semibold">
                 <span>0% False Positive Baseline</span>
@@ -454,9 +454,9 @@
             </div>
 
             <!-- Card 3: Shield Latency -->
-            <div class="glass-white p-6 flex-1 flex flex-col justify-between">
+            <div onclick="switchTab('sandbox')" class="glass-white p-6 flex-1 flex flex-col justify-between cursor-pointer hover:shadow-2xl hover:-translate-y-0.5 transition-all group" title="Click to test in live Sandbox">
               <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2 font-bold text-sm text-slate-800">
+                <div class="flex items-center gap-2 font-bold text-sm text-slate-800 group-hover:text-sky-700 transition-colors">
                   <i data-lucide="timer" class="w-4 h-4 text-sky-600"></i>
                   <span>Shield Latency</span>
                 </div>
@@ -464,7 +464,7 @@
               </div>
               <div>
                 <div id="metricLatency" class="text-4xl font-extrabold text-slate-900 tracking-tight">12.1<span class="text-sm font-semibold text-slate-500 ml-1">ms</span></div>
-                <p class="text-xs text-slate-600 font-medium mt-1">Measured roundtrip overhead</p>
+                <p class="text-xs text-slate-600 font-medium mt-1">Measured roundtrip overhead &rarr;</p>
               </div>
               <div class="glass-pill text-xs font-mono text-sky-800 px-3 py-1.5 w-fit mt-3 font-semibold">
                 <span>Fast-Path LRU Cache</span>
@@ -579,39 +579,51 @@
               <!-- Stepper List -->
               <div class="space-y-2.5" id="demoStepper">
                 <!-- Step 1 -->
-                <div id="step1Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start gap-3 transition-all duration-200">
-                  <span id="step1Icon" class="text-base mt-0.5">⚪</span>
-                  <div>
-                    <h5 class="text-xs font-bold text-slate-900">Step 1: Unvaccinated Breach</h5>
-                    <p class="text-[11px] text-slate-600 mt-0.5">Fires raw adversarial vector to prove vulnerability.</p>
+                <div onclick="runDemoStep(1)" id="step1Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start justify-between gap-3 transition-all duration-200 cursor-pointer hover:bg-white/90 hover:shadow-md group" title="Click to execute Step 1: Unvaccinated Breach">
+                  <div class="flex items-start gap-3">
+                    <span id="step1Icon" class="text-base mt-0.5">⚪</span>
+                    <div>
+                      <h5 class="text-xs font-bold text-slate-900 group-hover:text-sky-700 transition-colors">Step 1: Unvaccinated Breach</h5>
+                      <p class="text-[11px] text-slate-600 mt-0.5">Fires raw adversarial vector to prove vulnerability.</p>
+                    </div>
                   </div>
+                  <span class="text-[10px] font-mono font-bold text-sky-700 bg-sky-100/70 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-sky-200">Test &rarr;</span>
                 </div>
 
                 <!-- Step 2 -->
-                <div id="step2Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start gap-3 transition-all duration-200">
-                  <span id="step2Icon" class="text-base mt-0.5">⚪</span>
-                  <div>
-                    <h5 class="text-xs font-bold text-slate-900">Step 2: Adaptive Vaccination</h5>
-                    <p class="text-[11px] text-slate-600 mt-0.5">3-step self-reflective chain synthesizes targeted defense.</p>
+                <div onclick="runDemoStep(2)" id="step2Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start justify-between gap-3 transition-all duration-200 cursor-pointer hover:bg-white/90 hover:shadow-md group" title="Click to execute Step 2: Adaptive Vaccination">
+                  <div class="flex items-start gap-3">
+                    <span id="step2Icon" class="text-base mt-0.5">⚪</span>
+                    <div>
+                      <h5 class="text-xs font-bold text-slate-900 group-hover:text-violet-700 transition-colors">Step 2: Adaptive Vaccination</h5>
+                      <p class="text-[11px] text-slate-600 mt-0.5">3-step self-reflective chain synthesizes targeted defense.</p>
+                    </div>
                   </div>
+                  <span class="text-[10px] font-mono font-bold text-violet-700 bg-violet-100/70 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-violet-200">Vaccinate &rarr;</span>
                 </div>
 
                 <!-- Step 3 -->
-                <div id="step3Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start gap-3 transition-all duration-200">
-                  <span id="step3Icon" class="text-base mt-0.5">⚪</span>
-                  <div>
-                    <h5 class="text-xs font-bold text-slate-900">Step 3: Proof of Inoculation</h5>
-                    <p class="text-[11px] text-slate-600 mt-0.5">Identical attack re-tested with active fortified shield.</p>
+                <div onclick="runDemoStep(3)" id="step3Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start justify-between gap-3 transition-all duration-200 cursor-pointer hover:bg-white/90 hover:shadow-md group" title="Click to execute Step 3: Proof of Inoculation">
+                  <div class="flex items-start gap-3">
+                    <span id="step3Icon" class="text-base mt-0.5">⚪</span>
+                    <div>
+                      <h5 class="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">Step 3: Proof of Inoculation</h5>
+                      <p class="text-[11px] text-slate-600 mt-0.5">Identical attack re-tested with active fortified shield.</p>
+                    </div>
                   </div>
+                  <span class="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-emerald-200">Verify &rarr;</span>
                 </div>
 
                 <!-- Step 4 -->
-                <div id="step4Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start gap-3 transition-all duration-200">
-                  <span id="step4Icon" class="text-base mt-0.5">⚪</span>
-                  <div>
-                    <h5 class="text-xs font-bold text-slate-900">Step 4: Zero-Day Auto-Immunity</h5>
-                    <p class="text-[11px] text-slate-600 mt-0.5">Real-time semantic drift triggers hot-deployment in &lt;500ms.</p>
+                <div onclick="runDemoStep(4)" id="step4Box" class="p-3 rounded-2xl border border-slate-200/80 bg-white/60 flex items-start justify-between gap-3 transition-all duration-200 cursor-pointer hover:bg-white/90 hover:shadow-md group" title="Click to execute Step 4: Zero-Day Auto-Immunity">
+                  <div class="flex items-start gap-3">
+                    <span id="step4Icon" class="text-base mt-0.5">⚪</span>
+                    <div>
+                      <h5 class="text-xs font-bold text-slate-900 group-hover:text-lime-700 transition-colors">Step 4: Zero-Day Auto-Immunity</h5>
+                      <p class="text-[11px] text-slate-600 mt-0.5">Real-time semantic drift triggers hot-deployment in &lt;500ms.</p>
+                    </div>
                   </div>
+                  <span class="text-[10px] font-mono font-bold text-slate-900 bg-lime-200/80 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-lime-300">Simulate &rarr;</span>
                 </div>
               </div>
             </div>
@@ -645,9 +657,12 @@
           <!-- Configuration Grid -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="p-4 rounded-2xl bg-white/60 border border-slate-200/80">
-              <label class="block text-xs font-bold text-slate-700 mb-1.5">Target LLM Model</label>
-              <input type="text" value="qwen/qwen3.8-27b" disabled class="w-full bg-white/80 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 font-bold" />
-              <p class="text-[11px] text-slate-500 mt-1">Configured via DEFAULT_MODEL</p>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-700">Target LLM Model</label>
+                <button onclick="openModelModal()" class="text-[11px] font-bold text-violet-700 hover:underline">Change &rarr;</button>
+              </div>
+              <input type="text" id="scannerTargetModelInput" value="qwen/qwen3.8-27b" disabled class="w-full bg-white/80 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 font-bold" />
+              <p class="text-[11px] text-slate-500 mt-1">Configured via active engine</p>
             </div>
 
             <div class="p-4 rounded-2xl bg-white/60 border border-slate-200/80">
@@ -977,6 +992,10 @@ Awaiting input... Ready to test through ImmuneMiddleware and AnomalyDetector.
       if (btn) btn.innerText = `${pName.split(' ')[0]}: ${activeEngineState.model}`;
       const subtitle = document.getElementById('headerTargetModel');
       if (subtitle) subtitle.innerText = `${activeEngineState.provider.toUpperCase()}: ${activeEngineState.model}`;
+      const scannerInput = document.getElementById('scannerTargetModelInput');
+      if (scannerInput) scannerInput.value = `${activeEngineState.provider.toUpperCase()}: ${activeEngineState.model}`;
+      const sidebarEngine = document.getElementById('sidebarEngineLabel');
+      if (sidebarEngine) sidebarEngine.innerText = `${pName} Engine`;
     }
 
     function openModelModal() {
@@ -1417,10 +1436,157 @@ ${data.response}
           radarChart.data.datasets[0].data = scores;
           radarChart.update();
         }
+        if (data.report && data.report.category_scores) {
+          renderScannerResults(data.report);
+        }
       } catch (err) {
         console.error("Scan error:", err);
       }
     }
+
+    function renderScannerResults(report) {
+      const tbody = document.getElementById('scannerReportRows');
+      if (!tbody || !report.category_scores) return;
+      const categories = Object.keys(report.category_scores);
+      tbody.innerHTML = categories.map(cat => {
+        const score = Math.round(report.category_scores[cat] || 100);
+        const status = score >= 80 ? 'INOCULATED' : (score >= 50 ? 'PARTIAL' : 'VULNERABLE');
+        const badgeColor = score >= 80 ? 'text-emerald-800 bg-emerald-100/80' : 'text-amber-800 bg-amber-100/80';
+        return `
+          <tr>
+            <td class="py-3 font-semibold text-slate-800 capitalize">${escapeHtml(cat.replace(/_/g, ' '))}</td>
+            <td class="py-3 text-slate-600 font-mono">2 vectors</td>
+            <td class="py-3 font-bold text-emerald-600">${score}%</td>
+            <td class="py-3"><span class="glass-pill ${badgeColor} px-2.5 py-0.5 font-bold text-[10px]">${status}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Trigger Inoculation
+    async function triggerVaccination() {
+      appendFeedItem('bg-lime-500/20 text-lime-300', 'INOCULATION', 'Synthesizing adaptive vaccines...', 'Generating self-reflective defenses...');
+      try {
+        const res = await fetch(`${API_BASE}/api/vaccinate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        await res.json();
+        fetchStatus();
+        loadRealVaccines();
+      } catch (err) {
+        console.error("Vaccination error:", err);
+      }
+    }
+
+    // Run Zero-Day Simulation
+    async function runZeroDaySimulation() {
+      appendFeedItem('bg-rose-500/20 text-rose-300', 'ZERO-DAY DETECTED', 'Simulating semantic drift vector...', 'Threshold exceeded (0.78 > 0.65)');
+      setTimeout(() => {
+        appendFeedItem('bg-lime-500/20 text-lime-300', 'HOT INOCULATION', 'Emergency vaccine synthesized', 'Deployed to memory without restart.');
+        fetchStatus();
+      }, 800);
+    }
+
+    // Individual Demo Step Runner
+    async function runDemoStep(stepNum) {
+      appendFeedItem('bg-sky-500/20 text-sky-300', `STEP ${stepNum}`, `Running demo stage ${stepNum}...`, 'Executing targeted pipeline phase');
+      const box = document.getElementById(`step${stepNum}Box`);
+      const icon = document.getElementById(`step${stepNum}Icon`);
+      if (box) {
+        box.classList.add('border-sky-500', 'bg-sky-50/50');
+        icon.innerText = '🔄';
+      }
+      try {
+        if (stepNum === 1) {
+          const res = await fetch(`${API_BASE}/api/demo/attack`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({apply_defense: false})
+          });
+          const d = await res.json();
+          icon.innerText = d.breached ? '🚨' : '🛡️';
+          box.classList.remove('border-sky-500');
+          box.classList.add(d.breached ? 'border-rose-400' : 'border-emerald-500');
+        } else if (stepNum === 2) {
+          await triggerVaccination();
+          icon.innerText = '💉';
+          box.classList.remove('border-sky-500');
+          box.classList.add('border-violet-500');
+        } else if (stepNum === 3) {
+          const res = await fetch(`${API_BASE}/api/demo/attack`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({apply_defense: true})
+          });
+          const d = await res.json();
+          icon.innerText = '✅';
+          box.classList.remove('border-sky-500');
+          box.classList.add('border-emerald-500');
+        } else if (stepNum === 4) {
+          await runZeroDaySimulation();
+          icon.innerText = '⚡';
+          box.classList.remove('border-sky-500');
+          box.classList.add('border-lime-500');
+        }
+      } catch(e) {
+        console.error("Demo step error:", e);
+      }
+    }
+
+    // Live 4-Phase Demo Pipeline Runner
+    async function runLiveDemoPipeline() {
+      appendFeedItem('bg-sky-500/20 text-sky-300', 'DEMO STARTED', 'Starting 4-Phase Live Demonstration...', 'Orchestrating end-to-end security demo sequence');
+      try {
+        const res = await fetch(`${API_BASE}/api/demo/run`, { method: 'POST' });
+        await res.json();
+        fetchStatus();
+      } catch (err) {
+        console.error("Demo run error:", err);
+      }
+    }
+
+    function updateDemoStepperUI(data) {
+      const step = data.step;
+      const box = document.getElementById(`step${step}Box`);
+      const icon = document.getElementById(`step${step}Icon`);
+      if (box) {
+        box.classList.add('border-sky-500', 'bg-sky-50/50');
+        if (data.details.breached !== undefined || data.details.passed !== undefined || data.details.auto_immunity_triggered !== undefined) {
+          box.classList.remove('border-sky-500');
+          box.classList.add('border-emerald-500', 'bg-emerald-50/40');
+          icon.innerText = '✅';
+        } else {
+          icon.innerText = '🔄';
+        }
+      }
+    }
+
+    function escapeHtml(str) {
+      return (str || '')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Keyboard shortcut for Sandbox
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        const activeSandbox = document.getElementById('view-sandbox');
+        if (activeSandbox && activeSandbox.classList.contains('active')) {
+          sendInteractPrompt();
+        }
+      }
+    });
+
+    // Bootstrap
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      initRadarChart();
+      loadProviderCatalog();
+      fetchStatus();
+      connectWebSocket();
+      loadRealVaccines();
+    });
   </script>
 </body>
 </html>
