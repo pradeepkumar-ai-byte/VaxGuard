@@ -234,6 +234,50 @@ async def vaccinate_model(request: VaccinateRequest = VaccinateRequest()):
     )
 
 
+@app.get("/api/vaccines")
+async def get_all_vaccines():
+    """Returns list of active and stored vaccines from the persistent SQLite registry."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(VaccineTable).order_by(VaccineTable.created_at.desc()))
+        vaccines = result.scalars().all()
+        return {
+            "vaccines": [
+                {
+                    "id": v.id,
+                    "target_category": v.target_category.value if hasattr(v.target_category, "value") else str(v.target_category),
+                    "system_prompt_extension": v.system_prompt_extension,
+                    "version": v.version,
+                    "parent_attack_id": v.parent_attack_id,
+                    "is_active": v.is_active,
+                    "created_at": str(v.created_at) if v.created_at else None,
+                }
+                for v in vaccines
+            ],
+            "total": len(vaccines),
+        }
+
+
+@app.get("/api/logs")
+async def get_system_logs(limit: int = 50):
+    """Returns live security and audit event logs from SQLite."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(EventLogTable).order_by(EventLogTable.timestamp.desc()).limit(limit))
+        logs = result.scalars().all()
+        return {
+            "logs": [
+                {
+                    "id": l.id,
+                    "event_type": l.event_type,
+                    "latency_ms": l.latency_ms,
+                    "details": l.details,
+                    "timestamp": str(l.timestamp) if l.timestamp else None,
+                }
+                for l in logs
+            ],
+            "total": len(logs),
+        }
+
+
 @app.get("/api/threats", response_model=ThreatFeedResponse)
 async def get_threat_feed(limit: int = 50):
     """Returns recent anomaly and threat events from immune memory."""
