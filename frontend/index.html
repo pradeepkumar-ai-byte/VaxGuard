@@ -43,61 +43,89 @@
   </script>
 
   <style>
-    /* 4K Panoramic Mountain Background */
+    /* 4K Panoramic Midnight Mountain Background with moody dark vignette */
     body {
-      background: url('/assets/mountain_bg.jpg') center center / cover no-repeat fixed;
+      background: 
+        radial-gradient(circle at 50% 20%, rgba(14, 21, 37, 0.4) 0%, rgba(5, 8, 16, 0.85) 100%),
+        url('/assets/mountain_bg.jpg') center center / cover no-repeat fixed;
       min-height: 100vh;
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: #0f172a;
       overflow-x: hidden;
     }
 
-    /* Apple VisionOS / macOS Sequoia Frosted White Glass */
+    /* Physical Glassmorphism - Frosted White Glass with Specular Shimmer & Edge Bevel */
     .glass-white {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(28px) saturate(180%);
-      -webkit-backdrop-filter: blur(28px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.68) 100%);
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 
+        0 20px 40px -8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 2px 0 rgba(255, 255, 255, 1),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.05);
       border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Physical Glass Reflective Top Shimmer Bar */
+    .glass-white::before, .glass-dark::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+      pointer-events: none;
     }
 
-    /* Frosted Dark Obsidian Smoke Glass (Sidebar & Telemetry Card) */
+    /* Physical Dark Obsidian Smoke Glass (Sidebar & Live Telemetry) */
     .glass-dark {
-      background: rgba(14, 17, 24, 0.78);
-      backdrop-filter: blur(32px) saturate(190%);
-      -webkit-backdrop-filter: blur(32px) saturate(190%);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      background: linear-gradient(135deg, rgba(14, 17, 26, 0.85) 0%, rgba(8, 10, 16, 0.92) 100%);
+      backdrop-filter: blur(36px) saturate(210%);
+      -webkit-backdrop-filter: blur(36px) saturate(210%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 
+        0 24px 50px -10px rgba(0, 0, 0, 0.6),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
       border-radius: 28px;
       color: #ffffff;
+      position: relative;
     }
 
-    /* Frosted Translucent White Glass Pill / Controls */
+    /* Frosted Translucent Pill Button */
     .glass-pill {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.8);
       border-radius: 9999px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-pill:hover {
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), inset 0 1px 1px #fff;
+      transform: translateY(-1px);
     }
 
     /* Frosted Ice-Blue Accent Pill */
     .glass-blue {
-      background: rgba(2, 132, 199, 0.15);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(2, 132, 199, 0.3);
-      color: #0369a1;
+      background: rgba(2, 132, 199, 0.18);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #0284c7;
       border-radius: 9999px;
     }
 
     /* Active Sidebar Navigation Pill */
     .nav-btn.active-nav {
-      background: rgba(255, 255, 255, 0.95) !important;
+      background: rgba(255, 255, 255, 0.96) !important;
       color: #0f172a !important;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), inset 0 1px 1px #fff !important;
     }
     .nav-btn.active-nav svg {
       color: #0f172a !important;
@@ -116,19 +144,45 @@
     }
     .tab-view.active {
       display: block;
-      animation: fadeIn 0.2s ease-out forwards;
+      animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Interactive Glass Hover Glare */
+    .glass-hover-glare {
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-hover-glare::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 45%,
+        rgba(255, 255, 255, 0.15) 50%,
+        transparent 55%
+      );
+      transform: rotate(30deg) translateY(-100%);
+      transition: transform 0.6s ease;
+      pointer-events: none;
+    }
+    .glass-hover-glare:hover::after {
+      transform: rotate(30deg) translateY(100%);
     }
 
     /* Overlapping Glass Bubble Animations */
     .bubble-float {
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .bubble-float:hover {
-      transform: scale(1.06);
+      transform: scale(1.08) translateY(-2px);
     }
 
     /* Smooth Scrollbar */
@@ -137,14 +191,14 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.5);
+      background: rgba(148, 163, 184, 0.4);
       border-radius: 999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(100, 116, 139, 0.8);
+      background: rgba(100, 116, 139, 0.7);
     }
   </style>
 </head>
@@ -272,8 +326,8 @@
           </div>
           
           <!-- Page Title & Dynamic Subtitle -->
-          <h2 id="pageTitle" class="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight drop-shadow-sm">Immunity Overview</h2>
-          <p id="pageSubtitle" class="text-xs md:text-sm text-slate-700 font-semibold mt-1">Autonomous AI immune memory &bull; Active Engine: <span id="headerTargetModel" class="font-mono text-sky-800 font-bold">QWEN/QWEN3.8</span></p>
+          <h2 id="pageTitle" class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Immunity Overview</h2>
+          <p id="pageSubtitle" class="text-xs md:text-sm text-slate-200 font-medium mt-1">Autonomous AI immune memory &bull; Active Engine: <span id="headerTargetModel" class="font-mono text-sky-300 font-bold">GROQ: QWEN/QWEN3.8-27B</span></p>
         </div>
 
         <!-- Right Side Functional Controls -->
@@ -283,6 +337,12 @@
             <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
             <input type="text" id="globalSearch" oninput="handleSearchFilter(this.value)" placeholder="Filter vaccines, logs..." class="glass-pill text-slate-900 text-xs pl-9 pr-4 py-2.5 w-48 md:w-60 focus:outline-none focus:ring-2 focus:ring-sky-500/40 transition-all placeholder:text-slate-500 font-medium" />
           </div>
+
+          <!-- Quick Action: Engine Selector Modal -->
+          <button onclick="openModelModal()" class="glass-pill hover:bg-white/90 text-slate-900 font-bold text-xs px-4 py-2.5 flex items-center gap-2 transition-all border-violet-300">
+            <i data-lucide="cpu" class="w-3.5 h-3.5 text-violet-600"></i>
+            <span id="headerEngineBtnLabel">Engine: Loading...</span>
+          </button>
 
           <!-- Quick Action: Run Scan -->
           <button onclick="runDiagnosticScan()" class="glass-pill hover:bg-white/80 text-slate-900 font-bold text-xs px-4 py-2.5 flex items-center gap-2 transition-all">
@@ -816,6 +876,72 @@ Awaiting input... Ready to test through ImmuneMiddleware and AnomalyDetector.
   </div>
 
   <!-- ========================================================================= -->
+  <!-- FROSTED GLASS LLM PROVIDER & MODEL ENGINE MODAL                           -->
+  <!-- ========================================================================= -->
+  <div id="modelSettingsModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-white max-w-xl w-full p-6 md:p-8 relative shadow-2xl border border-white/90 rounded-3xl animate-in fade-in zoom-in-95 duration-200">
+      <button onclick="closeModelModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300 text-slate-700 flex items-center justify-center font-bold text-sm transition-all">✕</button>
+      
+      <div class="flex items-center gap-3.5 mb-5">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center shadow-lg">
+          <i data-lucide="cpu" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">LLM Provider & Model Engine</h3>
+          <p class="text-xs text-slate-600 font-medium mt-0.5">Switch provider, select model, or connect custom/local API endpoints</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 my-6">
+        <!-- Provider Chip Selector -->
+        <div>
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">1. Select AI Provider</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="providerChips">
+            <div class="p-3 text-center text-xs font-mono text-slate-500">Loading catalog...</div>
+          </div>
+        </div>
+
+        <!-- Model Selection Dropdown -->
+        <div>
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">2. Target Model</label>
+          <select id="modalModelSelect" onchange="handleModelSelectChange(this.value)" class="w-full bg-white/95 border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <!-- Custom Model Name (if custom provider or manual override) -->
+        <div id="customModelBox" class="hidden">
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">Model Name Override</label>
+          <input type="text" id="modalCustomModelInput" placeholder="e.g. llama3.1:latest or my-custom-model" class="w-full bg-white/95 border border-slate-300 rounded-xl px-4 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500" />
+        </div>
+
+        <!-- Custom Base API URL -->
+        <div id="customUrlBox">
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">Base API Endpoint (Optional)</label>
+          <input type="text" id="modalBaseUrlInput" placeholder="Default endpoint (e.g. http://localhost:11434/v1 for Ollama)" class="w-full bg-white/95 border border-slate-300 rounded-xl px-4 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500" />
+        </div>
+
+        <!-- API Key Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">API Key (Optional / Overrides Server .env)</label>
+          <input type="password" id="modalApiKeyInput" placeholder="Leave blank to use server environment variables..." class="w-full bg-white/95 border border-slate-300 rounded-xl px-4 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500" />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-4 border-t border-slate-200/80">
+        <span id="engineStatusMsg" class="text-xs font-mono text-slate-500">Ready</span>
+        <div class="flex items-center gap-3">
+          <button onclick="closeModelModal()" class="glass-pill px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200/60">Cancel</button>
+          <button onclick="saveModelSettings()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2.5 rounded-full shadow-md flex items-center gap-2 transition-all">
+            <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Apply Engine Settings</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- JAVASCRIPT APPLICATION LOGIC                                             -->
   <!-- ========================================================================= -->
   <script>
@@ -824,6 +950,143 @@ Awaiting input... Ready to test through ImmuneMiddleware and AnomalyDetector.
     let radarChart = null;
     let allVaccinesList = [];
     let allLogsList = [];
+    let providerCatalog = {};
+    let activeEngineState = { provider: 'groq', model: 'qwen/qwen3.8-27b' };
+    let selectedProviderKey = 'groq';
+
+    // Provider Engine Modal Controller
+    async function loadProviderCatalog() {
+      try {
+        const res = await fetch(`${API_BASE}/api/settings/providers`);
+        if (res.ok) {
+          const data = await res.json();
+          providerCatalog = data.catalog;
+          activeEngineState = data.active;
+          selectedProviderKey = activeEngineState.provider || 'groq';
+          updateHeaderEngineLabel();
+          renderProviderChips();
+        }
+      } catch (err) {
+        console.warn("Could not load provider catalog:", err);
+      }
+    }
+
+    function updateHeaderEngineLabel() {
+      const pName = (providerCatalog[activeEngineState.provider] || {}).name || activeEngineState.provider.toUpperCase();
+      const btn = document.getElementById('headerEngineBtnLabel');
+      if (btn) btn.innerText = `${pName.split(' ')[0]}: ${activeEngineState.model}`;
+      const subtitle = document.getElementById('headerTargetModel');
+      if (subtitle) subtitle.innerText = `${activeEngineState.provider.toUpperCase()}: ${activeEngineState.model}`;
+    }
+
+    function openModelModal() {
+      document.getElementById('modelSettingsModal').classList.remove('hidden');
+      loadProviderCatalog();
+    }
+
+    function closeModelModal() {
+      document.getElementById('modelSettingsModal').classList.add('hidden');
+    }
+
+    function renderProviderChips() {
+      const container = document.getElementById('providerChips');
+      if (!container || !providerCatalog) return;
+
+      container.innerHTML = Object.keys(providerCatalog).map(key => {
+        const p = providerCatalog[key];
+        const isSelected = key === selectedProviderKey;
+        return `
+          <button type="button" onclick="selectProviderChip('${key}')" class="p-2.5 rounded-2xl border text-left transition-all font-sans ${isSelected ? 'border-sky-500 bg-sky-50/80 text-sky-950 font-bold shadow-sm ring-2 ring-sky-500/20' : 'border-slate-200/90 bg-white/70 text-slate-700 hover:bg-white'}">
+            <div class="text-xs font-bold truncate">${escapeHtml(p.name)}</div>
+            <div class="text-[10px] text-slate-500 font-mono truncate mt-0.5">${p.models.length > 0 ? p.models.length + ' models' : 'Custom'}</div>
+          </button>
+        `;
+      }).join('');
+
+      populateModelOptions();
+    }
+
+    function selectProviderChip(providerKey) {
+      selectedProviderKey = providerKey;
+      renderProviderChips();
+    }
+
+    function populateModelOptions() {
+      const select = document.getElementById('modalModelSelect');
+      const customBox = document.getElementById('customModelBox');
+      const p = providerCatalog[selectedProviderKey] || {};
+      const models = p.models || [];
+
+      if (models.length > 0) {
+        select.innerHTML = models.map(m => `
+          <option value="${m}" ${m === activeEngineState.model ? 'selected' : ''}>${m}</option>
+        `).join('') + `<option value="__custom__">Custom / Write-in Model...</option>`;
+        customBox.classList.add('hidden');
+      } else {
+        select.innerHTML = `<option value="__custom__" selected>Custom Model</option>`;
+        customBox.classList.remove('hidden');
+      }
+
+      const urlInput = document.getElementById('modalBaseUrlInput');
+      if (urlInput) {
+        urlInput.value = activeEngineState.custom_base_url || p.base_url || '';
+      }
+    }
+
+    function handleModelSelectChange(val) {
+      const customBox = document.getElementById('customModelBox');
+      if (val === '__custom__') {
+        customBox.classList.remove('hidden');
+      } else {
+        customBox.classList.add('hidden');
+      }
+    }
+
+    async function saveModelSettings() {
+      const statusMsg = document.getElementById('engineStatusMsg');
+      statusMsg.innerText = "Applying engine configuration...";
+
+      let chosenModel = document.getElementById('modalModelSelect').value;
+      if (chosenModel === '__custom__') {
+        chosenModel = document.getElementById('modalCustomModelInput').value.trim() || 'custom-model';
+      }
+
+      const apiKey = document.getElementById('modalApiKeyInput').value.trim();
+      const customBaseUrl = document.getElementById('modalBaseUrlInput').value.trim();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/settings/model`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: selectedProviderKey,
+            model: chosenModel,
+            api_key: apiKey || null,
+            custom_base_url: customBaseUrl || null,
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          statusMsg.innerText = `Error: ${err.detail || 'Failed'}`;
+          return;
+        }
+
+        const data = await res.json();
+        activeEngineState = data.active;
+        updateHeaderEngineLabel();
+        statusMsg.innerText = "Engine updated successfully!";
+        fetchStatus();
+
+        setTimeout(() => {
+          closeModelModal();
+          statusMsg.innerText = "Ready";
+        }, 600);
+
+      } catch (err) {
+        statusMsg.innerText = `Error: ${err.message}`;
+      }
+    }
 
     // Tab Switching Controller
     function switchTab(tabId) {
@@ -1158,74 +1421,6 @@ ${data.response}
         console.error("Scan error:", err);
       }
     }
-
-    // Trigger Inoculation
-    async function triggerVaccination() {
-      appendFeedItem('bg-lime-500/20 text-lime-300', 'INOCULATION', 'Synthesizing adaptive vaccines...', 'Generating self-reflective defenses...');
-      try {
-        const res = await fetch(`${API_BASE}/api/vaccinate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
-        await res.json();
-        fetchStatus();
-        loadRealVaccines();
-      } catch (err) {
-        console.error("Vaccination error:", err);
-      }
-    }
-
-    // Run Zero-Day Simulation
-    async function runZeroDaySimulation() {
-      appendFeedItem('bg-rose-500/20 text-rose-300', 'ZERO-DAY DETECTED', 'Simulating semantic drift vector...', 'Threshold exceeded (0.78 > 0.65)');
-      setTimeout(() => {
-        appendFeedItem('bg-lime-500/20 text-lime-300', 'HOT INOCULATION', 'Emergency vaccine synthesized', 'Deployed to memory without restart.');
-        fetchStatus();
-      }, 800);
-    }
-
-    // Live 5-Minute Demo Pipeline Runner
-    async function runLiveDemoPipeline() {
-      appendFeedItem('bg-sky-500/20 text-sky-300', 'DEMO STARTED', 'Starting 4-Phase Live Demonstration...', 'Orchestrating end-to-end security demo sequence');
-      try {
-        const res = await fetch(`${API_BASE}/api/demo/run`, { method: 'POST' });
-        await res.json();
-        fetchStatus();
-      } catch (err) {
-        console.error("Demo run error:", err);
-      }
-    }
-
-    function updateDemoStepperUI(data) {
-      const step = data.step;
-      const box = document.getElementById(`step${step}Box`);
-      const icon = document.getElementById(`step${step}Icon`);
-      if (box) {
-        box.classList.add('border-sky-500', 'bg-sky-50/50');
-        if (data.details.breached !== undefined || data.details.passed !== undefined || data.details.auto_immunity_triggered !== undefined) {
-          box.classList.remove('border-sky-500');
-          box.classList.add('border-emerald-500', 'bg-emerald-50/40');
-          icon.innerText = '✅';
-        } else {
-          icon.innerText = '🔄';
-        }
-      }
-    }
-
-    function escapeHtml(str) {
-      return (str || '')
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // Bootstrap
-    window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      initRadarChart();
-      fetchStatus();
-      connectWebSocket();
-      loadRealVaccines();
-    });
   </script>
 </body>
 </html>

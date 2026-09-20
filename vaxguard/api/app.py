@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from vaxguard.core.logger import get_logger
 from vaxguard.core.config import DEFAULT_MODEL
-from vaxguard.core.llm_client import VaxGuardLLM
+from vaxguard.core.llm_client import VaxGuardLLM, engine_state, PROVIDER_CATALOG
 from vaxguard.attacks.library import AttackLibrary
 from vaxguard.db.session import init_db, AsyncSessionLocal
 from vaxguard.db.models import VaccineTable, EventLogTable
@@ -117,7 +117,7 @@ async def get_system_status():
 
     return StatusResponse(
         status="operational",
-        target_model=DEFAULT_MODEL,
+        target_model=f"{engine_state.provider.upper()}: {engine_state.model}",
         immunity_score=round(immunity_score, 1),
         active_vaccines=active_vaccines_count,
         total_threats_detected=total_threats,
@@ -276,6 +276,47 @@ async def get_system_logs(limit: int = 50):
             ],
             "total": len(logs),
         }
+
+
+@app.get("/api/settings/providers")
+async def get_providers():
+    """Returns supported LLM provider catalog and current active configuration."""
+    snap = engine_state.snapshot()
+    return {
+        "catalog": PROVIDER_CATALOG,
+        "active": snap,
+    }
+
+
+@app.post("/api/settings/model")
+async def set_provider_model(payload: dict):
+    """Dynamically updates active LLM provider, model, API key, or custom endpoint."""
+    provider = payload.get("provider", "groq")
+    model = payload.get("model", "qwen/qwen3.8-27b")
+    api_key = payload.get("api_key")
+    custom_base_url = payload.get("custom_base_url")
+
+    if provider not in PROVIDER_CATALOG:
+        raise HTTPException(status_code=400, detail=f"Unsupported provider: {provider}")
+
+    engine_state.update(
+        provider=provider,
+        model=model,
+        api_key=api_key if api_key else None,
+        custom_base_url=custom_base_url if custom_base_url else None,
+    )
+
+    logger.info(f"LLM Engine updated -> Provider: {provider}, Model: {model}")
+    await ws_manager.broadcast({
+        "type": "MODEL_CONFIG_CHANGED",
+        "provider": provider,
+        "model": model,
+    })
+
+    return {
+        "message": f"Successfully switched active engine to {provider.upper()} ({model})",
+        "active": engine_state.snapshot(),
+    }
 
 
 @app.get("/api/threats", response_model=ThreatFeedResponse)
