@@ -10,6 +10,7 @@
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Engine: Groq](https://img.shields.io/badge/Engine-Groq%20LPU-f55036.svg)](https://groq.com/)
+[![CI](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/Tests-81%20Passing-brightgreen.svg)]()
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 
