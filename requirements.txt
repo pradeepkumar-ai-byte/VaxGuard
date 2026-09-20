@@ -8,3 +8,5 @@ tenacity
 sqlalchemy
 aiosqlite
 cachetools
+numpy
+scikit-learn
