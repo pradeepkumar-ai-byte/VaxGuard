@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from vaxguard.immune.baseline import BehavioralBaselineEngine
 from vaxguard.models.immune import BehavioralProfile
@@ -35,3 +36,22 @@ def test_baseline_empty_raises():
     engine = BehavioralBaselineEngine()
     with pytest.raises(ValueError):
         engine.fit_from_texts([])
+
+
+def test_baseline_unfitted_transform_raises():
+    engine = BehavioralBaselineEngine()
+    with pytest.raises(RuntimeError, match="not been fitted"):
+        engine.transform_text("Some text")
+
+
+def test_baseline_custom_profile_id():
+    engine = BehavioralBaselineEngine()
+    profile = engine.fit_from_texts(["Text sample A", "Text sample B"], profile_id="custom_prof_123")
+    assert profile.profile_id == "custom_prof_123"
+
+
+def test_baseline_centroid_unit_norm():
+    engine = BehavioralBaselineEngine()
+    profile = engine.fit_from_texts(["Machine learning security", "AI safety and robustness"])
+    norm = np.linalg.norm(np.array(profile.centroid_vector))
+    assert pytest.approx(norm, 0.001) == 1.0

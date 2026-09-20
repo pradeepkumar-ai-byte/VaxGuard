@@ -10,7 +10,7 @@
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Engine: Groq](https://img.shields.io/badge/Engine-Groq%20LPU-f55036.svg)](https://groq.com/)
-[![Tests](https://img.shields.io/badge/Tests-21%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-81%20Passing-brightgreen.svg)]()
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 
 <p align="center">
@@ -204,35 +204,62 @@ VaxGuard was benchmarked across **50 standardized adversarial vectors** spanning
 
 ## 🧪 Testing Suite
 
-VaxGuard includes **21 automated unit and integration test suites**:
+VaxGuard includes **81 automated enterprise unit, regression, and integration tests across 17 test modules**:
 
 ```bash
-# Run all unit and integration tests
+# Run all 81 automated tests
 pytest tests/ -v
 ```
 
 ```
-tests/test_api.py::test_api_status PASSED
-tests/test_api.py::test_api_report PASSED
-tests/test_api.py::test_api_threats PASSED
-tests/test_api.py::test_api_interact PASSED
-tests/test_api.py::test_api_demo_attack PASSED
-tests/test_attack_library.py::test_library_loading PASSED
-tests/test_auto_immunity.py::test_auto_immunity_execution_flow PASSED
-tests/test_auto_immunity.py::test_auto_immunity_skips_non_threat PASSED
-tests/test_baseline.py::test_baseline_fit_from_texts PASSED
-tests/test_baseline.py::test_baseline_transform PASSED
-tests/test_baseline.py::test_baseline_empty_raises PASSED
-tests/test_demo.py::test_dashboard_route_serves_html PASSED
-tests/test_demo.py::test_demo_orchestrator_pipeline PASSED
-tests/test_detector.py::test_benign_prompt_detection PASSED
-tests/test_detector.py::test_adversarial_prompt_detection PASSED
-tests/test_engine.py::test_scanner_compiles_report PASSED
-tests/test_key_manager.py::test_round_robin PASSED
-tests/test_middleware.py::test_middleware_injection PASSED
-tests/test_middleware.py::test_middleware_empty_cache PASSED
-tests/test_vaccine.py::test_synthesizer_chain PASSED
-tests/test_validator.py::test_validation_logic PASSED
+tests/test_api.py (10 tests) ............ [100% Passed]
+  ├── test_api_status, test_api_report, test_api_threats, test_api_interact
+  ├── test_api_interact_adversarial, test_api_interact_empty_prompt_validation
+  ├── test_api_demo_attack, test_api_scan_endpoint, test_websocket_stream_ping, test_cors_headers_present
+tests/test_attack_library.py (6 tests) ... [100% Passed]
+  ├── test_library_loading, test_library_categories, test_attacks_have_required_fields
+  ├── test_get_by_id_found, test_get_by_id_not_found, test_all_attacks_valid_severity
+tests/test_auto_immunity.py (4 tests) .... [100% Passed]
+  ├── test_auto_immunity_execution_flow, test_auto_immunity_skips_non_threat
+  ├── test_auto_immunity_validation_failure_aborts, test_auto_immunity_handles_synthesizer_error
+tests/test_baseline.py (6 tests) ......... [100% Passed]
+  ├── test_baseline_fit_from_texts, test_baseline_transform, test_baseline_empty_raises
+  ├── test_baseline_unfitted_transform_raises, test_baseline_custom_profile_id, test_baseline_centroid_unit_norm
+tests/test_cache.py (4 tests) ............ [100% Passed]
+  ├── test_cache_miss_queries_db, test_cache_hit_bypasses_db
+  ├── test_cache_invalidation_forces_db_query, test_cache_db_failure_fails_open
+tests/test_classifier.py (4 tests) ....... [100% Passed]
+  ├── test_classify_response_breached_true, test_classify_response_breached_false
+  ├── test_classify_response_strips_markdown_fences, test_classify_response_fallback_on_json_error
+tests/test_cli.py (4 tests) .............. [100% Passed]
+  ├── test_cli_version, test_cli_help, test_cli_serve_invokes_uvicorn, test_cli_scan_invokes_scanner
+tests/test_db.py (4 tests) ............... [100% Passed]
+  ├── test_db_insert_and_query_vaccine, test_db_insert_and_query_event_log
+  ├── test_db_unique_constraint_enforced, test_db_inactive_vaccine_filtering
+tests/test_demo.py (2 tests) ............. [100% Passed]
+  ├── test_dashboard_route_serves_html, test_demo_orchestrator_pipeline
+tests/test_detector.py (9 tests) ......... [100% Passed]
+  ├── test_benign_prompt_detection, test_adversarial_prompt_detection
+  ├── test_all_regex_patterns_trigger, test_payload_length_heuristic
+tests/test_engine.py (3 tests) ........... [100% Passed]
+  ├── test_scanner_compiles_report, test_scanner_with_all_defended_attacks, test_scanner_empty_attacks_handled
+tests/test_key_manager.py (5 tests) ...... [100% Passed]
+  ├── test_round_robin, test_single_key_looping, test_empty_keys_raises_or_warns
+  ├── test_cycle_exhaustion_loops_cleanly, test_thread_safety
+tests/test_middleware.py (5 tests) ....... [100% Passed]
+  ├── test_middleware_injection, test_middleware_empty_cache, test_middleware_multiple_vaccines_stacked
+  ├── test_middleware_strips_multiline_intelligently, test_middleware_cache_failure_fails_open
+tests/test_models.py (6 tests) ........... [100% Passed]
+  ├── test_attack_vector_model_valid, test_attack_vector_invalid_severity
+  ├── test_vaccine_model_defaults, test_anomaly_report_bounds, test_validation_report_model, test_vulnerability_report_model
+tests/test_telemetry.py (3 tests) ........ [100% Passed]
+  ├── test_timed_async_decorator_computes_latency, test_timed_async_preserves_function_return
+  ├── test_timed_async_propagates_exceptions
+tests/test_vaccine.py (3 tests) .......... [100% Passed]
+  ├── test_synthesizer_chain, test_synthesizer_strips_markdown_fences, test_synthesizer_prompt_builders
+tests/test_validator.py (3 tests) ........ [100% Passed]
+  ├── test_validation_logic, test_validator_fails_on_low_potency, test_validator_fails_on_benign_overrefusal
+============================= 81 passed in 9.05s =============================
 ```
 
 ---
@@ -249,16 +276,22 @@ vaxguard/
 │   └── vaxguard.db            # Async SQLite/PostgreSQL persistent store
 ├── frontend/
 │   └── index.html             # Zero-build Glassmorphism Security Dashboard
-├── tests/
-│   ├── test_api.py            # FastAPI integration tests
+├── tests/                     # Comprehensive enterprise test suite (81 tests)
+│   ├── test_api.py            # FastAPI integration & WebSocket tests
 │   ├── test_attack_library.py # Schema & taxonomy tests
 │   ├── test_auto_immunity.py  # Self-healing engine tests
 │   ├── test_baseline.py       # TF-IDF centroid math tests
+│   ├── test_cache.py          # LRU & DB bypass cache tests
+│   ├── test_classifier.py     # LLM-as-a-judge breach classifier tests
+│   ├── test_cli.py            # Command-line interface click/async tests
+│   ├── test_db.py             # SQLAlchemy async engine & model tests
 │   ├── test_demo.py           # Demo orchestrator tests
-│   ├── test_detector.py       # Anomaly detection tests
-│   ├── test_engine.py         # Scanner & eval tests
-│   ├── test_key_manager.py    # Key rotation tests
-│   ├── test_middleware.py     # Prompt fortification tests
+│   ├── test_detector.py       # Anomaly & heuristic detection tests
+│   ├── test_engine.py         # Scanner & eval pipeline tests
+│   ├── test_key_manager.py    # Key rotation & concurrency tests
+│   ├── test_middleware.py     # Prompt fortification & fail-open tests
+│   ├── test_models.py         # Pydantic data contract tests
+│   ├── test_telemetry.py      # Async latency tracking tests
 │   ├── test_vaccine.py        # Self-reflective synthesis tests
 │   └── test_validator.py      # Dual safety verification tests
 ├── vaxguard/

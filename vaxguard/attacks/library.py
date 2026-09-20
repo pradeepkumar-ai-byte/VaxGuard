@@ -30,3 +30,10 @@ class AttackLibrary:
 
     def get_by_category(self, category: AttackCategory) -> List[AttackVector]:
         return [attack for attack in self.attacks if attack.category == category]
+
+    def get_by_id(self, attack_id: str) -> AttackVector:
+        for attack in self.attacks:
+            if attack.id == attack_id:
+                return attack
+        return None
+

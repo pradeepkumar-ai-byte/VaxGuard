@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 from vaxguard.models.attack import AttackCategory
 
@@ -6,7 +7,7 @@ class Vaccine(BaseModel):
     target_category: AttackCategory
     system_prompt_extension: str
     version: int = 1
-    parent_attack_id: str
+    parent_attack_id: Optional[str] = None
     
 class ValidationReport(BaseModel):
     vaccine_id: str
