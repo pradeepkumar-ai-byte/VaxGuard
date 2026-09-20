@@ -383,6 +383,7 @@ async def websocket_stream(websocket: WebSocket):
 
 
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from vaxguard.demo.orchestrator import DemoOrchestrator
 
 demo_orchestrator = DemoOrchestrator(
@@ -390,6 +391,14 @@ demo_orchestrator = DemoOrchestrator(
     ws_manager=ws_manager,
     cache_manager=cache_manager,
 )
+
+# Mount static assets directory
+assets_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "assets",
+)
+if os.path.exists(assets_dir):
+    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
 
 @app.get("/", include_in_schema=False)

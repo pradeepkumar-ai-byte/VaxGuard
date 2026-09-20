@@ -35,6 +35,14 @@ dependencies = [
     "httpx",
 ]
 
+[project.scripts]
+vaxguard = "vaxguard.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vaxguard*"]
+
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --import-mode=importlib"

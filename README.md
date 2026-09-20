@@ -1,8 +1,11 @@
 <div align="center">
 
+<img src="assets/logo.png" alt="VaxGuard Logo" width="160" style="border-radius: 28px; box-shadow: 0 8px 32px rgba(0, 242, 254, 0.35); margin-bottom: 16px;" />
+
 # 🛡️ VaxGuard
 ### Autonomous AI Immune System for Production LLM Security
 
+[![PyPI version](https://img.shields.io/pypi/v/vaxguard.svg?color=blue)](https://pypi.org/project/vaxguard/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -15,6 +18,7 @@
 </p>
 
 [Quickstart](#-quickstart-in-60-seconds) &bull;
+[Install via PyPI](#-install-via-pypi) &bull;
 [Architecture](#-architecture) &bull;
 [Empirical Benchmarks](#-empirical-benchmarks) &bull;
 [API Reference](#-api-reference) &bull;
@@ -80,6 +84,23 @@ Production LLMs today are deployed **without an active immune system**. Once dep
            │  • Interactive Testing Sandbox                   │
            │  • 4-Phase Automated Demo Orchestrator           │
            └──────────────────────────────────────────────────┘
+```
+
+---
+
+## 📦 Install via PyPI
+
+```bash
+pip install vaxguard
+```
+
+Run the system directly from your terminal:
+```bash
+# Start the API service & Cyber Dashboard on port 8000
+vaxguard serve --port 8000
+
+# Or run a terminal vulnerability audit
+vaxguard scan --concurrency 3
 ```
 
 ---

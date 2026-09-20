@@ -15,3 +15,6 @@ data/*.sqlite
 .coverage
 htmlcov/
 *.log
+dist/
+build/
+*.egg-info/
