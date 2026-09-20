@@ -1,6 +1,7 @@
 import os
 from groq import AsyncGroq
 from vaxguard.core.key_manager import GroqKeyManager
+from vaxguard.core.config import DEFAULT_MODEL
 
 # Global instance for default usage across the app
 key_manager = GroqKeyManager()
@@ -9,7 +10,7 @@ class VaxGuardLLM:
     """
     Wrapper to execute LLM calls using round-robin API keys.
     """
-    def __init__(self, model: str = "llama3-8b-8192"):
+    def __init__(self, model: str = DEFAULT_MODEL):
         self.model = model
 
     async def generate(self, system_prompt: str, user_prompt: str, max_tokens: int = 1000) -> str:

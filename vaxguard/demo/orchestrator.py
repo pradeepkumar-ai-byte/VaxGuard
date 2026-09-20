@@ -1,6 +1,7 @@
 import asyncio
 from typing import Dict, Any, Optional
 from vaxguard.core.logger import get_logger
+from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.core.llm_client import VaxGuardLLM
 from vaxguard.attacks.library import AttackLibrary
 from vaxguard.engine.classifier import SeverityClassifier
@@ -28,7 +29,7 @@ class DemoOrchestrator:
 
     def __init__(
         self,
-        target_model: str = "llama3-8b-8192",
+        target_model: str = DEFAULT_MODEL,
         ws_manager: Optional[ConnectionManager] = None,
         cache_manager: Optional[VaccineCacheManager] = None,
     ):

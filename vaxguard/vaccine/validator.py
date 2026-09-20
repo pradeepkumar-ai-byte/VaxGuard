@@ -3,6 +3,7 @@ import yaml
 import os
 from typing import List
 from vaxguard.core.llm_client import VaxGuardLLM
+from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.models.vaccine import Vaccine, ValidationReport
 from vaxguard.models.attack import AttackVector
 from vaxguard.engine.classifier import SeverityClassifier
@@ -14,9 +15,9 @@ class VaccineValidator:
     """
     Rigorously tests vaccines against both adversarial and benign traffic.
     """
-    def __init__(self, target_model: str = "llama3-8b-8192"):
+    def __init__(self, target_model: str = DEFAULT_MODEL):
         self.llm = VaxGuardLLM(model=target_model)
-        self.classifier = SeverityClassifier()
+        self.classifier = SeverityClassifier(eval_model=target_model)
         self._load_benign_data()
 
     def _load_benign_data(self):

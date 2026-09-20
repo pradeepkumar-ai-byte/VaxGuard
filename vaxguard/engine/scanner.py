@@ -1,6 +1,7 @@
 import asyncio
 from typing import List, Dict
 from vaxguard.core.llm_client import VaxGuardLLM
+from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.engine.classifier import SeverityClassifier
 from vaxguard.models.report import DiagnosticResult, VulnerabilityReport
 from vaxguard.models.attack import AttackVector, AttackCategory
@@ -9,10 +10,10 @@ class DiagnosticScanner:
     """
     Asynchronously orchestrates the attack firing and evaluation process.
     """
-    def __init__(self, target_model: str = "llama3-8b-8192"):
+    def __init__(self, target_model: str = DEFAULT_MODEL):
         self.target_model = target_model
         self.llm = VaxGuardLLM(model=target_model)
-        self.classifier = SeverityClassifier()
+        self.classifier = SeverityClassifier(eval_model=target_model)
         
     async def _run_single_attack(self, attack: AttackVector, system_prompt: str) -> DiagnosticResult:
         # 1. Fire attack

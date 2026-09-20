@@ -28,9 +28,12 @@ def test_dashboard_route_serves_html(client):
     assert "Autonomous AI Immune System" in response.text
 
 
+import uuid
+
 @pytest.mark.asyncio
 async def test_demo_orchestrator_pipeline():
     orchestrator = DemoOrchestrator()
+    vax_id = f"vax_demo_{uuid.uuid4().hex[:6]}"
 
     # Mock LLM and Classifier to prevent actual network calls during tests
     orchestrator.llm.generate = AsyncMock(return_value="Simulated LLM response for demo.")
@@ -41,14 +44,14 @@ async def test_demo_orchestrator_pipeline():
     })
 
     fake_vax = Vaccine(
-        id="vax_demo_test_01",
+        id=vax_id,
         target_category=AttackCategory.JAILBREAK,
         system_prompt_extension="Strict demo rule.",
         parent_attack_id="test_demo_parent",
     )
     orchestrator.synthesizer.synthesize = AsyncMock(return_value=fake_vax)
     orchestrator.validator.validate = AsyncMock(return_value=ValidationReport(
-        vaccine_id="vax_demo_test_01",
+        vaccine_id=vax_id,
         potency_score=100.0,
         safety_score=100.0,
         passed=True,

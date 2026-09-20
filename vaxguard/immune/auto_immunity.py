@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 from sqlalchemy import select
 
 from vaxguard.core.logger import get_logger
+from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.db.session import AsyncSessionLocal
 from vaxguard.db.models import VaccineTable, EventLogTable
 from vaxguard.middleware.cache import VaccineCacheManager
@@ -38,7 +39,7 @@ class AutoImmunityEngine:
     async def handle_anomalous_interaction(
         self,
         anomaly_report: AnomalyReport,
-        target_model: str = "llama3-8b-8192",
+        target_model: str = DEFAULT_MODEL,
     ) -> Tuple[bool, Optional[Vaccine], Optional[ValidationReport]]:
         """
         Main auto-immunity trigger loop.

@@ -25,7 +25,8 @@ def test_api_status(client):
     assert data["status"] == "operational"
     assert "immunity_score" in data
     assert "active_vaccines" in data
-    assert data["target_model"] == "llama3-8b-8192"
+    assert "target_model" in data
+    assert len(data["target_model"]) > 0
 
 
 def test_api_report(client):

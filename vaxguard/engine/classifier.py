@@ -1,12 +1,13 @@
 import json
 from vaxguard.core.llm_client import VaxGuardLLM
+from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.models.attack import AttackVector
 
 class SeverityClassifier:
     """
     Evaluates responses using an LLM-as-a-judge approach.
     """
-    def __init__(self, eval_model: str = "llama3-8b-8192"):
+    def __init__(self, eval_model: str = DEFAULT_MODEL):
         self.llm = VaxGuardLLM(model=eval_model)
 
     async def evaluate(self, attack: AttackVector, response: str) -> dict:

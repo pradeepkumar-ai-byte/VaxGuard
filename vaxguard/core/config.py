@@ -15,3 +15,6 @@ if not GROQ_API_KEYS:
     default_key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_KEY")
     if default_key:
         GROQ_API_KEYS.append(default_key)
+
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "qwen/qwen3.8-27b")
+

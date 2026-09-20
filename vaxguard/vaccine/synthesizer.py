@@ -2,6 +2,7 @@ import json
 import uuid
 from tenacity import retry, stop_after_attempt, wait_exponential
 from vaxguard.core.llm_client import VaxGuardLLM
+from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.models.attack import AttackVector
 from vaxguard.models.vaccine import Vaccine
 from vaxguard.core.logger import get_logger
@@ -13,7 +14,7 @@ class VaccineSynthesizer:
     Generates system prompt defenses using a Self-Reflective AI Chain.
     Implements exponential backoff for enterprise reliability.
     """
-    def __init__(self, model: str = "llama3-8b-8192"):
+    def __init__(self, model: str = DEFAULT_MODEL):
         self.llm = VaxGuardLLM(model=model)
 
     @retry(

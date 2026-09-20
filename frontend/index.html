@@ -686,6 +686,11 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: prompt })
         });
+        if (!res.ok) {
+          const errText = await res.text();
+          resultBox.innerText = `[Error ${res.status}]: ${errText}`;
+          return;
+        }
         const data = await res.json();
         resultBox.innerHTML = `
 [SHIELD STATUS]: ${data.fortified ? '✅ VAXGUARD FORTIFIED' : '⚠️ UNFORTIFIED'}
