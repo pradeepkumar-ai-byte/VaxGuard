@@ -1,0 +1,10 @@
+pydantic>=2.0
+pyyaml
+python-dotenv
+groq
+pytest
+pytest-asyncio
+tenacity
+sqlalchemy
+aiosqlite
+cachetools
