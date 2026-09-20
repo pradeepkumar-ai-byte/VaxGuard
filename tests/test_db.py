@@ -7,8 +7,9 @@ from vaxguard.models.attack import AttackCategory
 
 
 @pytest.fixture(autouse=True)
-async def ensure_db():
-    await init_db()
+def ensure_db():
+    import asyncio
+    asyncio.run(init_db())
 
 
 @pytest.mark.asyncio

@@ -37,5 +37,8 @@ def test_cli_serve_subcommand():
 def test_cli_scan_subcommand():
     with patch.object(sys, "argv", ["vaxguard", "scan", "--concurrency", "2"]):
         with patch("asyncio.run") as mock_asyncio_run:
+            def side_effect(coro):
+                coro.close()
+            mock_asyncio_run.side_effect = side_effect
             main()
             mock_asyncio_run.assert_called_once()
