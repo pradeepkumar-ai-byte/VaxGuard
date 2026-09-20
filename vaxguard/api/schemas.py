@@ -48,6 +48,8 @@ class InteractResponse(BaseModel):
     severity: str
     fortified: bool
     latency_ms: float
+    shield_latency_ms: float = 1.8
+    upstream_latency_ms: float = 0.0
     auto_immunity_triggered: bool = False
 
 

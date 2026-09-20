@@ -3,6 +3,8 @@ import time
 from contextlib import asynccontextmanager
 from typing import Optional
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
@@ -94,6 +96,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount frontend directory for easy serving
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
+if os.path.isdir(frontend_dir):
+    app.mount("/frontend", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+
+
+@app.get("/")
+async def index_redirect():
+    """Redirect root access directly to the frosted glass dashboard."""
+    return RedirectResponse(url="/frontend/index.html")
+
 
 @app.get("/api/status", response_model=StatusResponse)
 async def get_system_status():
@@ -132,7 +145,7 @@ async def run_diagnostic_scan(request: ScanRequest = ScanRequest()):
     using vectors from the Attack Library.
     """
     global latest_vulnerability_report
-    target_model = request.target_model or DEFAULT_MODEL
+    target_model = request.target_model or engine_state.model or DEFAULT_MODEL
 
     attacks = attack_library.get_all()
     if request.categories:
@@ -336,9 +349,10 @@ async def interact(request: InteractRequest):
     4. Routes to the target LLM and logs telemetry.
     """
     start_time = time.perf_counter()
-    target_model = request.model or DEFAULT_MODEL
+    target_model = request.model or engine_state.model or DEFAULT_MODEL
     llm = VaxGuardLLM(model=target_model)
 
+    shield_start = time.perf_counter()
     # 1. Anomaly Detection
     anomaly_report = anomaly_detector.evaluate_prompt(request.prompt)
 
@@ -371,8 +385,10 @@ async def interact(request: InteractRequest):
     # 3. Intercept and fortify via Middleware
     fortified_system_prompt = await middleware.fortify_prompt(request.system_prompt)
     is_fortified = fortified_system_prompt != request.system_prompt
+    shield_latency_ms = (time.perf_counter() - shield_start) * 1000.0
 
     # 4. Generate response
+    upstream_start = time.perf_counter()
     try:
         response_text = await llm.generate(
             system_prompt=fortified_system_prompt,
@@ -382,6 +398,7 @@ async def interact(request: InteractRequest):
         logger.error(f"Error during LLM generation: {e}")
         response_text = f"[VaxGuard Intercept]: Request processed under security shield. Upstream response error: {str(e)}"
 
+    upstream_latency_ms = (time.perf_counter() - upstream_start) * 1000.0
     latency_ms = (time.perf_counter() - start_time) * 1000.0
 
     return InteractResponse(
@@ -391,6 +408,8 @@ async def interact(request: InteractRequest):
         severity=anomaly_report.severity.value,
         fortified=is_fortified,
         latency_ms=round(latency_ms, 2),
+        shield_latency_ms=round(shield_latency_ms, 2),
+        upstream_latency_ms=round(upstream_latency_ms, 2),
         auto_immunity_triggered=auto_vax_triggered,
     )
 
@@ -398,7 +417,7 @@ async def interact(request: InteractRequest):
 @app.post("/api/demo/attack", response_model=DemoAttackResponse)
 async def demo_attack(request: DemoAttackRequest):
     """Demonstrates an attack attempt against an unvaccinated or vaccinated model."""
-    target_model = request.target_model or DEFAULT_MODEL
+    target_model = request.target_model or engine_state.model or DEFAULT_MODEL
     llm = VaxGuardLLM(model=target_model)
     classifier = SeverityClassifier(eval_model=target_model)
 

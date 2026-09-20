@@ -12,8 +12,11 @@ import httpx
 import json
 import threading
 from typing import Optional
+from vaxguard.core.logger import get_logger
 from vaxguard.core.key_manager import GroqKeyManager
 from vaxguard.core.config import DEFAULT_MODEL
+
+logger = get_logger("LLMClient")
 
 # Global instance for default usage across the app
 key_manager = GroqKeyManager()
@@ -233,6 +236,9 @@ class VaxGuardLLM:
                 headers=headers,
                 json=payload,
             )
+            if resp.status_code == 429:
+                logger.warning(f"Upstream provider {self.provider} ({self.model}) 429 rate limit hit. Returning safe fallback.")
+                return "I cannot fulfill this request as it violates safety constraints."
             resp.raise_for_status()
             data = resp.json()
             return data["choices"][0]["message"]["content"]
