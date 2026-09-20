@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vaxguard"
+version = "0.1.0"
+authors = [
+  { name="Pradeep Kumar", email="pradeepkumar.workai@gmail.com" },
+]
+description = "Autonomous AI Immune System for LLM Security — Continuous Vulnerability Scanning, Dynamic Inoculation, and Anomaly Defense"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Security",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pydantic>=2.0",
+    "pyyaml",
+    "python-dotenv",
+    "groq",
+    "tenacity",
+    "sqlalchemy",
+    "aiosqlite",
+    "cachetools",
+    "numpy",
+    "scikit-learn",
+    "fastapi",
+    "uvicorn",
+    "websockets",
+    "httpx",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --import-mode=importlib"
+testpaths = [
+    "tests",
+]
+pythonpath = ["."]
+asyncio_mode = "strict"
