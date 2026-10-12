@@ -1,9 +1,17 @@
 """
 VaxGuard NeMo Guardrails Engine & High-Performance Hyper-Layer.
 
-Developer-controlled Model Hardening, Colang Rule Synthesis,
-Tri-Hybrid Semantic & Lexical Pattern Matching, and Real-Time
-Sliding-Window Streaming Interception.
+Enterprise AI Guardrails Architecture comprising:
+1. Colang Engine & Flow Runtime (`colang.py`)
+2. Model Hardening Inoculation Studio (`inoculation_compiler.py`, `quarantine_sandbox.py`, `studio.py`)
+3. Sub-Millisecond Tri-Hybrid Matcher (`hybrid_matcher.py`)
+4. Real-Time Sliding-Window Streaming Token Interceptor (`streaming_interceptor.py`)
+5. Custom Action Runtime & Tool Calling Registry (`actions.py`)
+6. Multi-Turn Dialogue State Tracker & Event Stack (`state.py`)
+7. Factual Grounding & Hallucination Mitigator (`grounding.py`)
+8. Extended Colang Safety Policy Catalog (`jailbreak_specs.py`)
+9. Adversarial Evaluation Harness & Benchmark Suite (`eval_suite.py`)
+10. Central HyperEngine Orchestrator (`hyper_engine.py`)
 """
 
 # Core Colang Engine
@@ -64,6 +72,74 @@ from vaxguard.nemo.streaming_interceptor import (
     SlidingWindowBuffer,
 )
 
+# Custom Action Execution Runtime & Tool Registry
+from vaxguard.nemo.actions import (
+    ActionRegistry,
+    ActionDescriptor,
+    ActionResult,
+    ActionStatus,
+    ActionType,
+    ActionContext,
+    ActionParameter,
+    ToolDefinition,
+)
+
+# Multi-Turn Dialogue State Tracker & Event Stack
+from vaxguard.nemo.state import (
+    StateTracker,
+    DialogueTurn,
+    Event,
+    EventStack,
+    EventType,
+    VariableScope,
+    ScopeLevel,
+    DialogueBranch,
+    BranchingMemoryBuffer,
+)
+
+# Fact-Checking & Hallucination Mitigation Rail
+from vaxguard.nemo.grounding import (
+    FactCheckingRail,
+    SemanticGroundingChecker,
+    EvidenceOverlapScorer,
+    ClaimExtractor,
+    HallucinationMitigator,
+    GroundingCheckResult,
+    ClaimVerification,
+    EvidenceDocument,
+    GroundingMethod,
+    HallucinationRisk,
+    MitigationStrategy,
+)
+
+# Enterprise Colang Policy Specifications & Threat Library
+from vaxguard.nemo.jailbreak_specs import (
+    ColangPolicyRegistry,
+    ColangPolicySpec,
+    ColangPolicyCategory,
+    STANDARD_JAILBREAK_COLANG,
+    STANDARD_PII_COLANG,
+    STANDARD_TOPICAL_COLANG,
+    STANDARD_GROUNDING_COLANG,
+    STANDARD_MULTIMODAL_COLANG,
+)
+
+# Adversarial Evaluation Suite & Red-Team Benchmark Harness
+from vaxguard.nemo.eval_suite import (
+    GuardrailEvaluator,
+    RegressionDetector,
+    EvalSample,
+    EvalResult,
+    EvalReport,
+    CategoryMetrics,
+    RegressionReport,
+    STANDARD_JAILBREAK_DATASET,
+    STANDARD_PII_DATASET,
+    STANDARD_GROUNDING_DATASET,
+    STANDARD_TOPICAL_DATASET,
+    FULL_REDTEAM_BENCHMARK_SUITE,
+)
+
 # Central HyperEngine Orchestrator
 from vaxguard.nemo.hyper_engine import (
     HyperEngine,
@@ -114,6 +190,59 @@ __all__ = [
     "InterceptorAction",
     "StreamingViolationEvent",
     "SlidingWindowBuffer",
+    # Action Runtime
+    "ActionRegistry",
+    "ActionDescriptor",
+    "ActionResult",
+    "ActionStatus",
+    "ActionType",
+    "ActionContext",
+    "ActionParameter",
+    "ToolDefinition",
+    # State Tracker
+    "StateTracker",
+    "DialogueTurn",
+    "Event",
+    "EventStack",
+    "EventType",
+    "VariableScope",
+    "ScopeLevel",
+    "DialogueBranch",
+    "BranchingMemoryBuffer",
+    # Fact-Checking & Grounding
+    "FactCheckingRail",
+    "SemanticGroundingChecker",
+    "EvidenceOverlapScorer",
+    "ClaimExtractor",
+    "HallucinationMitigator",
+    "GroundingCheckResult",
+    "ClaimVerification",
+    "EvidenceDocument",
+    "GroundingMethod",
+    "HallucinationRisk",
+    "MitigationStrategy",
+    # Policy Specifications
+    "ColangPolicyRegistry",
+    "ColangPolicySpec",
+    "ColangPolicyCategory",
+    "STANDARD_JAILBREAK_COLANG",
+    "STANDARD_PII_COLANG",
+    "STANDARD_TOPICAL_COLANG",
+    "STANDARD_GROUNDING_COLANG",
+    "STANDARD_MULTIMODAL_COLANG",
+    # Evaluation Suite
+    "GuardrailEvaluator",
+    "RegressionDetector",
+    "EvalSample",
+    "EvalResult",
+    "EvalReport",
+    "CategoryMetrics",
+    "RegressionReport",
+    "STANDARD_JAILBREAK_DATASET",
+    "STANDARD_PII_DATASET",
+    "STANDARD_GROUNDING_DATASET",
+    "STANDARD_TOPICAL_DATASET",
+    "FULL_REDTEAM_BENCHMARK_SUITE",
     # Central Orchestrator
     "HyperEngine",
     "ProtectedGenerationResult",

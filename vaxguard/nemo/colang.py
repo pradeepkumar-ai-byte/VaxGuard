@@ -294,6 +294,10 @@ class ColangDocument(BaseModel):
                 return intent
         return None
 
+    def get_intent(self, name: str) -> Optional[UserIntent]:
+        """Alias for get_user_intent."""
+        return self.get_user_intent(name)
+
     def get_bot_response(self, name: str) -> Optional[BotResponse]:
         """Lookup bot response by either raw name or normalized canonical name."""
         if name in self.bot_responses:

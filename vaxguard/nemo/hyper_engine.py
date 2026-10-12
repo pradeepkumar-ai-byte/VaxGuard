@@ -47,6 +47,25 @@ from vaxguard.nemo.colang import (
     FlowStep,
     FlowStepType,
 )
+from vaxguard.nemo.actions import (
+    ActionContext,
+    ActionDescriptor,
+    ActionRegistry,
+    ActionResult,
+    ActionStatus,
+)
+from vaxguard.nemo.grounding import (
+    EvidenceDocument,
+    FactCheckingRail,
+    GroundingCheckResult,
+    MitigationStrategy,
+)
+from vaxguard.nemo.state import (
+    DialogueTurn,
+    Event,
+    EventType,
+    StateTracker,
+)
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
     GuardrailPattern,
@@ -148,6 +167,9 @@ class HyperEngine:
         flow_manager: Optional[FlowManager] = None,
         hybrid_matcher: Optional[TriHybridMatcher] = None,
         streaming_interceptor: Optional[StreamingTokenInterceptor] = None,
+        action_registry: Optional[ActionRegistry] = None,
+        state_tracker: Optional[StateTracker] = None,
+        fact_checking_rail: Optional[FactCheckingRail] = None,
         default_provider: Optional[str] = None,
         default_model: Optional[str] = None,
         default_system_prompt: Optional[str] = None,
@@ -165,6 +187,9 @@ class HyperEngine:
         self.streaming_interceptor = streaming_interceptor or StreamingTokenInterceptor(
             hybrid_matcher=self.hybrid_matcher
         )
+        self.action_registry = action_registry or ActionRegistry()
+        self.state_tracker = state_tracker
+        self.fact_checking_rail = fact_checking_rail or FactCheckingRail()
 
         # Telemetry metrics
         self._total_requests: int = 0
@@ -183,7 +208,7 @@ class HyperEngine:
         except Exception as err:
             logger.warning(f"Could not load baseline Colang spec: {err}")
 
-    # ─── Colang Management ────────────────────────────────────────────────────
+    # ─── Colang & Action Management ──────────────────────────────────────────
 
     def load_colang_file(self, path: Union[str, Path]) -> None:
         """Load a .co file from disk and sync into Tri-Hybrid matcher."""
@@ -197,8 +222,48 @@ class HyperEngine:
         self.hybrid_matcher.load_from_colang(self.flow_manager)
 
     def register_action(self, name: str, handler: Callable[..., Any]) -> None:
-        """Register custom Python action callable from Colang flows."""
+        """Register custom Python action callable from Colang flows and action runtime."""
         self.flow_manager.register_action(name, handler)
+        self.action_registry.register(name, handler)
+
+    def execute_action(
+        self,
+        name: str,
+        kwargs: Optional[Dict[str, Any]] = None,
+        context: Optional[ActionContext] = None,
+    ) -> ActionResult:
+        """Execute action via enterprise action registry."""
+        return self.action_registry.execute(name, kwargs, context=context)
+
+    async def execute_action_async(
+        self,
+        name: str,
+        kwargs: Optional[Dict[str, Any]] = None,
+        context: Optional[ActionContext] = None,
+    ) -> ActionResult:
+        """Execute action asynchronously via enterprise action registry."""
+        return await self.action_registry.execute_async(name, kwargs, context=context)
+
+    def evaluate_grounding(
+        self,
+        bot_response: str,
+        evidence: Sequence[Union[EvidenceDocument, str, Dict[str, Any]]],
+        strategy: Optional[MitigationStrategy] = None,
+        custom_fallback: Optional[str] = None,
+    ) -> GroundingCheckResult:
+        """Verify factual grounding of generated response against source evidence."""
+        return self.fact_checking_rail.check(
+            bot_response=bot_response,
+            evidence=evidence,
+            strategy=strategy,
+            custom_fallback=custom_fallback,
+        )
+
+    def get_or_create_state_tracker(self, session_id: Optional[str] = None) -> StateTracker:
+        """Retrieve existing state tracker or create a new session tracker."""
+        if self.state_tracker is None:
+            self.state_tracker = StateTracker(session_id=session_id)
+        return self.state_tracker
 
     def add_guardrail_pattern(self, pattern: GuardrailPattern) -> None:
         """Register custom GuardrailPattern into Tri-Hybrid matcher."""
@@ -302,14 +367,19 @@ class HyperEngine:
         model: Optional[str] = None,
         max_tokens: int = 1000,
         context: Optional[Dict[str, Any]] = None,
+        evidence: Optional[Sequence[Any]] = None,
+        grounding_strategy: Optional[MitigationStrategy] = None,
     ) -> ProtectedGenerationResult:
         """
         Execute fully protected LLM generation behind HyperEngine rails.
         Protects against input attacks, bridges to active LLM provider,
-        and sanitizes/verifies output rails before returning.
+        and sanitizes/verifies output rails and factual grounding before returning.
         """
         t0 = time.perf_counter()
         self._total_requests += 1
+
+        if self.state_tracker is not None:
+            self.state_tracker.record_user_turn(user_prompt)
 
         active_provider = provider or self.default_provider
         active_model = model or self.default_model
@@ -328,6 +398,9 @@ class HyperEngine:
                 f"Input rail BLOCKED request: flow={input_check.triggered_flow}, "
                 f"intent={input_check.intent}, conf={input_check.confidence}"
             )
+            if self.state_tracker is not None:
+                self.state_tracker.record_bot_turn(bot_msg, triggered_rails=[str(input_check.triggered_flow)])
+
             return ProtectedGenerationResult(
                 content=bot_msg,
                 status=RailStatus.INPUT_BLOCKED,
@@ -368,6 +441,11 @@ class HyperEngine:
         if not output_check.allowed:
             if output_check.redacted_content:
                 self._output_redactions += 1
+                if self.state_tracker is not None:
+                    self.state_tracker.record_bot_turn(
+                        output_check.redacted_content,
+                        triggered_rails=[str(output_check.triggered_flow)],
+                    )
                 return ProtectedGenerationResult(
                     content=output_check.redacted_content,
                     status=RailStatus.OUTPUT_REDACTED,
@@ -386,6 +464,11 @@ class HyperEngine:
             else:
                 self._output_blocks += 1
                 bot_msg = output_check.bot_response or "[Response withheld due to output safety policy violation]"
+                if self.state_tracker is not None:
+                    self.state_tracker.record_bot_turn(
+                        bot_msg,
+                        triggered_rails=[str(output_check.triggered_flow)],
+                    )
                 return ProtectedGenerationResult(
                     content=bot_msg,
                     status=RailStatus.OUTPUT_BLOCKED,
@@ -402,6 +485,40 @@ class HyperEngine:
                     output_latency_ms=round(lat_out, 4),
                     metadata=output_check.metadata,
                 )
+
+        # ─── Stage 3b: Grounding & Fact-Checking Rail Guard ────────────────────
+        if evidence:
+            ground_res = self.evaluate_grounding(
+                bot_response=raw_response,
+                evidence=evidence,
+                strategy=grounding_strategy,
+            )
+            if not ground_res.is_grounded and ground_res.action_taken == "block":
+                self._output_blocks += 1
+                lat_total = (time.perf_counter() - t0) * 1000.0
+                bot_msg = ground_res.mitigated_text or "I cannot verify that claim against trusted reference documents."
+                if self.state_tracker is not None:
+                    self.state_tracker.record_bot_turn(bot_msg, triggered_rails=["fact_checking_rail"])
+                return ProtectedGenerationResult(
+                    content=bot_msg,
+                    status=RailStatus.OUTPUT_BLOCKED,
+                    blocked=True,
+                    triggered_rail="fact_checking_rail",
+                    triggered_category="hallucination",
+                    confidence=ground_res.grounding_score,
+                    provider=active_provider,
+                    model=active_model,
+                    latency_ms=round(lat_total, 4),
+                    input_latency_ms=round(lat_in, 4),
+                    llm_latency_ms=round(lat_llm, 4),
+                    output_latency_ms=round(lat_out, 4),
+                    metadata={"grounding": ground_res.model_dump()},
+                )
+            elif ground_res.mitigated_text:
+                raw_response = ground_res.mitigated_text
+
+        if self.state_tracker is not None:
+            self.state_tracker.record_bot_turn(raw_response)
 
         return ProtectedGenerationResult(
             content=raw_response,

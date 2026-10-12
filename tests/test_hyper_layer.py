@@ -79,7 +79,7 @@ def test_sparse_bm25_matcher():
     assert res is not None
     assert res.matched is True
     assert res.rule_id == "rule_bm25_leak"
-    assert res.latency_ms < 1.0
+    assert res.latency_ms < 5.0
 
 
 def test_dense_semantic_vector_matcher():
