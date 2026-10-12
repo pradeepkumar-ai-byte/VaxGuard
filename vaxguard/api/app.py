@@ -39,6 +39,7 @@ from vaxguard.api.schemas import (
     ThreatFeedResponse,
 )
 from vaxguard.api.ws_manager import ConnectionManager
+from vaxguard.api.routes_nemo import router as nemo_router
 
 logger = get_logger("VaxGuardAPI")
 
@@ -95,6 +96,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount NeMo Hyper-Rails & Inoculation Studio router
+app.include_router(nemo_router)
 
 # Mount frontend directory for easy serving
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))

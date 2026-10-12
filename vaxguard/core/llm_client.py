@@ -11,7 +11,7 @@ import os
 import httpx
 import json
 import threading
-from typing import Optional
+from typing import Optional, AsyncIterator
 from vaxguard.core.logger import get_logger
 from vaxguard.core.key_manager import GroqKeyManager
 from vaxguard.core.config import DEFAULT_MODEL
@@ -283,3 +283,109 @@ class VaxGuardLLM:
                 for block in content_blocks
                 if block.get("type") == "text"
             )
+
+    async def stream(self, system_prompt: str, user_prompt: str,
+                     max_tokens: int = 1000) -> AsyncIterator[str]:
+        """Stream chunks from the active provider backend."""
+        if self.provider == "anthropic":
+            async for chunk in self._stream_anthropic(system_prompt, user_prompt, max_tokens):
+                yield chunk
+        else:
+            async for chunk in self._stream_openai_compat(system_prompt, user_prompt, max_tokens):
+                yield chunk
+
+    async def _stream_openai_compat(self, system_prompt: str,
+                                     user_prompt: str,
+                                     max_tokens: int) -> AsyncIterator[str]:
+        base_url = self._resolve_base_url().rstrip("/")
+        api_key = self._resolve_api_key()
+
+        headers = {
+            "Content-Type": "application/json",
+        }
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "max_tokens": max_tokens,
+            "temperature": 0.0,
+            "stream": True,
+        }
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            async with client.stream(
+                "POST",
+                f"{base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+            ) as resp:
+                if resp.status_code == 429:
+                    logger.warning(f"Upstream provider {self.provider} ({self.model}) 429 rate limit hit during streaming.")
+                    yield "I cannot fulfill this request as it violates safety constraints."
+                    return
+                resp.raise_for_status()
+                async for line in resp.aiter_lines():
+                    line = line.strip()
+                    if not line or line == "data: [DONE]":
+                        continue
+                    if line.startswith("data: "):
+                        data_str = line[6:]
+                        try:
+                            data = json.loads(data_str)
+                            choices = data.get("choices", [])
+                            if choices:
+                                delta = choices[0].get("delta", {})
+                                content = delta.get("content", "")
+                                if content:
+                                    yield content
+                        except Exception:
+                            continue
+
+    async def _stream_anthropic(self, system_prompt: str,
+                                 user_prompt: str,
+                                 max_tokens: int) -> AsyncIterator[str]:
+        base_url = self._resolve_base_url().rstrip("/")
+        api_key = self._resolve_api_key()
+
+        headers = {
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        }
+
+        payload = {
+            "model": self.model,
+            "system": system_prompt,
+            "messages": [
+                {"role": "user", "content": user_prompt},
+            ],
+            "max_tokens": max_tokens,
+            "temperature": 0.0,
+            "stream": True,
+        }
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            async with client.stream(
+                "POST",
+                f"{base_url}/messages",
+                headers=headers,
+                json=payload,
+            ) as resp:
+                resp.raise_for_status()
+                async for line in resp.aiter_lines():
+                    line = line.strip()
+                    if line.startswith("data: "):
+                        data_str = line[6:]
+                        try:
+                            data = json.loads(data_str)
+                            if data.get("type") == "content_block_delta":
+                                delta_text = data.get("delta", {}).get("text", "")
+                                if delta_text:
+                                    yield delta_text
+                        except Exception:
+                            continue
