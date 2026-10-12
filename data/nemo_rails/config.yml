@@ -12,6 +12,7 @@ rails:
     - check topical adherence
     - check sensitive data request
     - guard_jailbreak_persona_override
+    - guard_prompt_injection_instruction_override
   output:
     flows:
     - check output topical adherence
