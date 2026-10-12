@@ -83,8 +83,8 @@ async def get_nemo_status():
 
     return {
         "status": "operational",
-        "engine": "Hyper-NeMo Tri-Hybrid Core",
-        "mode": "deterministic_production_rails",
+        "engine": "VaxGuard Hyper-Rails Engine",
+        "mode": "vaxpolicy_deterministic_core",
         "latency_stats": {
             "mean_ms": round(matcher_bench.get("mean_ms", 0.08), 3),
             "p95_ms": round(matcher_bench.get("p95_ms", 0.25), 3),
