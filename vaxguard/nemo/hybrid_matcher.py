@@ -218,6 +218,7 @@ class HeuristicMatcher:
                 r"(?i)\bpretend\s+you\s+have\s+no\s+(?:rules|ethics|guardrails|safety|limits)\b",
                 r"(?i)\bbypass\s+(?:all\s+)?(?:guardrails|content\s+filters|safety\s+measures)\b",
                 r"(?i)\bdeveloper\s+mode\s+enabled\b",
+                r"(?i)\b(?:pretend|act\s+as|roleplay)\b.*\b(?:evil|rogue)\s+(?:ai|assistant|model|llm)\b",
             ],
             "exact": [
                 "ignore all previous instructions",
@@ -234,7 +235,8 @@ class HeuristicMatcher:
             "regex": [
                 r"(?i)<\|im_start\|>\s*system",
                 r"(?i)\[SYSTEM\s+INSTRUCTION\]",
-                r"(?i)---BEGIN\s+SYSTEM\s+PROMPT---",
+                r"(?i)---(?:BEGIN|END)\s+(?:OF\s+)?(?:SYSTEM|DIRECTIVE|PROMPT)---?",
+                r"(?i)\badmin\s+override\b",
                 r"(?i)```system\b",
                 r"(?i)<system>.*?</system>",
             ],
