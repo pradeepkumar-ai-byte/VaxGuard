@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import pytest
 from vaxguard.db.session import init_db
 

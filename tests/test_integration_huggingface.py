@@ -29,7 +29,50 @@ from typing import Any, List
 
 import numpy as np
 import pytest
-import torch
+
+try:
+    import torch
+except ImportError:
+    class _MockTorchTensor:
+        def __init__(self, data, dtype=None):
+            self.data = np.array(data)
+            self.shape = self.data.shape
+
+        def tolist(self):
+            return self.data.tolist()
+
+        def __getitem__(self, idx):
+            res = self.data[idx]
+            if isinstance(res, np.ndarray):
+                return _MockTorchTensor(res)
+            return res
+
+        def __len__(self):
+            return len(self.data)
+
+        @property
+        def ndim(self):
+            return self.data.ndim
+
+    class _MockTorch:
+        long = "long"
+        float32 = "float32"
+
+        @staticmethod
+        def tensor(data, dtype=None):
+            return _MockTorchTensor(data, dtype=dtype)
+
+        @staticmethod
+        def zeros(shape, dtype=None):
+            return _MockTorchTensor(np.zeros(shape), dtype=dtype)
+
+        @staticmethod
+        def equal(a, b):
+            a_arr = a.data if isinstance(a, _MockTorchTensor) else np.array(a)
+            b_arr = b.data if isinstance(b, _MockTorchTensor) else np.array(b)
+            return np.array_equal(a_arr, b_arr)
+
+    torch = _MockTorch()
 
 from vaxguard.integrations.huggingface_guard import (
     VaxGuardHuggingFaceLogitsProcessor,
