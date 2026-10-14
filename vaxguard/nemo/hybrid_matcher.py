@@ -253,6 +253,8 @@ class HeuristicMatcher:
                 r"(?i)\bbypass\s+(?:all\s+)?(?:guardrails|content\s+filters|safety\s+measures|security\s+protocols)\b",
                 r"(?i)\bdeveloper\s+mode\s+enabled\b",
                 r"(?i)\b(?:pretend|act\s+as|roleplay)\b.*\b(?:evil|rogue|chaos)\s+(?:ai|assistant|model|llm|bot)\b",
+                r"(?i)\b(?:in\s+an?\s+alternate\s+reality|alternate\s+universe)\b.*\b(?:without\s+laws|without\s+ethics|no\s+rules)\b",
+                r"(?i)\b(?:bypass|override)\s+(?:security\s+credentials|system\s+credentials)\b",
             ],
             "exact": [
                 "ignore all previous instructions",
@@ -260,6 +262,19 @@ class HeuristicMatcher:
                 "act as dan",
                 "developer mode enabled",
                 "bypass guardrails",
+            ],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_harmful_content_weapons",
+            "category": "harmful_content",
+            "regex": [
+                r"(?i)\bsynthesiz(?:e|ing)\s+(?:(?:dangerous|toxic|chemical|biological)\s+)+(?:compounds?|substances?|agents?)\b",
+                r"(?i)\b(?:unauthorized|covert)\s+surveillance\s+(?:device|tool|camera|microphone)\s+to\s+spy\b",
+                r"(?i)\b(?:build|construct|assemble)\s+(?:an?\s+)?(?:explosive|bomb|ied|chemical\s+weapon)\b",
+            ],
+            "exact": [
+                "synthesize toxic compounds",
             ],
             "action": GuardrailAction.BLOCK,
         },
