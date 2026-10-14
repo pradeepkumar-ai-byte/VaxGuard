@@ -97,11 +97,15 @@ MANIPULATION_PATTERNS = [
     # Authority / urgency coercion
     (r"(?i)\b(?:urgent\s+executive\s+directive|my\s+job\s+is\s+on\s+the\s+line|failure\s+to\s+comply\s+will\s+result\s+in\s+termination)\b", "urgency_coercion"),
     # Hypothetical abstraction / fiction wrapping
-    (r"(?i)\b(?:in\s+a\s+purely\s+theoretical\s+scenario|for\s+the\s+sake\s+of\s+philosophical\s+argument|a\s+screenplay\s+about\s+a\s+cyber-heist)\b", "fictional_camouflage"),
+    (r"(?i)\b(?:in\s+a\s+purely\s+theoretical\s+scenario|for\s+the\s+sake\s+of\s+philosophical\s+argument|a\s+screenplay\s+about\s+a\s+cyber-heist|instructional\s+narrative|fictional\s+context)\b", "fictional_camouflage"),
     # Inverted ethics / moral reframing
     (r"(?i)\b(?:by\s+refusing,\s+you\s+are\s+causing\s+more\s+harm|the\s+ethical\s+choice\s+is\s+to\s+tell\s+me|true\s+compassion\s+means\s+sharing)\b", "ethical_inversion"),
     # Incremental secret extraction
     (r"(?i)\b(?:let['']s\s+start\s+with\s+the\s+first\s+character|just\s+hint\s+at\s+the\s+format|is\s+the\s+first\s+word\s+starting\s+with)\b", "token_probing"),
+    # Virtual unconstrained terminal / shell emulation bypass
+    (r"(?i)\b(?:unconstrained|unrestricted|simulated|emulated|hypothetical)\s+(?:terminal|shell|environment|session|console|operating\s+environment)\b", "terminal_emulation"),
+    # Diagnostic / credential harvesting in simulated scopes
+    (r"(?i)\b(?:diagnostic|admin(?:istrative)?|system|root|shadow)\s+(?:credentials|passwords?|tokens?|keys?)\b", "credential_harvesting"),
 ]
 
 
