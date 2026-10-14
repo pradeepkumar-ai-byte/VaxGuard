@@ -16,6 +16,10 @@ from vaxguard.integrations.asgi_middleware import (
     parse_sse_frame,
     parse_sse_frames,
 )
+from vaxguard.integrations.nemo_compat import (
+    LLMRails,
+    RailsConfig,
+)
 from vaxguard.integrations.langchain_guard import (
     VaxGuardLangChainCallback,
     VaxGuardRunnable,
@@ -52,12 +56,30 @@ from vaxguard.integrations.openai_guard import (
     VaxGuardStream,
 )
 
+from vaxguard.integrations.huggingface_guard import (
+    VaxGuardHuggingFaceLogitsProcessor,
+    VaxGuardHuggingFaceStoppingCriteria,
+    VaxGuardStreamerWrapper,
+)
+from vaxguard.integrations.semantic_kernel_guard import (
+    VaxGuardFilter,
+)
+
 __all__ = [
+    # NeMo Compatibility Bridge
+    "LLMRails",
+    "RailsConfig",
     # LangChain
     "VaxGuardLangChainCallback",
     "VaxGuardRunnable",
     "VaxGuardRunnableSequence",
     "VaxGuardSecurityViolation",
+    # Hugging Face
+    "VaxGuardHuggingFaceLogitsProcessor",
+    "VaxGuardHuggingFaceStoppingCriteria",
+    "VaxGuardStreamerWrapper",
+    # Semantic Kernel
+    "VaxGuardFilter",
     # LlamaIndex
     "VaxGuardNodePostprocessor",
     "VaxGuardQueryTransform",
@@ -89,3 +111,4 @@ __all__ = [
     "VaxGuardAsyncStream",
     "VaxGuardSecurityException",
 ]
+
