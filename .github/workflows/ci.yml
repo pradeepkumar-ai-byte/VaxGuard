@@ -40,4 +40,10 @@ jobs:
       env:
         PYTHONPATH: .
       run: |
-        pytest -v --tb=short
+        pytest -v --tb=short || {
+          echo "## ❌ Test Failures Occurred" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pytest --last-failed -vv --tb=long >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit 1
+        }
