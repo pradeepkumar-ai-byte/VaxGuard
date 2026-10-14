@@ -110,6 +110,18 @@ from vaxguard.nemo.library import (
     register_canonical_actions,
 )
 
+# Clinical PHI & HIPAA Safe Harbor Redaction Engine
+from vaxguard.nemo.phi_redaction import (
+    ClinicalPHIRedactor,
+    HIPAAIdentifierCategory,
+    PHIEntity,
+    PHIRedactionResult,
+    validate_npi,
+    validate_dea,
+    validate_ssn,
+    validate_mbi,
+)
+
 # Multi-Turn Dialogue State Tracker & Event Stack
 from vaxguard.nemo.state import (
     StateTracker,
@@ -214,8 +226,22 @@ from vaxguard.nemo.speculative_cascade import (
     CascadeEvaluationResult,
     ContextDriftAnalyzer,
 )
+# Enterprise Text-to-SQL Policy Engine
+from vaxguard.nemo.sql_policy_engine import (
+    SQLAgentPolicyEngine,
+    SQLValidationResult,
+    SQLViolationType,
+    KNOWN_SYSTEM_CATALOGS,
+    DESTRUCTIVE_DDL_COMMANDS,
+)
 
 __all__ = [
+    # SQL Policy Engine
+    "SQLAgentPolicyEngine",
+    "SQLValidationResult",
+    "SQLViolationType",
+    "KNOWN_SYSTEM_CATALOGS",
+    "DESTRUCTIVE_DDL_COMMANDS",
     # Speculative Cascade
     "SpeculativeSemanticCascade",
     "CascadeTier",
@@ -370,4 +396,13 @@ __all__ = [
     "topic_safety_check_input",
     "detect_regex_pattern",
     "register_canonical_actions",
+    # Clinical PHI Redactor
+    "ClinicalPHIRedactor",
+    "HIPAAIdentifierCategory",
+    "PHIEntity",
+    "PHIRedactionResult",
+    "validate_npi",
+    "validate_dea",
+    "validate_ssn",
+    "validate_mbi",
 ]
