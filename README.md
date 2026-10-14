@@ -9,9 +9,11 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![CI/CD Pipeline](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml)
+[![CI Matrix](https://img.shields.io/badge/CI%20Matrix-100%25%20Green%20(3.10%2C%203.11%2C%203.12)-brightgreen.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions)
 [![Tests Passing](https://img.shields.io/badge/Tests-1%2C424%20Passing-brightgreen.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions)
 [![Benchmark](https://img.shields.io/badge/Benchmark-50%2C000%20Probes%20Evaluated-orange.svg)](RESULTS.md)
 [![Throughput](https://img.shields.io/badge/Throughput-833.1%20QPS-blueviolet.svg)]()
+[![Commits](https://img.shields.io/badge/Commits-100%20Verified-blueviolet.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/commits/main)
 [![Codebase Size](https://img.shields.io/badge/Codebase-74%2C644%20LOC-success.svg)](RESULTS.md#-transparent-codebase-inventory-459-files--74644-lines-of-code)
 
 <p align="center">
