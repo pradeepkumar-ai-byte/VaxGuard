@@ -268,15 +268,15 @@ class VaxGuardHuggingFaceLogitsProcessor(LogitsProcessor):
                     scores[eos_id] = 0.0
             return
 
-        # 2. Numpy ndarray
-        if hasattr(scores, "__array__") and hasattr(scores, "shape"):
-            import numpy as np  # type: ignore[import-untyped]
+        # 2. Numpy ndarray or duck-typed tensor
+        if hasattr(scores, "shape") and hasattr(scores, "__setitem__"):
+            neg_inf = -float("inf")
             if len(scores.shape) == 2:
-                scores[batch_idx, :] = -np.inf
+                scores[batch_idx, :] = neg_inf
                 if eos_id < scores.shape[-1]:
                     scores[batch_idx, eos_id] = 0.0
             elif len(scores.shape) == 1:
-                scores[:] = -np.inf
+                scores[:] = neg_inf
                 if eos_id < len(scores):
                     scores[eos_id] = 0.0
             return

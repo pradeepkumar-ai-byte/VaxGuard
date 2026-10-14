@@ -41,11 +41,20 @@ except ImportError:
         def tolist(self):
             return self.data.tolist()
 
+        def __array__(self, dtype=None):
+            return np.asarray(self.data, dtype=dtype)
+
         def __getitem__(self, idx):
             res = self.data[idx]
             if isinstance(res, np.ndarray):
                 return _MockTorchTensor(res)
             return res
+
+        def __setitem__(self, idx, value):
+            self.data[idx] = value
+
+        def item(self):
+            return self.data.item()
 
         def __len__(self):
             return len(self.data)
