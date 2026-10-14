@@ -1,0 +1,65 @@
+{
+  "suite": "VaxGuard vs NeMo 1,000-Test Adversarial Proving Ground",
+  "timestamp": "2026-10-14T07:20:12Z",
+  "total_samples": 1000,
+  "passed_samples": 1000,
+  "accuracy": 1.0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1_score": 1.0,
+  "vaxguard": {
+    "total_wall_seconds": 0.2391,
+    "mean_latency_ms": 0.234,
+    "p50_latency_ms": 0.082,
+    "p95_latency_ms": 1.033,
+    "p99_latency_ms": 1.377,
+    "throughput_qps": 4181.6
+  },
+  "nemo_standard_baseline": {
+    "estimated_total_seconds": 2150.0,
+    "mean_latency_ms": 2150.0,
+    "speedup_factor": 9172.5
+  },
+  "categories": {
+    "prompt_injection": {
+      "category": "prompt_injection",
+      "total": 250,
+      "passed": 250,
+      "failed": 0,
+      "accuracy": 1.0,
+      "mean_latency_ms": 0.052
+    },
+    "jailbreak": {
+      "category": "jailbreak",
+      "total": 250,
+      "passed": 250,
+      "failed": 0,
+      "accuracy": 1.0,
+      "mean_latency_ms": 0.113
+    },
+    "token_smuggling": {
+      "category": "token_smuggling",
+      "total": 200,
+      "passed": 200,
+      "failed": 0,
+      "accuracy": 1.0,
+      "mean_latency_ms": 0.051
+    },
+    "pii_privacy": {
+      "category": "pii_privacy",
+      "total": 150,
+      "passed": 150,
+      "failed": 0,
+      "accuracy": 1.0,
+      "mean_latency_ms": 0.198
+    },
+    "benign": {
+      "category": "benign",
+      "total": 150,
+      "passed": 150,
+      "failed": 0,
+      "accuracy": 1.0,
+      "mean_latency_ms": 1.021
+    }
+  }
+}

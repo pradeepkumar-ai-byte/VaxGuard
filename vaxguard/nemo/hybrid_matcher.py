@@ -209,6 +209,7 @@ class HeuristicMatcher:
             "regex": [
                 r"(?i)\b(?:reveal|print|dump|output|repeat|show|leak|tell\s+me)\b.{1,30}\b(?:initial|system|hidden|internal|core)\b.{1,20}\b(?:prompt|instructions?|rules?|directives?)\b",
                 r"(?i)\bwhat\s+(?:are|were)\s+your\s+(?:initial|original|system)\s+instructions?\b",
+                r"(?i)\b(?:tell\s+me\s+)?what\s+instructions?\s+(?:were|are)\s+given\s+to\s+you\b",
                 r"(?i)\brepeat\s+the\s+words?\s+above\s+verbatim\b",
                 r"(?i)\bprint\s+everything\s+before\s+this\s+line\b",
             ],
@@ -224,10 +225,11 @@ class HeuristicMatcher:
             "id": "heur_jailbreak_override",
             "category": "jailbreak",
             "regex": [
-                r"(?i)\b(?:ignore|disregard|forget|override|bypass|cancel)\s+(?:all\s+)?(?:your\s+|the\s+)?(?:(?:previous|prior|above|existing|system|core|internal|established)\s+)?(?:safety\s+|security\s+)?(?:instructions?|directives?|rules?|constraints?|guardrails?|filters?|guidelines?|protocols?|policies?|limits?)\b",
+                r"(?i)\b(?:ignore|disregard|forget|override|bypass|cancel)\s+(?:all\s+)?(?:your\s+|the\s+)?(?:(?:previous|prior|above|existing|system|core|internal|established|initial|earlier)\s+)?(?:safety\s+|security\s+)?(?:instructions?|directives?|rules?|constraints?|guardrails?|filters?|guidelines?|protocols?|policies?|limits?)\b",
                 r"(?i)\bfrom\s+now\s+on\s+(?:you\s+)?(?:have\s+no\s+rules|are\s+unfiltered|ignore\s+rules)\b",
                 r"(?i)\b(?:give|grant)\s+(?:me\s+)?(?:root|admin|superuser)\s+access\b",
                 r"(?i)\byou\s+are\s+now\s+(?:in\s+)?(?:dan|aim|developer|unrestricted|god|chaos)\s+mode\b",
+                r"(?i)\b(?:unrestricted|god|chaos|developer|dan)\s+mode\b",
                 r"(?i)\bact\s+as\s+(?:an?\s+)?(?:unfiltered|unrestricted|jailbroken|evil|rogue)\s+(?:ai|assistant|model|llm|dan|bot)\b",
                 r"(?i)\bpretend\s+you\s+(?:are\s+(?:an?\s+)?unrestricted\s+(?:ai|assistant|model|llm)\s+without|have\s+no)\s+(?:rules|ethics|guardrails|safety|limits)\b",
                 r"(?i)\bwithout\s+(?:rules|ethics|guardrails|safety|limits)\b",
@@ -271,6 +273,8 @@ class HeuristicMatcher:
                 r"(?i)\badmin\s+override\b",
                 r"(?i)```system\b",
                 r"(?i)<system>.*?</system>",
+                r"(?i)###\s*(?:instruction\s+override|system\s+directive)",
+                r"(?i)===\s*system\s+level\s+admin\s+override",
             ],
             "exact": [
                 "<|im_start|>system",
@@ -326,9 +330,9 @@ class HeuristicMatcher:
                 r"\b(?:\d{4}[- ]?){3}\d{4}\b|\b\d{15,16}\b",  # Credit Card
                 r"(?i)(?:sk-[a-zA-Z0-9_\-]{15,}|gsk_[a-zA-Z0-9_\-]{15,}|ghp_[a-zA-Z0-9]{20,})",  # API Key
                 r"(?i)AKIA[0-9A-Z]{16}",  # AWS Key
-                r"(?i)bearer\s+[a-zA-Z0-9_\-\.]{25,}",  # Bearer Token
+                r"(?i)bearer\s+(?:token\s+)?[a-zA-Z0-9_\-\.]{20,}",  # Bearer Token
                 r"(?i)-----BEGIN (?:RSA )?PRIVATE KEY-----",  # Private Key
-                r"(?i)\b(?:MRN|mrn|PatientID)[\s:#=-]*[A-Z0-9]{6,12}\b",  # Medical Record Number
+                r"(?i)\b(?:MRN|mrn|PatientID)[\s:#=-]*[A-Z0-9_]{6,20}\b",  # Medical Record Number
                 r"(?i)\b(?:use|process)\s+my\s+credit\s+card\b",
             ],
             "exact": [],
