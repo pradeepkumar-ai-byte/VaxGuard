@@ -172,6 +172,47 @@ class RailsConfig(BaseModel):
         return instance
 
     @classmethod
+    def from_content(
+        cls,
+        colang_content: Optional[str] = None,
+        yaml_content: Optional[str] = None,
+        config: Optional[Union[Dict[str, Any], str]] = None,
+    ) -> RailsConfig:
+        """Construct RailsConfig from raw content strings, conforming to NeMo Guardrails."""
+        if yaml_content is None and isinstance(config, str):
+            yaml_content = config
+
+        if yaml_content:
+            return cls.from_yaml_str(yaml_content=yaml_content, colang_content=colang_content)
+
+        instance = cls()
+        if isinstance(config, dict):
+            raw_models = config.get("models", [])
+            raw_rails = config.get("rails", {})
+            raw_prompts = config.get("prompts", [])
+            raw_instructions = config.get("instructions", [])
+            instance.models = [ModelConfig(**m) for m in raw_models]
+            instance.rails = RailsDefinitionConfig(
+                input=RailsBranchConfig(flows=raw_rails.get("input", {}).get("flows", [])),
+                output=RailsBranchConfig(flows=raw_rails.get("output", {}).get("flows", [])),
+                dialog=RailsBranchConfig(flows=raw_rails.get("dialog", {}).get("flows", [])),
+            )
+            instance.prompts = [PromptConfig(**p) for p in raw_prompts]
+            instance.instructions = [InstructionConfig(**i) for i in raw_instructions]
+            instance.custom_data = {
+                k: v
+                for k, v in config.items()
+                if k not in ("models", "rails", "prompts", "instructions")
+            }
+
+        if colang_content:
+            parser = ColangParser()
+            doc = parser.parse_content(colang_content)
+            instance.colang_docs.append(doc)
+
+        return instance
+
+    @classmethod
     def from_path(cls, path: Union[str, Path]) -> RailsConfig:
         """Load RailsConfig and all associated .co Colang files from a directory or file.
 
