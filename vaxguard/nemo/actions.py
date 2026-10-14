@@ -100,6 +100,47 @@ class ActionContext(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+class TransformTarget(str, Enum):
+    USER_MESSAGE = "user_message"
+    BOT_MESSAGE = "bot_message"
+    RELEVANT_CHUNKS = "relevant_chunks"
+
+
+class RailOutcome(BaseModel):
+    """Normalized response contract for NeMo guardrail actions."""
+    action_name: str = ""
+    status: ActionStatus = ActionStatus.SUCCESS
+    reason: Optional[str] = None
+    data: Dict[str, Any] = Field(default_factory=dict)
+    transformed_targets: List[Tuple[TransformTarget, str]] = Field(default_factory=list)
+
+    @classmethod
+    def allow(cls, action_name: str, data: Optional[Dict[str, Any]] = None) -> RailOutcome:
+        return cls(action_name=action_name, status=ActionStatus.SUCCESS, data=data or {})
+
+    @classmethod
+    def block(cls, action_name: str, reason: str, data: Optional[Dict[str, Any]] = None) -> RailOutcome:
+        return cls(action_name=action_name, status=ActionStatus.BLOCKED, reason=reason, data=data or {})
+
+    @classmethod
+    def transform(
+        cls,
+        targets: List[Tuple[TransformTarget, str]],
+        action_name: str,
+        data: Optional[Dict[str, Any]] = None,
+    ) -> RailOutcome:
+        return cls(
+            action_name=action_name,
+            status=ActionStatus.SUCCESS,
+            transformed_targets=targets,
+            data=data or {},
+        )
+
+    @property
+    def is_allowed(self) -> bool:
+        return self.status != ActionStatus.BLOCKED
+
+
 # ─── Action Descriptor ───────────────────────────────────────────────────────
 
 class ActionDescriptor:
@@ -306,6 +347,23 @@ class ActionRegistry:
             description="Escalate safety violation to human moderator",
             action_type=ActionType.BUILTIN,
         )
+        try:
+            from vaxguard.nemo.library import (
+                detect_sensitive_data,
+                self_check_input,
+                self_check_output,
+                self_check_facts,
+                topic_safety_check_input,
+                detect_regex_pattern,
+            )
+            self.register("detect_sensitive_data", detect_sensitive_data, action_type=ActionType.GUARDRAIL)
+            self.register("self_check_input", self_check_input, action_type=ActionType.GUARDRAIL)
+            self.register("self_check_output", self_check_output, action_type=ActionType.GUARDRAIL)
+            self.register("self_check_facts", self_check_facts, action_type=ActionType.GUARDRAIL)
+            self.register("topic_safety_check_input", topic_safety_check_input, action_type=ActionType.GUARDRAIL)
+            self.register("detect_regex_pattern", detect_regex_pattern, action_type=ActionType.GUARDRAIL)
+        except Exception:
+            pass
 
     def register(
         self,

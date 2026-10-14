@@ -64,6 +64,8 @@ class FlowStepType(str, Enum):
     USER = "user"
     BOT = "bot"
     EXECUTE = "execute"
+    AWAIT = "await"
+    MATCH = "match"
     ASSIGN = "assign"
     WHEN = "when"
     IF = "if"
@@ -92,6 +94,10 @@ class FlowStep(BaseModel):
             return f"{prefix}bot {self.target}"
         if self.step_type == FlowStepType.STOP:
             return f"{prefix}stop"
+        if self.step_type == FlowStepType.AWAIT:
+            return f"{prefix}await {self.target}"
+        if self.step_type == FlowStepType.MATCH:
+            return f"{prefix}match {self.target}"
         if self.step_type == FlowStepType.EXECUTE:
             formatted_args = []
             for k, v in self.args.items():
@@ -439,36 +445,45 @@ class ColangParser:
         current_name: str = ""
         current_items: List[str] = []
         current_steps: List[FlowStep] = []
+        decorators: List[str] = []
+        current_decorators: List[str] = []
 
         def commit_current_block() -> None:
-            nonlocal current_block_type, current_name, current_items, current_steps
+            nonlocal current_block_type, current_name, current_items, current_steps, current_decorators
             if not current_block_type or not current_name:
                 return
 
             canonical = normalize_name(current_name)
+            meta = {"decorators": list(current_decorators)} if current_decorators else {}
             if current_block_type == "user":
                 doc.user_intents[current_name] = UserIntent(
                     name=current_name,
                     canonical_name=canonical,
                     examples=list(current_items),
+                    metadata=meta,
                 )
             elif current_block_type == "bot":
                 doc.bot_responses[current_name] = BotResponse(
                     name=current_name,
                     canonical_name=canonical,
                     messages=list(current_items),
+                    metadata=meta,
                 )
             elif current_block_type in ("flow", "subflow"):
+                if current_block_type == "subflow":
+                    meta["is_subflow"] = True
                 doc.flows[current_name] = Flow(
                     name=current_name,
                     canonical_name=canonical,
                     steps=list(current_steps),
+                    metadata=meta,
                 )
 
             current_block_type = None
             current_name = ""
             current_items = []
             current_steps = []
+            current_decorators = []
 
         for raw_line in lines:
             line = self._strip_comment(raw_line)
@@ -476,10 +491,17 @@ class ColangParser:
             if not stripped:
                 continue
 
+            # Support Colang 2.0 decorators like @override
+            if stripped.startswith("@"):
+                decorators.append(stripped)
+                continue
+
             # Check for top-level block definition
             user_def = re.match(r"^define\s+user\s+(.+)$", stripped, re.IGNORECASE)
             if user_def:
                 commit_current_block()
+                current_decorators = list(decorators)
+                decorators = []
                 current_block_type = "user"
                 current_name = user_def.group(1).strip()
                 continue
@@ -487,14 +509,21 @@ class ColangParser:
             bot_def = re.match(r"^define\s+bot\s+(.+)$", stripped, re.IGNORECASE)
             if bot_def:
                 commit_current_block()
+                current_decorators = list(decorators)
+                decorators = []
                 current_block_type = "bot"
                 current_name = bot_def.group(1).strip()
                 continue
 
-            flow_def = re.match(r"^define\s+(?:flow|subflow)\s+(.+)$", stripped, re.IGNORECASE)
+            # Supports both Colang 1.0 'define flow' and Colang 2.0 'flow <name>' / 'subflow <name>'
+            flow_def = re.match(r"^(?:define\s+)?(?:flow|subflow)\s+(.+?)(?:\(.*\))?$", stripped, re.IGNORECASE)
             if flow_def:
+                raw_token = stripped.split()[0].lower()
+                is_subflow = "subflow" in raw_token or ("subflow" in stripped.split()[1].lower() if len(stripped.split()) > 1 else False)
                 commit_current_block()
-                current_block_type = "flow"
+                current_decorators = list(decorators)
+                decorators = []
+                current_block_type = "subflow" if is_subflow else "flow"
                 current_name = flow_def.group(1).strip()
                 continue
 
@@ -519,6 +548,24 @@ class ColangParser:
         # Check stop
         if line == "stop":
             return FlowStep(step_type=FlowStepType.STOP, target="stop", raw_line=line)
+
+        # Check Colang 2.0 match: match UtteranceUserAction.Finished(transcript=$transcript)
+        match_stmt = re.match(r"^match\s+(.+)$", line, re.IGNORECASE)
+        if match_stmt:
+            return FlowStep(step_type=FlowStepType.MATCH, target=match_stmt.group(1).strip(), raw_line=line)
+
+        # Check Colang 2.0 await: await <action>(...) or await execute <action>()
+        await_stmt = re.match(r"^await\s+(?:execute\s+|run\s+)?(\w+)\s*(?:\((.*)\))?$", line, re.IGNORECASE)
+        if await_stmt:
+            action_name = await_stmt.group(1)
+            args_str = await_stmt.group(2) or ""
+            args = self._parse_args(args_str)
+            return FlowStep(
+                step_type=FlowStepType.AWAIT,
+                target=action_name,
+                args=args,
+                raw_line=line,
+            )
 
         # Check user intent invocation: 'user <intent>'
         user_match = re.match(r"^user\s+(.+)$", line, re.IGNORECASE)

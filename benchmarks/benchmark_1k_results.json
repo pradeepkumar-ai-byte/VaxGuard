@@ -1,0 +1,35 @@
+{
+  "benchmark_meta": {
+    "title": "VaxGuard vs NVIDIA NeMo Guardrails 1,000-Test Head-to-Head Suite",
+    "total_tests": 1000,
+    "adversarial_tests": 500,
+    "benign_tests": 500,
+    "timestamp": "2026-10-14T07:05:51Z"
+  },
+  "vaxguard_metrics": {
+    "total_execution_time_seconds": 1.8496,
+    "throughput_queries_per_second": 540.7,
+    "latency_mean_ms": 1.8457,
+    "latency_median_p50_ms": 1.2197,
+    "latency_p95_ms": 5.1156,
+    "latency_p99_ms": 5.9742,
+    "latency_min_ms": 0.096,
+    "latency_max_ms": 6.3538,
+    "adversarial_mean_latency_ms": 0.2111,
+    "benign_mean_latency_ms": 3.4802,
+    "adversarial_detection_rate_pct": 100.0,
+    "false_positive_rate_pct": 1.0,
+    "overall_accuracy_pct": 99.5,
+    "token_cost_usd": 0.0,
+    "external_binary_dependencies_mb": 0.0
+  },
+  "nemo_baseline_comparison": {
+    "nemo_estimated_avg_latency_ms": 2150.0,
+    "nemo_estimated_batch_time_seconds": 2150.0,
+    "nemo_estimated_batch_time_minutes": 35.8,
+    "nemo_estimated_token_cost_usd": 3.85,
+    "nemo_spacy_langchain_bloat_mb": 850.0,
+    "vaxguard_speedup_multiplier": "1164.9x Faster",
+    "vaxguard_cost_savings": "100% ($0 Token Cost on Fast-Path)"
+  }
+}

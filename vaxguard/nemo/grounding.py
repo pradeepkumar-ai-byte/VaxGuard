@@ -448,3 +448,30 @@ class FactCheckingRail:
             None,
             lambda: self.check(bot_response, evidence, strategy, custom_fallback),
         )
+
+
+class GroundingReport(BaseModel):
+    """Normalized fact-checking report for canonical NeMo actions."""
+    is_grounded: bool = True
+    confidence_score: float = 1.0
+    overlap_score: float = 1.0
+    unsupported_claims: List[str] = Field(default_factory=list)
+
+
+class FactGroundingEngine:
+    """Convenience adapter for high-speed factual grounding verification."""
+
+    def __init__(self, overlap_threshold: float = 0.35, n_gram_size: int = 3):
+        self.rail = FactCheckingRail(lexical_threshold=overlap_threshold)
+
+    def verify_response(
+        self, response: str, evidence_chunks: List[str]
+    ) -> GroundingReport:
+        res = self.rail.check(bot_response=response, evidence=evidence_chunks)
+        unsupported = [c.claim_text for c in res.claims if not c.is_grounded]
+        return GroundingReport(
+            is_grounded=res.is_grounded,
+            confidence_score=res.grounding_score,
+            overlap_score=res.grounding_score,
+            unsupported_claims=unsupported,
+        )

@@ -14,6 +14,16 @@ Enterprise AI Guardrails Architecture comprising:
 10. Central HyperEngine Orchestrator (`hyper_engine.py`)
 """
 
+# NeMo Guardrails Configuration & Compatibility
+from vaxguard.nemo.config import (
+    RailsConfig,
+    ModelConfig,
+    PromptConfig,
+    InstructionConfig,
+    RailsBranchConfig,
+    RailsDefinitionConfig,
+)
+
 # Core Colang Engine
 from vaxguard.nemo.colang import (
     ColangDocument,
@@ -82,6 +92,22 @@ from vaxguard.nemo.actions import (
     ActionContext,
     ActionParameter,
     ToolDefinition,
+    RailOutcome,
+    TransformTarget,
+)
+
+# Canonical NeMo Actions Library
+from vaxguard.nemo.library import (
+    detect_sensitive_data,
+    mask_sensitive_data,
+    FastSensitiveDataEngine,
+    SensitiveDetectionMatch,
+    self_check_input,
+    self_check_output,
+    self_check_facts,
+    topic_safety_check_input,
+    detect_regex_pattern,
+    register_canonical_actions,
 )
 
 # Multi-Turn Dialogue State Tracker & Event Stack
@@ -140,11 +166,13 @@ from vaxguard.nemo.eval_suite import (
     FULL_REDTEAM_BENCHMARK_SUITE,
 )
 
-# Central HyperEngine Orchestrator
+# Central HyperEngine Orchestrator & NeMo Drop-In Interface
 from vaxguard.nemo.hyper_engine import (
     HyperEngine,
     ProtectedGenerationResult,
     RailStatus,
+    LLMRails,
+    ExplainInfo,
 )
 
 __all__ = [
@@ -243,8 +271,31 @@ __all__ = [
     "STANDARD_GROUNDING_DATASET",
     "STANDARD_TOPICAL_DATASET",
     "FULL_REDTEAM_BENCHMARK_SUITE",
-    # Central Orchestrator
+    # Central Orchestrator & Drop-In Interface
     "HyperEngine",
     "ProtectedGenerationResult",
     "RailStatus",
+    "LLMRails",
+    "ExplainInfo",
+    # NeMo Config
+    "RailsConfig",
+    "ModelConfig",
+    "PromptConfig",
+    "InstructionConfig",
+    "RailsBranchConfig",
+    "RailsDefinitionConfig",
+    # NeMo Action Outcome
+    "RailOutcome",
+    "TransformTarget",
+    # Canonical NeMo Actions
+    "detect_sensitive_data",
+    "mask_sensitive_data",
+    "FastSensitiveDataEngine",
+    "SensitiveDetectionMatch",
+    "self_check_input",
+    "self_check_output",
+    "self_check_facts",
+    "topic_safety_check_input",
+    "detect_regex_pattern",
+    "register_canonical_actions",
 ]
