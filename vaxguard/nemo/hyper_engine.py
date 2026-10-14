@@ -290,9 +290,19 @@ class HyperEngine:
             lat = (time.perf_counter() - t0) * 1000.0
             # Try to resolve appropriate bot response from Colang flows
             refusal_msg = "I decline to execute this request under defensive security constraints."
-            matched_intent_name = match.rule_id.replace("colang_", "")
+            matched_intent_name = match.rule_id.replace("colang_", "").strip()
             flow_name = f"protect_{matched_intent_name}"
             flow = self.flow_manager.doc.get_flow(flow_name)
+            if not flow:
+                for fl in self.flow_manager.doc.flows.values():
+                    if any(
+                        st.step_type == FlowStepType.USER
+                        and st.target.lower().strip() == matched_intent_name.lower()
+                        for st in fl.steps
+                    ):
+                        flow = fl
+                        flow_name = fl.name
+                        break
             if flow:
                 exec_res = self.flow_manager.execute_flow(flow_name, context=context)
                 if exec_res.bot_response:
@@ -645,6 +655,8 @@ class LLMRails:
 
         if isinstance(config, RailsConfig):
             self.config = config
+        elif isinstance(config, (str, Path)):
+            self.config = RailsConfig.from_path(config)
         elif config is not None and hasattr(config, "colang_docs"):
             self.config = config
         else:
