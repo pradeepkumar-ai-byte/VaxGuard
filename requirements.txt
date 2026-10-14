@@ -5,7 +5,8 @@ groq
 pytest
 pytest-asyncio
 tenacity
-sqlalchemy
+sqlalchemy[asyncio]
+greenlet
 aiosqlite
 cachetools
 numpy
