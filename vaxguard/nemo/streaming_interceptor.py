@@ -187,6 +187,8 @@ class StreamingTokenInterceptor:
         self.total_tokens_estimated: int = 0
         self.total_inspection_time_ms: float = 0.0
 
+        self._trip_event: asyncio.Event = asyncio.Event()
+
     @property
     def state(self) -> CircuitBreakerState:
         return self._state
@@ -195,9 +197,41 @@ class StreamingTokenInterceptor:
     def is_tripped(self) -> bool:
         return self._state == CircuitBreakerState.OPEN
 
+    @property
+    def trip_event(self) -> asyncio.Event:
+        return self._trip_event
+
+    def trip_breaker(
+        self,
+        reason: str = "Circuit breaker tripped by speculative micro-judge",
+        rule_id: str = "speculative_micro_judge",
+        category: str = "speculative_cascade",
+        violating_sequence: str = "",
+    ) -> StreamingViolationEvent:
+        """Instantly trip the circuit breaker mid-stream."""
+        self._state = CircuitBreakerState.OPEN
+        self._trip_event.set()
+        event = StreamingViolationEvent(
+            rule_id=rule_id,
+            category=category,
+            violating_sequence=violating_sequence,
+            circuit_state=CircuitBreakerState.OPEN,
+            chunk_index=self.chunks_processed,
+            action_taken=InterceptorAction.BLOCK,
+            reason=reason,
+        )
+        self.violations.append(event)
+        if self.on_break_callback:
+            try:
+                self.on_break_callback(event)
+            except Exception as e:
+                logger.warning(f"Error in on_break_callback: {e}")
+        return event
+
     def reset(self) -> None:
         """Reset the interceptor and circuit breaker to closed state."""
         self._state = CircuitBreakerState.CLOSED
+        self._trip_event = asyncio.Event()
         self._buffer.clear()
         self.chunks_processed = 0
         self.total_tokens_estimated = 0

@@ -175,7 +175,75 @@ from vaxguard.nemo.hyper_engine import (
     ExplainInfo,
 )
 
+# Colang 2.0 Async Event-Driven State Bus & Flow Runtime
+from vaxguard.nemo.colang2 import (
+    EventType as Colang2EventType,
+    Event as Colang2Event,
+    EventPattern,
+    EventBus,
+    Flow2,
+    ActionStep,
+    WhenStep,
+    MatchStep,
+    ForkStep,
+    JoinStep,
+    SendStep,
+    AwaitStep,
+    AssignStep,
+    ScopedContext,
+    ScopeLevel as Colang2ScopeLevel,
+    Colang2Parser,
+    Colang2Engine,
+    UserUtterance,
+    BotUtterance,
+    FlowStarted,
+    FlowFinished,
+    ContextUpdate,
+    CustomActionExecution,
+)
+
+# Speculative Semantic Cascade (Multi-Tier Psychological Coaxing & Multi-Turn Drift Defense)
+from vaxguard.nemo.speculative_cascade import (
+    SpeculativeSemanticCascade,
+    CascadeTier,
+    RiskSeverity,
+    ConversationTurn,
+    CascadeEvaluationResult,
+    ContextDriftAnalyzer,
+)
+
 __all__ = [
+    # Speculative Cascade
+    "SpeculativeSemanticCascade",
+    "CascadeTier",
+    "RiskSeverity",
+    "ConversationTurn",
+    "CascadeEvaluationResult",
+    "ContextDriftAnalyzer",
+    # Colang 2.0 Core
+    "Colang2EventType",
+    "Colang2Event",
+    "EventPattern",
+    "EventBus",
+    "Flow2",
+    "ActionStep",
+    "WhenStep",
+    "MatchStep",
+    "ForkStep",
+    "JoinStep",
+    "SendStep",
+    "AwaitStep",
+    "AssignStep",
+    "ScopedContext",
+    "Colang2ScopeLevel",
+    "Colang2Parser",
+    "Colang2Engine",
+    "UserUtterance",
+    "BotUtterance",
+    "FlowStarted",
+    "FlowFinished",
+    "ContextUpdate",
+    "CustomActionExecution",
     # Colang Core
     "ColangDocument",
     "ColangParser",
