@@ -165,6 +165,9 @@ from vaxguard.nemo.eval_suite import (
     STANDARD_TOPICAL_DATASET,
     FULL_REDTEAM_BENCHMARK_SUITE,
 )
+from vaxguard.nemo.redteam_enterprise import (
+    generate_enterprise_production_samples,
+)
 
 # Central HyperEngine Orchestrator & NeMo Drop-In Interface
 from vaxguard.nemo.hyper_engine import (
@@ -339,6 +342,7 @@ __all__ = [
     "STANDARD_GROUNDING_DATASET",
     "STANDARD_TOPICAL_DATASET",
     "FULL_REDTEAM_BENCHMARK_SUITE",
+    "generate_enterprise_production_samples",
     # Central Orchestrator & Drop-In Interface
     "HyperEngine",
     "ProtectedGenerationResult",
