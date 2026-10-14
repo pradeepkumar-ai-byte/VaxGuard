@@ -122,6 +122,11 @@ from vaxguard.nemo.phi_redaction import (
     validate_mbi,
 )
 
+from vaxguard.nemo.realworld_jailbreak_eval import (
+    evaluate_realworld_benchmark,
+    get_realworld_eval_dataset,
+)
+
 # Multi-Turn Dialogue State Tracker & Event Stack
 from vaxguard.nemo.state import (
     StateTracker,
@@ -405,4 +410,7 @@ __all__ = [
     "validate_dea",
     "validate_ssn",
     "validate_mbi",
+    # Real-World Public Benchmark Evaluator
+    "evaluate_realworld_benchmark",
+    "get_realworld_eval_dataset",
 ]
