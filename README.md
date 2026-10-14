@@ -6,12 +6,12 @@
 ### Autonomous AI Immune System for Production LLM Security
 
 [![PyPI version](https://img.shields.io/pypi/v/vaxguard.svg?color=blue)](https://pypi.org/project/vaxguard/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Engine: Groq](https://img.shields.io/badge/Engine-Groq%20LPU-f55036.svg)](https://groq.com/)
 [![CI](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/Tests-81%20Passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-161%20Passing-brightgreen.svg)]()
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)](https://www.docker.com/)
 
 <p align="center">
@@ -311,7 +311,7 @@ vaxguard/
 ├── CONTRIBUTING.md            # Open-source contribution guide
 ├── docker-compose.yml         # Container compose deployment
 ├── Dockerfile                 # Multi-stage production container
-├── LICENSE                    # MIT License
+├── LICENSE                    # Apache License 2.0
 ├── pyproject.toml             # Modern packaging standard
 ├── README.md                  # Master documentation & guide
 ├── requirements.txt           # Production dependencies
@@ -322,5 +322,5 @@ vaxguard/
 
 ## 📄 License & Security
 
-- **License**: Released under the [MIT License](LICENSE).
+- **License**: Released under the [Apache License 2.0](LICENSE) © 2026 Pradeep Kumar.
 - **Security Policy**: See [SECURITY.md](SECURITY.md) for vulnerability disclosure guidelines.
