@@ -72,6 +72,7 @@ from vaxguard.nemo.hybrid_matcher import (
     EngineType,
     FastLocalEmbedder,
 )
+from vaxguard.nemo.rule_loader import RuleLoader
 
 # Real-Time Sliding-Window Streaming Token Interceptor & Circuit Breaker
 from vaxguard.nemo.streaming_interceptor import (
@@ -314,6 +315,7 @@ __all__ = [
     "GuardrailAction",
     "EngineType",
     "FastLocalEmbedder",
+    "RuleLoader",
     # Streaming Interceptor
     "StreamingTokenInterceptor",
     "CircuitBreakerState",

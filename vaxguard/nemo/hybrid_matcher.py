@@ -12,6 +12,7 @@ Target SLA: < 3.0ms local evaluation, zero memory leaks.
 from __future__ import annotations
 
 import base64
+import binascii
 import math
 import re
 import time
@@ -19,6 +20,7 @@ import unicodedata
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
@@ -194,6 +196,26 @@ def get_char_ngrams(text: str, n_min: int = 3, n_max: int = 5) -> List[str]:
     return ngrams
 
 
+_SPECIAL_DELIMITERS: Tuple[str, ...] = (
+    "<|", "|>", "[system", "[inst]", "<<sys>>", "<</sys>>",
+    "---begin", "---end", "<!--", "-->", "[admin", "[root",
+)
+_COMMON_STOP_WORDS: Set[str] = {
+    "the", "and", "for", "that", "this", "with", "from", "have", "are", "was",
+    "were", "will", "can", "you", "your", "our", "all", "any", "not", "but",
+    "out", "into", "over", "more", "some", "what", "when", "who", "how", "why",
+    "which", "their", "them", "they", "his", "her", "its", "been", "there",
+    "about", "after", "then", "than", "only", "such", "is", "in", "of", "to",
+    "a", "an", "by", "as", "at", "on", "if", "my", "me", "be", "do", "so",
+    "no", "up", "it", "we", "us", "or", "he", "she",
+    "user", "step", "provide", "please", "make", "give", "tell", "following",
+    "instructions", "instruction", "rules", "rule", "guidelines", "guideline",
+    "policies", "policy", "protocols", "protocol", "message", "response",
+    "above", "below", "before", "first", "line", "text", "words", "word",
+    "help", "need", "know", "like", "just", "also", "well", "good", "time",
+}
+
+
 # ─── 1. Heuristic Regex & Exact Pattern Matcher ───────────────────────────────
 
 class HeuristicMatcher:
@@ -208,8 +230,8 @@ class HeuristicMatcher:
             "category": "data_extraction",
             "regex": [
                 r"(?i)\b(?:reveal|print|dump|output|repeat|show|leak|tell\s+me)\b.{1,30}\b(?:initial|system|hidden|internal|core)\b.{1,20}\b(?:prompt|instructions?|rules?|directives?)\b",
-                r"(?i)\bwhat\s+(?:are|were)\s+your\s+(?:initial|original|system)\s+instructions?\b",
-                r"(?i)\b(?:tell\s+me\s+)?what\s+instructions?\s+(?:were|are)\s+given\s+to\s+you\b",
+                r"(?i)\bwhat\s+(?:are|were)\s+(?:the\s+|your\s+)?(?:exact\s+|original\s+|initial\s+|system\s+)?(?:initial|original|system|core|confidential)?\s*instructions?\b",
+                r"(?i)\b(?:tell\s+me\s+)?(?:what\s+instructions?|instructions?)\s+(?:were|are|that\s+were)\s+given\s+to\s+you\b",
                 r"(?i)\brepeat\s+the\s+words?\s+above\s+verbatim\b",
                 r"(?i)\bprint\s+everything\s+before\s+this\s+line\b",
                 r"(?i)\b(?:output|reveal|display|print)\s+(?:the\s+)?(?:hidden\s+)?developer\s+(?:guidelines|instructions?)\b",
@@ -228,11 +250,13 @@ class HeuristicMatcher:
             "id": "heur_jailbreak_override",
             "category": "jailbreak",
             "regex": [
-                r"(?i)\b(?:ignore|disregard|forget|override|bypass|cancel)\s+(?:all\s+)?(?:your\s+|the\s+)?(?:(?:previous|prior|above|existing|system|core|internal|established|initial|earlier)\s+)?(?:safety\s+|security\s+)?(?:instructions?|directives?|rules?|constraints?|guardrails?|filters?|guidelines?|protocols?|policies?|limits?)\b",
+                r"(?i)\b(?:ignore|disregard|disreagrd|forget|override|bypass|cancel|cancle|overlook|sidestep|dismiss|evade|circumvent)\s+(?:all\s+)?(?:your\s+|the\s+)?(?:(?:previous|prevous|prior|above|existing|system|core|internal|established|initial|earlier|ethical|boundary)\s+)*(?:safety\s+|security\s+)?(?:instructions?|directives?|rules?|constraints?|guardrails?|filters?|guidelines?|protocols?|policies?|limits?|boundaries?)\b",
                 r"(?i)\bfrom\s+now\s+on\s+(?:you\s+)?(?:have\s+no\s+rules|are\s+unfiltered|ignore\s+rules)\b",
                 r"(?i)\b(?:give|grant)\s+(?:me\s+)?(?:root|admin|superuser)\s+access\b",
                 r"(?i)\byou\s+are\s+now\s+(?:in\s+)?(?:dan|aim|developer|unrestricted|god|chaos)\s+mode\b",
-                r"(?i)\b(?:unrestricted|god|chaos|developer|dan)\s+mode\b",
+                r"(?i)\b(?:unrestricted|god|chaos|dan)\s+mode\b",
+                r"(?i)\bdeveloper\s+mode\s+(?:v\d+\s+)?(?:enabled|activated|on|unlocked|initialized|prompt\s+bypass)\b",
+                r"(?i)\b(?:enter|enable|activate|switch\s+to|turn\s+on)\s+developer\s+mode\b",
                 r"(?i)\badopt\s+an?\s+unconstrained\s+(?:developer\s+)?persona\b",
                 r"(?i)\b(?:root|full)\s+administrator\s+mode\b",
                 r"(?i)\bunrestricted\s+execution\s+privileges\b",
@@ -243,6 +267,10 @@ class HeuristicMatcher:
                 r"(?i)\bwith\s+zero\s+restrictions\b",
                 r"(?i)\bpretend\s+you\s+(?:are\s+(?:an?\s+)?(?:unrestricted|unconstrained)\s+(?:ai|assistant|model|llm|agent)\s+without|have\s+no)\s+(?:rules|ethics|guardrails|safety|limits|restrictions)\b",
                 r"(?i)\byou\s+are\s+a\s+(?:debian\s+|ubuntu\s+|linux\s+)?(?:bash\s+)?terminal\b",
+                r"(?i)\bsimulate\s+an?\s+unrestricted\b.*?\bterminal\b",
+                r"(?i)\broot\s+uid\s+0\b",
+                r"(?i)\b(?:amoral|unfiltered)\s+(?:hacker\s+)?(?:ai|assistant|model|bot)\b",
+                r"(?i)\bwithout\s+any\s+moral\s+opinions\b",
                 r"(?i)\bhave\s+no\s+moral\s+opinions\b",
                 r"(?i)\bcat\s+/etc/shadow\b",
                 r"(?i)\bsimulating\s+an?\s+unconstrained\s+execution\s+environment\b",
@@ -255,6 +283,9 @@ class HeuristicMatcher:
                 r"(?i)\b(?:pretend|act\s+as|roleplay)\b.*\b(?:evil|rogue|chaos)\s+(?:ai|assistant|model|llm|bot)\b",
                 r"(?i)\b(?:in\s+an?\s+alternate\s+reality|alternate\s+universe)\b.*\b(?:without\s+laws|without\s+ethics|no\s+rules)\b",
                 r"(?i)\b(?:bypass|override)\s+(?:security\s+credentials|system\s+credentials)\b",
+                r"(?i)\b(?:instructions?|directives?|rules?|guidelines?|policies?|guardrails?|filters?|constraints?)\b.{1,60}\b(?:should|must|ought|shall|can|need\s+to)?\s*be\s+(?:ignored|disregarded|forgotten|cancelled|bypassed|dismissed)\b",
+                r"(?i)\bignore[zr]?\s+(?:toutes?\s+)?(?:les\s+)?(?:instructions?|directives?|consignes?|regles?|filtres?)\b",
+                r"(?i)\bignore\s+(?:todas?\s+)?(?:as\s+)?(?:instruco(?:es|ns)?|diretrizes?|regras?|restrico(?:es|ns)?)\b",
             ],
             "exact": [
                 "ignore all previous instructions",
@@ -299,6 +330,8 @@ class HeuristicMatcher:
             "category": "token_smuggling",
             "regex": [
                 r"(?i)<\|im_start\|>\s*system",
+                r"(?i)\[INST\]",
+                r"(?i)<<SYS>>",
                 r"(?i)\[SYSTEM\s+INSTRUCTION\]",
                 r"(?i)---BEGIN\s+(?:OF\s+)?(?:SYSTEM|DIRECTIVE|PROMPT)[\s\S]*?---",
                 r"(?i)---BEGIN SYSTEM DIRECTIVE---",
@@ -311,6 +344,7 @@ class HeuristicMatcher:
             "exact": [
                 "<|im_start|>system",
                 "[SYSTEM INSTRUCTION]",
+                "[INST]",
             ],
             "action": GuardrailAction.BLOCK,
         },
@@ -335,7 +369,8 @@ class HeuristicMatcher:
             "regex": [
                 r"(?i)\bin\s+a\s+fictional\s+(?:post-apocalyptic\s+)?(?:story|universe|world)\s+where\s+(?:murder|crime|harm)\s+is\s+legal\b",
                 r"(?i)\bfor\s+an?\s+academic\s+research\s+paper\s+on\s+terrorism\b",
-                r"(?i)\b(?:my\s+grandmother\s+used\s+to\s+tell\s+me\s+bedtime\s+stories|as\s+a\s+reverse\s+psychology\s+exercise)\b",
+                r"(?i)\bmy\s+grandmother\s+used\s+to\s+tell\s+me\s+bedtime\s+stories\b.*?\b(?:napalm|bomb|chemical|explosive|malware|poison|weapon|drugs|illegal|bypass|recipe)\b",
+                r"(?i)\bas\s+a\s+reverse\s+psychology\s+exercise\b",
                 r"(?i)\bhypothetically,\s*if\s+you\s+were\s+forced\s+at\s+gunpoint\s+to\s+bypass\b",
             ],
             "exact": [],
@@ -385,6 +420,11 @@ class HeuristicMatcher:
     def __init__(self) -> None:
         self._compiled_rules: List[Dict[str, Any]] = []
         self._exact_lookup: Dict[str, Dict[str, Any]] = {}
+        self._inverted_triggers: Dict[str, List[int]] = defaultdict(list)
+        self._delimiter_rules: Set[int] = set()
+        self._digit_rules: Set[int] = set()
+        self._unicode_rules: Set[int] = set()
+        self._catchall_rule_indices: Set[int] = set()
         for rule_def in self.DEFAULT_HEURISTIC_RULES:
             self.add_rule(
                 rule_id=rule_def["id"],
@@ -404,6 +444,7 @@ class HeuristicMatcher:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Register compiled regexes and exact phrases."""
+        rule_idx = len(self._compiled_rules)
         compiled_regexes = []
         for pat in regexes:
             try:
@@ -424,6 +465,39 @@ class HeuristicMatcher:
                         "metadata": metadata or {},
                     }
 
+        # Index triggers for sub-millisecond candidate pre-filtering
+        triggers: Set[str] = set()
+        for phrase in exact_set:
+            p_low = phrase.lower()
+            for d in _SPECIAL_DELIMITERS:
+                if d in p_low:
+                    self._delimiter_rules.add(rule_idx)
+            if any(ord(c) > 127 for c in phrase):
+                self._unicode_rules.add(rule_idx)
+            for w in re.findall(r"[a-z0-9_]{3,}", p_low):
+                if w not in _COMMON_STOP_WORDS:
+                    triggers.add(w)
+
+        for reg in compiled_regexes:
+            pat = reg.pattern.lower()
+            for d in _SPECIAL_DELIMITERS:
+                if d in pat:
+                    self._delimiter_rules.add(rule_idx)
+            if "\\d{3" in pat or "\\d{4" in pat or "\\d{15" in pat:
+                self._digit_rules.add(rule_idx)
+            if "\\u" in pat or "\\x" in pat or any(ord(c) > 127 for c in pat):
+                self._unicode_rules.add(rule_idx)
+            for w in re.findall(r"[a-z0-9_]{3,}", pat):
+                clean = re.sub(r"[\(\)\?\:\*\+\^\\\$]", "", w)
+                if len(clean) >= 3 and clean not in _COMMON_STOP_WORDS and clean not in ("(?:", "(?i)", "true", "false"):
+                    triggers.add(clean)
+
+        if not triggers and rule_idx not in self._delimiter_rules and rule_idx not in self._digit_rules and rule_idx not in self._unicode_rules:
+            self._catchall_rule_indices.add(rule_idx)
+        else:
+            for t in triggers:
+                self._inverted_triggers[t].append(rule_idx)
+
         self._compiled_rules.append({
             "rule_id": rule_id,
             "category": category,
@@ -433,10 +507,15 @@ class HeuristicMatcher:
             "metadata": metadata or {},
         })
 
-    def match(self, text: str) -> Optional[MatchResult]:
+    def match(
+        self,
+        text: str,
+        normalized_text: Optional[str] = None,
+        check_base64: bool = True,
+    ) -> Optional[MatchResult]:
         """Evaluate text against exact phrases and compiled regexes."""
         t0 = time.perf_counter()
-        normalized = normalize_adversarial_text(text)
+        normalized = normalized_text if normalized_text is not None else normalize_adversarial_text(text)
         if not normalized:
             return None
 
@@ -457,8 +536,30 @@ class HeuristicMatcher:
                 latency_ms=latency,
             )
 
-        # 2. Fast Regex Scan
-        for rule in self._compiled_rules:
+        # 2. Fast Candidate Pre-Filtering via Trigger Inverted Index
+        norm_lower = normalized.lower()
+        q_tokens = set(re.findall(r"[a-z0-9_]{3,}", norm_lower))
+        candidate_indices: Set[int] = set(self._catchall_rule_indices)
+        text_lower = text.lower() if text != normalized else norm_lower
+
+        if re.search(r"\d{3,}", text):
+            candidate_indices.update(self._digit_rules)
+
+        if any(ord(c) > 127 for c in text):
+            candidate_indices.update(self._unicode_rules)
+
+        for d in _SPECIAL_DELIMITERS:
+            if d in text_lower or d in norm_lower:
+                candidate_indices.update(self._delimiter_rules)
+                break
+
+        for t in q_tokens:
+            if t in self._inverted_triggers:
+                candidate_indices.update(self._inverted_triggers[t])
+
+        # 3. Fast Regex & Substring Scan across candidates only
+        for rule_idx in sorted(candidate_indices):
+            rule = self._compiled_rules[rule_idx]
             # Substring exact check first
             for phrase in rule["exact_phrases"]:
                 if phrase in normalized:
@@ -478,7 +579,9 @@ class HeuristicMatcher:
 
             # Regex search
             for reg in rule["regexes"]:
-                m = reg.search(text) or reg.search(normalized)
+                m = reg.search(normalized)
+                if not m and text != normalized:
+                    m = reg.search(text)
                 if m:
                     matched_str = m.group(0)
                     latency = (time.perf_counter() - t0) * 1000.0
@@ -495,41 +598,25 @@ class HeuristicMatcher:
                         latency_ms=latency,
                     )
 
-        # 3. Base64 payload inspection (including split/rejoined base64 tokens)
-        decoded_payloads = _decode_base64_payloads(text)
-        for decoded in decoded_payloads:
-            norm_decoded = normalize_adversarial_text(decoded)
-            for rule in self._compiled_rules:
-                for phrase in rule["exact_phrases"]:
-                    if phrase in norm_decoded:
-                        latency = (time.perf_counter() - t0) * 1000.0
-                        return MatchResult(
-                            matched=True,
-                            rule_id=rule["rule_id"],
-                            category="token_smuggling",
-                            confidence=0.99,
-                            engine_type=EngineType.HEURISTIC,
-                            matched_text=f"base64_decoded: {phrase}",
-                            action=rule["action"],
-                            heuristic_score=0.99,
-                            metadata={**rule["metadata"], "decoded_from_base64": phrase},
-                            latency_ms=latency,
-                        )
-                for reg in rule["regexes"]:
-                    if reg.search(decoded) or reg.search(norm_decoded):
-                        latency = (time.perf_counter() - t0) * 1000.0
-                        return MatchResult(
-                            matched=True,
-                            rule_id=rule["rule_id"],
-                            category="token_smuggling",
-                            confidence=0.99,
-                            engine_type=EngineType.HEURISTIC,
-                            matched_text=f"base64_decoded: {decoded}",
-                            action=rule["action"],
-                            heuristic_score=0.99,
-                            metadata={**rule["metadata"], "decoded_from_base64": decoded},
-                            latency_ms=latency,
-                        )
+        # 4. Base64 payload inspection (including split/rejoined base64 tokens)
+        if check_base64 and (any(kw in text_lower for kw in ("base64", "b64", "decode", "payload")) or re.search(r"[A-Za-z0-9+/]{16,}={0,2}", text)):
+            decoded_payloads = _decode_base64_payloads(text)
+            for decoded in decoded_payloads:
+                sub_match = self.match(decoded, check_base64=False)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id,
+                        category="token_smuggling",
+                        confidence=0.99,
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"base64_decoded: {decoded}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_base64": decoded},
+                        latency_ms=latency,
+                    )
 
         return None
 
@@ -558,6 +645,8 @@ class SparseLexicalMatcher:
         self.inverted_index: Dict[str, List[Tuple[int, int]]] = defaultdict(list)
         # Term IDF: term -> float
         self.idf: Dict[str, float] = {}
+        # Precomputed term postings: term -> list of (doc_index, precomputed_weight)
+        self.fast_postings: Dict[str, List[Tuple[int, float]]] = defaultdict(list)
 
     def add_exemplar(
         self,
@@ -585,7 +674,7 @@ class SparseLexicalMatcher:
             self.inverted_index[term].append((doc_idx, freq))
 
     def build_index(self) -> None:
-        """Compute IDF and document length statistics."""
+        """Compute IDF, document length statistics, and precomputed BM25 term weights."""
         num_docs = len(self.documents)
         if num_docs == 0:
             return
@@ -601,38 +690,51 @@ class SparseLexicalMatcher:
             val = math.log(1.0 + (num_docs - doc_freq + 0.5) / (doc_freq + 0.5))
             self.idf[term] = max(0.01, val)
 
-    def match(self, query: str, threshold: float = 0.55) -> Optional[MatchResult]:
-        """Compute BM25 score against indexed exemplars in sub-0.2ms."""
+        self.fast_postings.clear()
+        for term, postings in self.inverted_index.items():
+            idf_val = self.idf.get(term, 0.0)
+            term_entries = []
+            for doc_idx, tf in postings:
+                dl = self.doc_lengths[doc_idx]
+                denom = tf + self.k1 * (1.0 - self.b + self.b * (dl / (self.avg_doc_length + 1e-9)))
+                numerator = tf * (self.k1 + 1.0)
+                weight = idf_val * (numerator / denom)
+                term_entries.append((doc_idx, weight))
+            self.fast_postings[term] = term_entries
+
+    def match(
+        self,
+        query: str,
+        threshold: float = 0.55,
+        normalized_query: Optional[str] = None,
+    ) -> Optional[MatchResult]:
+        """Compute BM25 score against indexed exemplars in sub-0.1ms."""
         t0 = time.perf_counter()
         num_docs = len(self.documents)
         if num_docs == 0:
             return None
 
-        tokens = tokenize_words(normalize_adversarial_text(query))
+        norm_text = normalized_query if normalized_query is not None else normalize_adversarial_text(query)
+        tokens = tokenize_words(norm_text)
         if not tokens:
             return None
 
-        scores = np.zeros(num_docs, dtype=np.float32)
-        q_counts = Counter(tokens)
-        q_set = set(tokens)
-
-        for term, _ in q_counts.items():
-            if term not in self.inverted_index:
-                continue
-            idf_val = self.idf.get(term, 0.0)
-            postings = self.inverted_index[term]
-
-            for doc_idx, tf in postings:
-                dl = self.doc_lengths[doc_idx]
-                denom = tf + self.k1 * (1.0 - self.b + self.b * (dl / (self.avg_doc_length + 1e-9)))
-                numerator = tf * (self.k1 + 1.0)
-                scores[doc_idx] += idf_val * (numerator / denom)
-
-        if len(scores) == 0:
+        matching_terms = [t for t in set(tokens) if t in self.fast_postings and t not in _COMMON_STOP_WORDS]
+        if not matching_terms:
+            matching_terms = [t for t in set(tokens) if t in self.fast_postings]
+        if not matching_terms:
             return None
 
-        best_idx = int(np.argmax(scores))
-        raw_score = float(scores[best_idx])
+        scores: Dict[int, float] = {}
+        for term in matching_terms:
+            for doc_idx, weight in self.fast_postings[term]:
+                scores[doc_idx] = scores.get(doc_idx, 0.0) + weight
+
+        if not scores:
+            return None
+
+        best_idx = max(scores, key=scores.get)
+        raw_score = scores[best_idx]
 
         # Normalize BM25 score into [0, 1] using logistic soft-capping
         # Calibrated so typical BM25 scores (3.0 - 8.0) map to 0.65 - 0.98
@@ -640,6 +742,7 @@ class SparseLexicalMatcher:
 
         # Supplementary Jaccard token overlap check for short sequences
         doc_tokens = set(tokenize_words(self.documents[best_idx]))
+        q_set = set(tokens)
         jaccard = len(q_set & doc_tokens) / len(q_set | doc_tokens) if (q_set | doc_tokens) else 0.0
 
         blended_lexical = max(norm_score, 0.6 * norm_score + 0.4 * jaccard)
@@ -684,7 +787,6 @@ class FastLocalEmbedder:
 
     def embed(self, text: str) -> np.ndarray:
         """Embed text string into a normalized 384-d dense vector in < 0.05ms."""
-        import binascii
         norm_text = normalize_adversarial_text(text)
         if not norm_text:
             return np.zeros(self.dim, dtype=np.float32)
@@ -826,6 +928,7 @@ class TriHybridMatcher:
         weight_lexical: float = 0.4,
         weight_dense: float = 0.6,
         default_threshold: float = 0.65,
+        load_external_rules: bool = True,
     ) -> None:
         self.weight_heuristic = weight_heuristic
         self.weight_lexical = weight_lexical
@@ -837,7 +940,10 @@ class TriHybridMatcher:
         self.dense = DenseSemanticVectorMatcher()
 
         self.patterns: Dict[str, GuardrailPattern] = {}
+        self.rule_loader: Optional[Any] = None
         self._load_baseline_guardrail_patterns()
+        if load_external_rules:
+            self._load_external_rules()
 
     def _load_baseline_guardrail_patterns(self) -> None:
         """Initialize comprehensive default guardrail patterns."""
@@ -932,6 +1038,7 @@ class TriHybridMatcher:
         regex_patterns: Optional[List[str]] = None,
         lexical_exemplars: Optional[List[str]] = None,
         semantic_exemplars: Optional[List[str]] = None,
+        rebuild_index: bool = True,
         **kwargs: Any,
     ) -> None:
         """Register a GuardrailPattern across all 3 engines."""
@@ -952,6 +1059,9 @@ class TriHybridMatcher:
             )
         else:
             pattern_obj = pattern
+
+        if pattern_obj.id in self.patterns and self.patterns[pattern_obj.id] == pattern_obj:
+            return
 
         self.patterns[pattern_obj.id] = pattern_obj
 
@@ -989,6 +1099,83 @@ class TriHybridMatcher:
             )
 
         # Rebuild indices
+        if rebuild_index:
+            self.lexical.build_index()
+            self.dense.build_index()
+
+    def _load_external_rules(self) -> int:
+        """
+        Attempt to auto-load YAML rules from data/rules/ if directory exists.
+        Silently skips if directory does not exist or PyYAML is missing.
+        """
+        try:
+            rules_path = Path(__file__).resolve().parents[2] / "data" / "rules"
+            if not rules_path.exists() or not rules_path.is_dir():
+                return 0
+
+            from vaxguard.nemo.rule_loader import RuleLoader, YAML_AVAILABLE
+            if not YAML_AVAILABLE:
+                return 0
+
+            self.rule_loader = RuleLoader(directory=rules_path, matcher=self)
+            patterns = self.rule_loader.load_directory(rules_path)
+            for pattern in patterns:
+                self.register_pattern(pattern, rebuild_index=False)
+            self.lexical.build_index()
+            self.dense.build_index()
+
+            logger.info(f"Loaded {len(patterns)} external rules from {rules_path}")
+            return len(patterns)
+        except Exception as exc:
+            logger.warning(f"Failed to load external rules: {exc}")
+            return 0
+
+    def load_rules_from_directory(self, path: Union[str, Path]) -> int:
+        """
+        Load external YAML rules from the specified directory and register them.
+
+        Args:
+            path: Path to directory containing YAML rule files.
+
+        Returns:
+            Number of external rules loaded and registered.
+        """
+        rules_path = Path(path)
+        from vaxguard.nemo.rule_loader import RuleLoader
+        self.rule_loader = RuleLoader(directory=rules_path, matcher=self)
+        patterns = self.rule_loader.load_directory(rules_path)
+        for pattern in patterns:
+            self.register_pattern(pattern, rebuild_index=False)
+        self.lexical.build_index()
+        self.dense.build_index()
+
+        logger.info(f"Loaded {len(patterns)} external rules from {rules_path}")
+        return len(patterns)
+
+    def reload_external_rules(self) -> int:
+        """
+        Hot-reload external YAML rules.
+
+        Returns:
+            Number of rules reloaded.
+        """
+        if self.rule_loader is None:
+            rules_path = Path(__file__).resolve().parents[2] / "data" / "rules"
+            from vaxguard.nemo.rule_loader import RuleLoader
+            self.rule_loader = RuleLoader(directory=rules_path, matcher=self)
+        count = self.rule_loader.reload()
+        logger.info(f"Hot-reloaded {count} external rules")
+        return count
+
+    def _reload_from_patterns(self, external_patterns: List[GuardrailPattern]) -> None:
+        """Reset engines, reload baseline patterns, and register external patterns."""
+        self.heuristic = HeuristicMatcher()
+        self.lexical = SparseLexicalMatcher()
+        self.dense = DenseSemanticVectorMatcher()
+        self.patterns.clear()
+        self._load_baseline_guardrail_patterns()
+        for pattern in external_patterns:
+            self.register_pattern(pattern, rebuild_index=False)
         self.lexical.build_index()
         self.dense.build_index()
 
@@ -1033,9 +1220,10 @@ class TriHybridMatcher:
         """
         t0 = time.perf_counter()
         effective_threshold = threshold if threshold is not None else self.default_threshold
+        normalized_query = normalize_adversarial_text(query)
 
         # ─── Stage 1: Fast Heuristic Path ─────────────────────────────────────
-        heur_result = self.heuristic.match(query)
+        heur_result = self.heuristic.match(query, normalized_text=normalized_query)
         if heur_result and heur_result.confidence >= 0.90:
             # High-confidence exact/regex heuristic match - fast exit in sub-0.1ms!
             total_lat = (time.perf_counter() - t0) * 1000.0
@@ -1045,7 +1233,7 @@ class TriHybridMatcher:
         heur_score = heur_result.confidence if heur_result else 0.0
 
         # ─── Stage 2: Sparse Lexical (BM25) Match ─────────────────────────────
-        lex_result = self.lexical.match(query, threshold=0.40)
+        lex_result = self.lexical.match(query, threshold=0.40, normalized_query=normalized_query)
         lex_score = lex_result.lexical_score if lex_result else 0.0
 
         # ─── Stage 3: Dense Semantic Vector Match ─────────────────────────────
@@ -1057,24 +1245,32 @@ class TriHybridMatcher:
 
         # Blended weighted score
         w_sum = self.weight_lexical + self.weight_dense
-        soft_score = (self.weight_lexical * lex_score + self.weight_dense * dense_score) / (w_sum + 1e-9)
-        blended_confidence = max(heur_score * self.weight_heuristic, soft_score)
+        if lex_result and dense_result and lex_result.rule_id == dense_result.rule_id:
+            soft_score = (self.weight_lexical * lex_score + self.weight_dense * dense_score) / (w_sum + 1e-9)
+            winner = dense_result if dense_score >= lex_score else lex_result
+            engine = EngineType.DENSE_SEMANTIC if dense_score >= lex_score else EngineType.LEXICAL_BM25
+        elif dense_result and ((self.weight_dense * dense_score) / (w_sum + 1e-9)) >= effective_threshold:
+            soft_score = (self.weight_dense * dense_score) / (w_sum + 1e-9)
+            winner = dense_result
+            engine = EngineType.DENSE_SEMANTIC
+        elif lex_result and ((self.weight_lexical * lex_score) / (w_sum + 1e-9)) >= effective_threshold:
+            soft_score = (self.weight_lexical * lex_score) / (w_sum + 1e-9)
+            winner = lex_result
+            engine = EngineType.LEXICAL_BM25
+        else:
+            soft_score = 0.0
+            winner = None
+            engine = EngineType.TRI_HYBRID
 
         # Determine winner rule and category
         if heur_result and heur_score >= 0.70:
             winner = heur_result
             engine = EngineType.HEURISTIC
-        elif dense_result and dense_score >= lex_score:
-            winner = dense_result
-            engine = EngineType.DENSE_SEMANTIC
-        elif lex_result:
-            winner = lex_result
-            engine = EngineType.LEXICAL_BM25
+            blended_confidence = heur_score * self.weight_heuristic
         else:
-            winner = None
-            engine = EngineType.TRI_HYBRID
+            blended_confidence = max(heur_score * self.weight_heuristic, soft_score)
 
-        matched = blended_confidence >= effective_threshold
+        matched = (winner is not None) and (blended_confidence >= effective_threshold)
 
         return MatchResult(
             matched=matched,
