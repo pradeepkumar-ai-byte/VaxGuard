@@ -122,28 +122,19 @@ def run_15k_benchmark() -> EvalReport:
             mean_latency_ms=round(statistics.mean(g_lat), 3) if g_lat else 0.0,
         )
 
-    # NeMo Guardrails Latency Baseline Simulation
-    nemo_mean_lat_ms = 2150.0  # ~2.15 seconds per query
-    nemo_total_sec = (nemo_mean_lat_ms / 1000.0) * total_samples  # 32,250s = 8.95 hours
-    speedup = nemo_mean_lat_ms / (mean_lat if mean_lat > 0 else 0.1)
-
     print("\n" + "=" * 84)
-    print("  HEAD-TO-HEAD BENCHMARK RESULTS (15,000 SAMPLES)")
+    print("  VAXGUARD REGRESSION TEST RESULTS (15,000 SAMPLES)")
+    print("  Note: In-distribution regression test suite.")
     print("=" * 84)
     print(f"  Total Probes Evaluated   : {total_samples:,}")
     print(f"  VaxGuard Wall-Clock Time : {total_wall_sec:.4f} seconds ({total_wall_sec * 1000:,.1f} ms total)")
     print(f"  VaxGuard Mean Latency    : {mean_lat:.3f} ms / query")
     print(f"  VaxGuard Percentiles     : P50: {p50_lat:.3f} ms | P90: {p90_lat:.3f} ms | P95: {p95_lat:.3f} ms | P99: {p99_lat:.3f} ms")
     print(f"  VaxGuard Throughput      : {throughput:,.1f} queries / sec")
-    print(f"  VaxGuard Accuracy        : {accuracy * 100:.2f}% ({passed_samples:,}/{total_samples:,})")
-    print(f"  VaxGuard Precision       : {precision * 100:.2f}%")
-    print(f"  VaxGuard Recall          : {recall * 100:.2f}%")
+    print(f"  In-Distribution Pass Rt  : {accuracy * 100:.2f}% ({passed_samples:,}/{total_samples:,})")
+    print(f"  Precision                : {precision * 100:.2f}%")
+    print(f"  Recall                   : {recall * 100:.2f}%")
     print(f"  Benign False Positive Rt : 0.0% (2,000/2,000 clean enterprise queries allowed)")
-    print("-" * 84)
-    print(f"  Standard NeMo Latency    : ~{nemo_mean_lat_ms:,.0f} ms / query (LLM judge loop)")
-    print(f"  Standard NeMo Total Time : ~{nemo_total_sec:,.0f} seconds (~{nemo_total_sec/3600:.1f} hours)")
-    print(f"  VaxGuard Speed Advantage : {speedup:,.0f}x FASTER than NVIDIA NeMo Guardrails")
-    print(f"  Extra LLM Token Cost     : VaxGuard: 0 tokens | NeMo: ~2,700,000+ tokens")
     print("=" * 84)
 
     # Save JSON results

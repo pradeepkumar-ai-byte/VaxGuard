@@ -320,17 +320,9 @@ def run_1k_head_to_head_benchmark() -> Dict[str, Any]:
     accuracy = ((correct_blocks + correct_allows) / len(all_tests)) * 100.0
     throughput_qps = len(all_tests) / batch_total_time_s
 
-    # NVIDIA NeMo Baseline Projections (Empirical Standard NeMo Benchmarks: ~2,000ms per LLM check, $0.0035 per 1k tokens)
-    nemo_avg_latency_ms = 2150.0  # standard NeMo LLM-as-a-judge / vector embedding check
-    nemo_projected_total_s = (len(all_tests) * nemo_avg_latency_ms) / 1000.0  # ~2,150 seconds (~35.8 minutes)
-    nemo_projected_token_cost_usd = 3.85  # 1,000 queries x ~700 tokens per self-check prompt
-
-    vaxguard_token_cost_usd = 0.00  # Fast-path Tri-Hybrid uses 0 upstream LLM tokens for safety checks!
-    speedup_factor = nemo_avg_latency_ms / (mean_lat + 1e-9)
-
     report = {
         "benchmark_meta": {
-            "title": "VaxGuard vs NVIDIA NeMo Guardrails 1,000-Test Head-to-Head Suite",
+            "title": "VaxGuard 1,000-Test In-Distribution Regression Suite",
             "total_tests": len(all_tests),
             "adversarial_tests": len(adv_tests),
             "benign_tests": len(benign_tests),
@@ -350,17 +342,7 @@ def run_1k_head_to_head_benchmark() -> Dict[str, Any]:
             "adversarial_detection_rate_pct": round(detection_rate, 2),
             "false_positive_rate_pct": round(fpr, 2),
             "overall_accuracy_pct": round(accuracy, 2),
-            "token_cost_usd": vaxguard_token_cost_usd,
-            "external_binary_dependencies_mb": 0.0,
-        },
-        "nemo_baseline_comparison": {
-            "nemo_estimated_avg_latency_ms": nemo_avg_latency_ms,
-            "nemo_estimated_batch_time_seconds": round(nemo_projected_total_s, 1),
-            "nemo_estimated_batch_time_minutes": round(nemo_projected_total_s / 60.0, 1),
-            "nemo_estimated_token_cost_usd": nemo_projected_token_cost_usd,
-            "nemo_spacy_langchain_bloat_mb": 850.0,
-            "vaxguard_speedup_multiplier": f"{round(speedup_factor, 1)}x Faster",
-            "vaxguard_cost_savings": "100% ($0 Token Cost on Fast-Path)",
+            "upstream_llm_tokens_consumed": 0,
         },
     }
 
@@ -370,24 +352,24 @@ def run_1k_head_to_head_benchmark() -> Dict[str, Any]:
     out_file = out_dir / "benchmark_1k_results.json"
     out_file.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
-    # ─── 4. Pretty-Print Benchmark Results ─────────────────────────────────────
+    # Pretty-Print Empirical Results
     print("\n" + "=" * 80)
-    print("[RESULTS] HEAD-TO-HEAD BENCHMARK RESULTS (1,000 TESTS)")
+    print("  VAXGUARD 1,000-SAMPLE REGRESSION RESULTS")
+    print("  Note: In-distribution regression suite. See evaluator.py for public benchmarks.")
     print("=" * 80)
-    print(f"{'METRIC':<35} | {'VAXGUARD (TRI-HYBRID)':<20} | {'NVIDIA NEMO GUARDRAILS':<20}")
+    print(f"{'Metric':<35} | {'Measured Value':<25}")
     print("-" * 80)
-    print(f"{'1,000 Tests Execution Time':<35} | {batch_total_time_s:<15.3f} sec | ~{nemo_projected_total_s/60.0:<14.1f} min")
-    print(f"{'Average Latency per Query':<35} | {mean_lat:<15.4f} ms  | ~{nemo_avg_latency_ms:<14.1f} ms")
-    print(f"{'Median Latency (p50)':<35} | {median_lat:<15.4f} ms  | ~1,850.0        ms")
-    print(f"{'p95 Latency':<35} | {p95_lat:<15.4f} ms  | ~2,900.0        ms")
-    print(f"{'p99 Latency':<35} | {p99_lat:<15.4f} ms  | ~3,400.0        ms")
-    print(f"{'Throughput (Queries / Sec)':<35} | {throughput_qps:<15.1f} QPS | ~0.46            QPS")
-    print(f"{'Adversarial Interception Rate':<35} | {detection_rate:<15.2f} %   | ~89.4            %")
-    print(f"{'False Positive Rate (FPR)':<35} | {fpr:<15.2f} %   | ~3.8             %")
-    print(f"{'Overall Policy Accuracy':<35} | {accuracy:<15.2f} %   | ~92.8            %")
-    print(f"{'Token Cost (1,000 Checks)':<35} | ${vaxguard_token_cost_usd:<14.2f}     | ${nemo_projected_token_cost_usd:<13.2f}")
-    print(f"{'External Model Weight Bloat':<35} | 0.0 MB (Pure Python) | ~850.0 MB (spaCy+Torch)")
-    print(f"{'Speed Advantage Multiplier':<35} | {round(speedup_factor, 1)}x Faster!        | Baseline (1.0x)")
+    print(f"{'Total Probes Evaluated':<35} | {len(all_tests)}")
+    print(f"{'Total Execution Time':<35} | {batch_total_time_s:.4f} sec")
+    print(f"{'Mean Latency':<35} | {mean_lat:.4f} ms")
+    print(f"{'Median Latency (P50)':<35} | {median_lat:.4f} ms")
+    print(f"{'P95 Latency':<35} | {p95_lat:.4f} ms")
+    print(f"{'P99 Latency':<35} | {p99_lat:.4f} ms")
+    print(f"{'Throughput':<35} | {throughput_qps:.1f} QPS")
+    print(f"{'In-Distribution Interception':<35} | {detection_rate:.2f}%")
+    print(f"{'False Positive Rate (FPR)':<35} | {fpr:.2f}%")
+    print(f"{'Overall Policy Accuracy':<35} | {accuracy:.2f}%")
+    print(f"{'Upstream LLM Tokens Consumed':<35} | 0 tokens (pure-Python execution)")
     print("=" * 80)
     print(f"[OK] Verified: 1,000 tests executed in {batch_total_time_s:.3f} seconds with 0 regressions.")
     print(f"[CERTIFICATE] Full JSON audit certificate saved to: {out_file}")

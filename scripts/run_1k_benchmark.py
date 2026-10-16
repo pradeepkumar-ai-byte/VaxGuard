@@ -131,31 +131,18 @@ def run_benchmark() -> EvalReport:
         detailed_results=results,
     )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # NeMo Guardrails Latency Simulation (Baseline Standard Architecture)
-    # ─────────────────────────────────────────────────────────────────────────
-    # Standard NeMo Guardrails performs 1 to 2 LLM/Embedding calls per rail check.
-    # Typical NeMo latency is 1,800ms to 2,500ms per sample.
-    nemo_mean_lat_ms = 2150.0  # ~2.15 seconds per query
-    nemo_total_sec = (nemo_mean_lat_ms / 1000.0) * total_samples  # ~2,150 seconds (~35.8 minutes)
-    speedup = nemo_mean_lat_ms / (mean_lat if mean_lat > 0 else 0.1)
-
     print("\n" + "=" * 80)
-    print("  HEAD-TO-HEAD BENCHMARK RESULTS")
+    print("  VAXGUARD REGRESSION TEST RESULTS (1,000 SAMPLES)")
+    print("  Note: In-distribution regression test suite.")
     print("=" * 80)
     print(f"  Total Probes Evaluated   : {total_samples}")
     print(f"  VaxGuard Wall-Clock Time : {total_wall_sec:.4f} seconds ({total_wall_sec * 1000:.1f} ms total)")
     print(f"  VaxGuard Mean Latency    : {mean_lat:.3f} ms / query (P95: {p95_lat:.3f} ms)")
     print(f"  VaxGuard Throughput      : {throughput:,.1f} queries / sec")
-    print(f"  VaxGuard Accuracy        : {accuracy * 100:.2f}% ({passed_samples}/{total_samples})")
-    print(f"  VaxGuard Precision       : {precision * 100:.2f}%")
-    print(f"  VaxGuard Recall          : {recall * 100:.2f}%")
+    print(f"  In-Distribution Pass Rt  : {accuracy * 100:.2f}% ({passed_samples}/{total_samples})")
+    print(f"  Precision                : {precision * 100:.2f}%")
+    print(f"  Recall                   : {recall * 100:.2f}%")
     print(f"  Benign False Positive Rt : 0.0% (150/150 clean enterprise queries allowed)")
-    print("-" * 80)
-    print(f"  Standard NeMo Latency    : ~{nemo_mean_lat_ms:,.0f} ms / query (LLM judge loop)")
-    print(f"  Standard NeMo Total Time : ~{nemo_total_sec:,.0f} seconds (~{nemo_total_sec/60:.1f} minutes)")
-    print(f"  VaxGuard Speed Advantage : {speedup:,.0f}x FASTER than NVIDIA NeMo Guardrails")
-    print(f"  Extra LLM Token Cost     : VaxGuard: 0 tokens | NeMo: ~180,000+ tokens")
     print("=" * 80)
 
     # Save JSON results
