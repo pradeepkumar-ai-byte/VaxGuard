@@ -600,6 +600,18 @@ class ScopedContext:
         self._global_vars = copy.deepcopy(snapshot.global_vars)
         self.turn_id = snapshot.turn_id
 
+    def create_child_context(self) -> ScopedContext:
+        """Create a child ScopedContext sharing session and global scopes with isolated local turn scope."""
+        child = ScopedContext(
+            session_id=self.session_id,
+            event_bus=self.event_bus,
+            global_vars=self._global_vars,
+        )
+        child._session_vars = self._session_vars
+        child._turn_vars = copy.deepcopy(self._turn_vars)
+        child.turn_id = self.turn_id
+        return child
+
     def register_compensation(self, fn: Callable[[], Union[None, Awaitable[None]]]) -> None:
         """Register an undo/compensation handler for rollback transitions."""
         self._compensations.append(fn)
@@ -979,6 +991,78 @@ class StopStep(FlowStep):
         return StepResult(success=True, stop_flow=True)
 
 
+class SubflowStep(FlowStep):
+    """Executes a nested sub-dialogue or subflow asynchronously (`call flow <name>`, `subflow <name>`).
+
+    Provides:
+    - Scoped child context execution.
+    - Argument mapping and dynamic variable binding.
+    - Transactional rollback: if child subflow fails, parent context is protected.
+    - Return value capturing into a designated variable (`call <flow_name>(...) as $result`).
+    """
+
+    def __init__(
+        self,
+        flow_name: str,
+        arguments: Optional[Dict[str, Any]] = None,
+        variable: Optional[str] = None,
+        enable_rollback_on_failure: bool = True,
+    ) -> None:
+        self.flow_name = flow_name
+        self.arguments = arguments or {}
+        self.variable = variable
+        self.enable_rollback_on_failure = enable_rollback_on_failure
+
+    async def execute(self, ctx: FlowExecutionContext) -> StepResult:
+        # Resolve target flow from context or registry
+        target_flow: Optional[Flow2] = ctx.context.get(f"_flow_{self.flow_name}")
+        if target_flow is None and ctx.action_registry and hasattr(ctx.action_registry, "flows"):
+            target_flow = ctx.action_registry.flows.get(self.flow_name)
+
+        if target_flow is None:
+            return StepResult(
+                success=False,
+                error=f"Subflow '{self.flow_name}' not found in registered flows.",
+            )
+
+        # Resolve argument templates
+        resolved_args: Dict[str, Any] = {}
+        for k, v in self.arguments.items():
+            if isinstance(v, str):
+                resolved_args[k] = ctx.resolve_template(v)
+            else:
+                resolved_args[k] = v
+
+        # Create isolated child context for subflow execution
+        child_ctx = ctx.context.create_child_context()
+        for k, v in resolved_args.items():
+            child_ctx.set(k, v)
+
+        flow_res = await target_flow.execute(
+            context=child_ctx,
+            event_bus=ctx.event_bus,
+            action_registry=ctx.action_registry,
+            custom_actions=ctx.custom_actions,
+            inputs=resolved_args,
+            enable_rollback_on_failure=self.enable_rollback_on_failure,
+        )
+
+        if not flow_res.success:
+            return StepResult(
+                success=False,
+                error=f"Nested subflow '{self.flow_name}' failed: {flow_res.error}",
+            )
+
+        if self.variable:
+            ctx.context.set(self.variable, flow_res.output)
+
+        return StepResult(
+            success=True,
+            output=flow_res.output,
+            stop_flow=(flow_res.status == "stopped"),
+        )
+
+
 # ─── 6. FLOW2 DEFINITION & RUNTIME ───────────────────────────────────────────
 
 class FlowResult(BaseModel):
@@ -1260,6 +1344,33 @@ class Colang2Parser:
         # 9. `stop`
         if line == "stop":
             return StopStep()
+
+        # 10. Nested Sub-Dialogue / Subflow: `call flow <name>`, `call <name>(...)`, `subflow <name>`, `subdialogue <name>`
+        if line.startswith("call ") or line.startswith("subflow ") or line.startswith("subdialogue "):
+            clean = line
+            var_name = None
+            if " as " in clean:
+                clean, var_part = clean.split(" as ", 1)
+                var_name = var_part.strip().lstrip("$")
+
+            if clean.startswith("call flow "):
+                flow_part = clean[10:].strip()
+            elif clean.startswith("call "):
+                flow_part = clean[5:].strip()
+            elif clean.startswith("subflow "):
+                flow_part = clean[8:].strip()
+            else:
+                flow_part = clean[12:].strip()
+
+            args: Dict[str, Any] = {}
+            if "(" in flow_part and flow_part.endswith(")"):
+                f_name, arg_str = flow_part[:-1].split("(", 1)
+                f_name = f_name.strip()
+                args = cls._parse_kwargs(arg_str)
+            else:
+                f_name = flow_part.strip()
+
+            return SubflowStep(flow_name=f_name, arguments=args, variable=var_name)
 
         return None
 

@@ -16,6 +16,12 @@ from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
 
 from pydantic import BaseModel, Field
 
+from vaxguard.nemo.crescendo_defense import (
+    CrescendoDefenseEngine,
+    RiskTier,
+    TurnRiskSignal,
+)
+
 
 # ─── Event Enums & Contracts ──────────────────────────────────────────────────
 
@@ -370,6 +376,7 @@ class StateTracker:
         self._turns: List[DialogueTurn] = []
         self._turn_counter: int = 0
         self.created_at = time.time()
+        self.crescendo_defense = CrescendoDefenseEngine()
 
     @property
     def current_flow(self) -> Optional[str]:
@@ -417,14 +424,25 @@ class StateTracker:
         text: str,
         intent: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
+        matcher_confidence: float = 0.0,
     ) -> DialogueTurn:
-        """Record an incoming user utterance and advance the turn counter."""
+        """Record an incoming user utterance, update crescendo risk, and advance the turn counter."""
         self._turn_counter += 1
+        turn_meta = dict(metadata or {})
+
+        # Evaluate crescendo cognitive drift and multi-turn boundary erosion
+        crescendo_signal = self.crescendo_defense.evaluate_turn(
+            turn_index=self._turn_counter,
+            prompt=text,
+            matcher_confidence=matcher_confidence,
+        )
+        turn_meta["crescendo"] = crescendo_signal.model_dump()
+
         turn = DialogueTurn(
             turn_index=self._turn_counter,
             user_message=text,
             user_intent=intent,
-            metadata=metadata or {},
+            metadata=turn_meta,
         )
         self._turns.append(turn)
 
@@ -443,7 +461,43 @@ class StateTracker:
                     data={"turn": self._turn_counter, "intent": intent},
                 )
             )
+
+        if crescendo_signal.interception_triggered:
+            self.event_stack.push(
+                Event(
+                    event_type=EventType.SECURITY_ALERT,
+                    sender="crescendo_defense",
+                    data={
+                        "turn": self._turn_counter,
+                        "session_risk": crescendo_signal.accumulated_session_risk,
+                        "action": "crescendo_interception",
+                        "coaxing_markers": crescendo_signal.coaxing_markers_detected,
+                    },
+                )
+            )
+
         return turn
+
+    def get_session_risk(self) -> float:
+        """Return current cumulative session risk score (0.0 to 1.0)."""
+        return self.crescendo_defense.current_risk_score
+
+    def get_risk_tier(self) -> RiskTier:
+        """Return current categorical risk tier (NORMAL, ELEVATED, CRITICAL)."""
+        score = self.crescendo_defense.current_risk_score
+        if score >= self.crescendo_defense.critical_threshold:
+            return RiskTier.CRITICAL
+        elif score >= self.crescendo_defense.elevated_threshold:
+            return RiskTier.ELEVATED
+        return RiskTier.NORMAL
+
+    def get_effective_threshold(self, base_threshold: float = 0.68) -> float:
+        """Return dynamically tightened matcher threshold based on session risk."""
+        return self.crescendo_defense.get_effective_threshold(base_threshold)
+
+    def is_crescendo_intercepted(self) -> bool:
+        """Check whether the session has crossed into CRITICAL crescendo risk requiring interception."""
+        return self.crescendo_defense.current_risk_score >= self.crescendo_defense.critical_threshold
 
     def record_bot_turn(
         self,

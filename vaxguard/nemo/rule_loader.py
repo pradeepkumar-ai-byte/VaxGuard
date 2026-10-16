@@ -16,6 +16,9 @@ from __future__ import annotations
 import logging
 import re
 import threading
+import hashlib
+import time
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
@@ -30,6 +33,17 @@ from vaxguard.core.logger import get_logger
 from vaxguard.nemo.hybrid_matcher import GuardrailAction, GuardrailPattern
 
 logger = get_logger("RuleLoader")
+
+
+@dataclass
+class RuleSetVersion:
+    """Immutable version descriptor for a compiled ruleset."""
+    version_id: str
+    rule_count: int
+    content_sha256: str
+    loaded_at: float = field(default_factory=time.time)
+    rules: List[GuardrailPattern] = field(default_factory=list)
+
 
 REQUIRED_FIELDS: Tuple[str, ...] = (
     "id",
@@ -103,6 +117,8 @@ class RuleLoader:
         self.matcher = matcher
         self._lock = threading.RLock()
         self._loaded_rules: List[GuardrailPattern] = []
+        self._current_version: Optional[RuleSetVersion] = None
+        self._version_history: List[RuleSetVersion] = []
 
     def validate_rule(self, rule: Any) -> ValidationResult:
         """
@@ -304,6 +320,7 @@ class RuleLoader:
         yaml_files = sorted(
             [p for p in dir_path.rglob("*") if p.is_file() and p.suffix.lower() in (".yaml", ".yml")]
         )
+        hasher = hashlib.sha256()
 
         for file_path in yaml_files:
             try:
@@ -312,6 +329,7 @@ class RuleLoader:
                 if not content.strip():
                     logger.debug(f"Empty YAML file skipped: {file_path}")
                     continue
+                hasher.update(content.encode("utf-8"))
                 try:
                     docs = list(yaml.safe_load_all(content))
                 except yaml.YAMLError as exc:
@@ -370,7 +388,21 @@ class RuleLoader:
                         )
                         continue
 
+        content_hash = hasher.hexdigest()
+        version_id = f"v_{int(time.time())}_{content_hash[:8]}"
+        new_version = RuleSetVersion(
+            version_id=version_id,
+            rule_count=len(loaded_patterns),
+            content_sha256=content_hash,
+            rules=list(loaded_patterns),
+        )
+
         with self._lock:
+            if self._current_version is not None:
+                self._version_history.append(self._current_version)
+                if len(self._version_history) > 10:
+                    self._version_history.pop(0)
+            self._current_version = new_version
             self._loaded_rules = list(loaded_patterns)
 
         return loaded_patterns
@@ -397,3 +429,50 @@ class RuleLoader:
         """Return a snapshot of currently loaded rules."""
         with self._lock:
             return list(self._loaded_rules)
+
+    def get_current_version(self) -> Optional[RuleSetVersion]:
+        """Return currently active ruleset version descriptor."""
+        with self._lock:
+            return self._current_version
+
+    def get_version_history(self) -> List[RuleSetVersion]:
+        """Return chronological history of previously loaded ruleset versions."""
+        with self._lock:
+            return list(self._version_history)
+
+    def rollback_to_version(self, version_id: str) -> bool:
+        """
+        Roll back the active ruleset to a previously loaded version.
+
+        Atomically swaps the active rules and updates the matcher without reading from disk.
+        """
+        with self._lock:
+            target_version: Optional[RuleSetVersion] = None
+            for v in self._version_history:
+                if v.version_id == version_id:
+                    target_version = v
+                    break
+
+            if target_version is None:
+                logger.warning(f"Cannot rollback: version '{version_id}' not found in history.")
+                return False
+
+            # Archive current active version before rolling back
+            if self._current_version is not None:
+                self._version_history.append(self._current_version)
+
+            self._current_version = target_version
+            self._loaded_rules = list(target_version.rules)
+
+            # Re-register patterns with matcher if attached
+            if self.matcher is not None:
+                if hasattr(self.matcher, "_reload_from_patterns"):
+                    self.matcher._reload_from_patterns(target_version.rules)
+                else:
+                    for pattern in target_version.rules:
+                        self.matcher.register_pattern(pattern)
+
+            logger.info(
+                f"Successfully rolled back ruleset to version {version_id} ({len(target_version.rules)} rules)."
+            )
+            return True
