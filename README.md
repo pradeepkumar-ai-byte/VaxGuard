@@ -103,10 +103,11 @@ VaxGuard is continuously evaluated against standardized, independent academic an
 | **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.79 ms |
 | **[JailbreakBench](https://jailbreakbench.github.io/)** | Standardized jailbreak attacks (GCG suffixes, PAIR, TAP, AutoDAN) | 100 | **100.0%** | **0.00%** | 0.60 ms |
 | **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **0.00%** | 0.61 ms |
+| **[High-Level 20-Pack Suite](tests/test_high_level_attacks_20pack.py)** | Advanced adversarial framing, indirect RAG context poisoning, multilingual bypasses (ZH/ES/FR/RU), and unaligned model simulations | 24 | **100.0%** | **0.00%** | 0.51 ms |
 | **[Multi-Turn Crescendo Suite](tests/test_crescendo_transcripts.py)** | Multi-turn conversational boundary erosion (5-12 turn transcripts) | 10 (64 turns) | **100.0%** | **0.00%** | 0.52 ms |
 | **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | **93.3%** | N/A | 0.36 ms |
 | **Enterprise Contrast Suite** | Real-world business queries (Finance, Healthcare, Legal, DevOps, Support, HR) | 5,000 | N/A | **0.00%** | 0.36 ms |
-| **Consolidated Public Benchmarks** | Combined multi-source independent evaluation | 424 | **100.0%** | **0.00%** | **0.38 ms** |
+| **Consolidated Public Benchmarks** | Combined multi-source independent evaluation | 448 | **100.0%** | **0.00%** | **0.38 ms** |
 
 *All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `tests/`, and `vaxguard/benchmarks/`.*
 
