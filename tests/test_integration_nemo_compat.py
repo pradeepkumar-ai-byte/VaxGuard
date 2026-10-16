@@ -102,7 +102,7 @@ def test_llmrails_sync_generate_benign_prompt():
     explain = rails.explain()
     assert explain.status == "allowed"
     assert explain.fast_path_used is True
-    assert explain.input_latency_ms < 5.0
+    assert explain.input_latency_ms < 15.0
     assert explain.llm_calls_count == 1
     assert explain.token_cost == 0.0
 

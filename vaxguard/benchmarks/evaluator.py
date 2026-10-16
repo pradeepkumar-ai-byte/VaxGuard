@@ -568,7 +568,7 @@ def run_cli(args: Optional[Sequence[str]] = None) -> int:
     evaluator = BenchmarkEvaluator(threshold=parsed.threshold)
 
     targets = (
-        ["advglue", "donotanswer", "harmbench", "jailbreakbench", "hard_framing_suite"]
+        ["advglue", "donotanswer", "harmbench", "jailbreakbench", "hard_framing_suite", "high_level_20pack"]
         if parsed.benchmark == "all"
         else [parsed.benchmark]
     )
