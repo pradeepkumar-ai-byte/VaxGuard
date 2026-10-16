@@ -14,19 +14,13 @@ Features:
 
 from __future__ import annotations
 
-import os
-import time
 from types import SimpleNamespace
 from typing import (
     Any,
     AsyncIterator,
-    Callable,
-    Dict,
     Iterator,
     List,
     Optional,
-    Sequence,
-    Tuple,
     Union,
 )
 
@@ -38,7 +32,6 @@ from vaxguard.nemo.hybrid_matcher import (
     TriHybridMatcher,
 )
 from vaxguard.nemo.streaming_interceptor import (
-    CircuitBreakerState,
     InterceptorAction,
     StreamingTokenInterceptor,
     StreamingViolationEvent,

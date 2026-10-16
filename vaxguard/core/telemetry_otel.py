@@ -26,13 +26,11 @@ from contextvars import ContextVar
 from dataclasses import dataclass, field
 from enum import Enum
 import functools
-import inspect
 import math
-import os
 import secrets
 import threading
 import time
-from typing import Any, AsyncIterator, Callable, Dict, Iterator, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 from vaxguard.core.logger import get_logger
 
@@ -43,7 +41,7 @@ try:
     import opentelemetry.trace as otel_trace
     _OTEL_AVAILABLE = True
 except ImportError:
-    otel_trace = None
+    otel_trace = None  # type: ignore[assignment,no-redef]
     _OTEL_AVAILABLE = False
 
 

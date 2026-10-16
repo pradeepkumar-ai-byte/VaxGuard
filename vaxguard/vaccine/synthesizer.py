@@ -1,6 +1,5 @@
 import json
 import uuid
-from tenacity import retry, stop_after_attempt, wait_exponential
 from vaxguard.core.llm_client import VaxGuardLLM
 from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.models.attack import AttackVector

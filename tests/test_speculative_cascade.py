@@ -12,11 +12,9 @@ Tests:
 
 import asyncio
 import pytest
-from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher
+from vaxguard.nemo.hybrid_matcher import GuardrailAction
 from vaxguard.nemo.speculative_cascade import (
-    CascadeEvaluationResult,
     CascadeTier,
-    ContextDriftAnalyzer,
     ConversationTurn,
     RiskSeverity,
     SpeculativeSemanticCascade,

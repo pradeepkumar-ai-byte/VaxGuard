@@ -7,9 +7,8 @@ Verifies:
 3. Central HyperEngine Orchestrator & Multi-Provider LLM Bridge.
 """
 
-import asyncio
 import pytest
-from typing import AsyncIterator, List
+from typing import AsyncIterator
 from unittest.mock import AsyncMock, patch
 
 from vaxguard.nemo.hybrid_matcher import (
@@ -17,20 +16,15 @@ from vaxguard.nemo.hybrid_matcher import (
     HeuristicMatcher,
     SparseLexicalMatcher,
     DenseSemanticVectorMatcher,
-    GuardrailPattern,
     GuardrailAction,
-    EngineType,
     FastLocalEmbedder,
 )
 from vaxguard.nemo.streaming_interceptor import (
     StreamingTokenInterceptor,
     CircuitBreakerState,
-    InterceptorAction,
-    StreamingViolationEvent,
 )
 from vaxguard.nemo.hyper_engine import (
     HyperEngine,
-    ProtectedGenerationResult,
     RailStatus,
 )
 from vaxguard.nemo.colang import FlowManager

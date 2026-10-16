@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import base64
 import pytest
-from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher
+from vaxguard.nemo.hybrid_matcher import TriHybridMatcher
 
 
 def b64(payload: str) -> str:

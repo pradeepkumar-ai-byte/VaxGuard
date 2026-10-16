@@ -15,6 +15,8 @@ from __future__ import annotations
 from vaxguard.nemo.hyper_engine import (
     HyperEngine,
     RailCheckResult,
+)
+from vaxguard.nemo.colang import (
     FlowExecutionResult,
 )
 

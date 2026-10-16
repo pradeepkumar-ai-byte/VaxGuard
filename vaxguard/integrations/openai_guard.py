@@ -21,13 +21,9 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
-    Dict,
     Iterator,
     List,
     Optional,
-    Sequence,
-    Tuple,
-    Union,
 )
 
 from vaxguard.core.logger import get_logger
@@ -38,7 +34,6 @@ from vaxguard.nemo.hybrid_matcher import (
     TriHybridMatcher,
 )
 from vaxguard.nemo.streaming_interceptor import (
-    CircuitBreakerState,
     InterceptorAction,
     StreamingTokenInterceptor,
     StreamingViolationEvent,

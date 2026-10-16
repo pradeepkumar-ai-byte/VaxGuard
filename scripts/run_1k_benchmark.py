@@ -17,7 +17,6 @@ Outputs:
 from __future__ import annotations
 
 import json
-import os
 import statistics
 import time
 from pathlib import Path
@@ -82,7 +81,6 @@ def run_benchmark() -> EvalReport:
     tp = sum(1 for r in results if r.expected_action == "block" and r.actual_action == "block")
     fp = sum(1 for r in results if r.expected_action == "allow" and r.actual_action == "block")
     fn = sum(1 for r in results if r.expected_action == "block" and r.actual_action == "allow")
-    tn = sum(1 for r in results if r.expected_action == "allow" and r.actual_action == "allow")
 
     precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 1.0
@@ -142,7 +140,7 @@ def run_benchmark() -> EvalReport:
     print(f"  In-Distribution Pass Rt  : {accuracy * 100:.2f}% ({passed_samples}/{total_samples})")
     print(f"  Precision                : {precision * 100:.2f}%")
     print(f"  Recall                   : {recall * 100:.2f}%")
-    print(f"  Benign False Positive Rt : 0.0% (150/150 clean enterprise queries allowed)")
+    print("  Benign False Positive Rt : 0.0% (150/150 clean enterprise queries allowed)")
     print("=" * 80)
 
     # Save JSON results
@@ -167,11 +165,6 @@ def run_benchmark() -> EvalReport:
                     "p95_latency_ms": report.p95_latency_ms,
                     "p99_latency_ms": report.p99_latency_ms,
                     "throughput_qps": report.throughput_qps,
-                },
-                "nemo_standard_baseline": {
-                    "estimated_total_seconds": round(nemo_total_sec, 1),
-                    "mean_latency_ms": nemo_mean_lat_ms,
-                    "speedup_factor": round(speedup, 1),
                 },
                 "categories": {k: v.model_dump() for k, v in cat_metrics.items()},
             },

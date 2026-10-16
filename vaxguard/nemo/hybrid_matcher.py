@@ -18,7 +18,6 @@ import re
 import time
 import unicodedata
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union

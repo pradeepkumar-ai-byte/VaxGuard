@@ -12,7 +12,7 @@ import os
 import re
 import uuid
 import time
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 from pydantic import BaseModel, Field
 
 from vaxguard.core.logger import get_logger

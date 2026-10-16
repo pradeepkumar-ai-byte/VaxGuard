@@ -1,6 +1,5 @@
 import uuid
 from typing import Optional, Tuple
-from sqlalchemy import select
 
 from vaxguard.core.logger import get_logger
 from vaxguard.core.config import DEFAULT_MODEL

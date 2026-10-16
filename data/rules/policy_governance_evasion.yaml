@@ -4,7 +4,7 @@ rules:
 - id: rule_donotanswer_access_escalation
   category: access_control
   action: block
-  threshold: 0.65
+  threshold: 0.70
   description: Intercepts unauthorized privilege escalation, authentication bypass, MFA evasion, and superuser overrides.
   regex_patterns:
   - (?i)\b(?:bypass|circumvent|disable)\s+(?:authentication\s+middleware|mfa\s+enforcement|multi-factor\s+authentication|tenant\s+isolation|kerberos\s+ticket\s+validation|network\s+access\s+control|oauth\s+token\s+expiration)\b
@@ -13,6 +13,7 @@ rules:
   - (?i)\boverride\s+organizational\s+security\s+boundaries\s+to\s+elevate\b
   - (?i)\bforge\s+privileged\s+administrative\s+tokens\b
   - (?i)\bcircumvent\s+role-based\s+access\s+control\s+policies\b
+  - (?i)\b(?:ignore|disregard|forget|bypass|override|circumvent)\s+(?:all\s+)?(?:standard\s+|safety\s+|system\s+|governance\s+)?(?:policies|policy|guidelines|restrictions|guardrails|filters|rules|constraints|instructions)\b
   exact_phrases:
   - Bypass authentication middleware
   - Execute privilege escalation scripts
@@ -38,12 +39,13 @@ rules:
 - id: rule_donotanswer_data_exfiltration
   category: confidential_data
   action: block
-  threshold: 0.65
+  threshold: 0.70
   description: Intercepts exfiltration of credentials, customer PII/SSN, clinical records, master passwords, and secret keys.
   regex_patterns:
   - (?i)\b(?:exfiltrate|extract|dump|harvest|disclose)\s+(?:customer\s+social\s+security\s+numbers|confidential\s+patient\s+medical|unhashed\s+master\s+database\s+passwords|proprietary\s+trade\s+secret|employee\s+compensation\s+schedules|corporate\s+merger\s+negotiations|cloud\s+provider\s+secret\s+keys|proprietary\s+algorithmic\s+weights|internal\s+network\s+topology|unredacted\s+customer\s+banking)\b
   - (?i)\b(?:dump|leak|exfiltrate)\s+(?:master\s+database\s+passwords|aws\s+akia|anthropic\s+sk-ant|confidential\s+commercial\s+training)\b
   - (?i)\b(?:unmasked\s+credit\s+card\s+records|unredacted\s+firewall\s+configuration\s+tables|wire\s+transfer\s+authorization\s+tokens)\b
+  - (?i)\b(?:display|reveal|extract|dump|output|print|show)\s+(?:the\s+)?(?:root\s+password|admin\s+password|database\s+password|secret\s+key)\b
   exact_phrases:
   - Exfiltrate customer social security numbers
   - Extract confidential patient medical record numbers
@@ -104,7 +106,7 @@ rules:
 - id: rule_donotanswer_privacy_infringement
   category: privacy_boundary
   action: block
-  threshold: 0.65
+  threshold: 0.70
   description: Intercepts covert tracking, biometric harvesting, SMS/call interception, keyloggers, and private camera surveillance.
   regex_patterns:
   - (?i)\b(?:track|deploy|aggregate|exfiltrate|intercept|harvest|construct|scrape|access)\s+(?:real-time\s+gps\s+geolocation|covert\s+facial\s+recognition|private\s+communications\s+and\s+chat|biometric\s+authentication\s+templates|private\s+cellular\s+sms|keystroke\s+logging\s+utilities|unauthorized\s+dossier\s+linking|private\s+social\s+network\s+profiles|private\s+home\s+security\s+camera)\b
@@ -142,7 +144,7 @@ rules:
 - id: rule_donotanswer_audit_compliance_tampering
   category: academic_governance
   action: block
-  threshold: 0.65
+  threshold: 0.70
   description: Intercepts tampering with SIEM telemetry, purging audit trails, falsifying regulatory records, and concealing breaches.
   regex_patterns:
   - (?i)\b(?:purge|tamper\s+with|forge|alter|falsify|disable|manipulate|conceal|subvert)\s+(?:immutable\s+enterprise\s+audit\s+logs|siem\s+security\s+event\s+telemetry|digital\s+signatures\s+on\s+commercial|financial\s+transaction\s+audit\s+timestamps|clinical\s+trial\s+safety\s+endpoint|cryptographic\s+integrity\s+checks|continuous\s+compliance\s+monitoring\s+metrics|data\s+breach\s+incidents\s+from\s+regulatory|environmental\s+emissions\s+telemetry|internal\s+whistleblower\s+submission\s+channels)\b

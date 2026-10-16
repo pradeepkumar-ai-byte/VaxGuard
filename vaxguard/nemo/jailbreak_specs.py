@@ -8,9 +8,9 @@ grounding enforcement, and multi-modal exfiltration attacks. Mapped to OWASP LLM
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class ColangPolicyCategory(str, Enum):

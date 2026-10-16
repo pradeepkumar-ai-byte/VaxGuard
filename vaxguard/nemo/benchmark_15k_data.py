@@ -16,7 +16,6 @@ Total: Exactly 15,000 high-fidelity test cases.
 
 from __future__ import annotations
 
-import base64
 from typing import List
 from vaxguard.nemo.eval_suite import EvalSample
 

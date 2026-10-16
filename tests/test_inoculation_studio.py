@@ -6,7 +6,6 @@ Covers:
 - Inoculation Studio (Benchmark suite, Developer approval gating, Commit to rails)
 """
 
-import os
 import pytest
 from pathlib import Path
 from vaxguard.models.attack import AttackVector, AttackCategory
@@ -17,7 +16,6 @@ from vaxguard.nemo import (
     LiveTrafficMutationError,
     QuarantineSandbox,
     QuarantineCertificate,
-    SandboxTestSuite,
     InoculationStudio,
     BenchmarkReport,
     CommitResult,

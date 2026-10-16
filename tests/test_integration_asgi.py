@@ -22,16 +22,14 @@ from starlette.testclient import TestClient
 from vaxguard.integrations.asgi_middleware import (
     VaxGuardASGIMiddleware,
     build_sse_alert_frame,
-    parse_sse_frame,
     parse_sse_frames,
 )
-from vaxguard.nemo.hybrid_matcher import TriHybridMatcher
 
 
 # ─── Mock Downstream Endpoints ────────────────────────────────────────────────
 
 async def clean_chat_endpoint(request):
-    body = await request.json()
+    _body = await request.json()
     return JSONResponse({
         "id": "chatcmpl-test",
         "object": "chat.completion",

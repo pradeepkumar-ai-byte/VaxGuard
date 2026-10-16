@@ -9,7 +9,6 @@ Verifies:
 
 from __future__ import annotations
 
-import pytest
 from vaxguard.nemo.redteam_smuggling import generate_token_smuggling_samples
 from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher
 

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import asyncio
 import queue
-import time
 from typing import (
     Any,
     AsyncIterator,
@@ -25,7 +24,6 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Set,
     Tuple,
     Union,
 )
@@ -34,15 +32,11 @@ from vaxguard.core.logger import get_logger
 from vaxguard.integrations.langchain_guard import VaxGuardSecurityViolation
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
-    MatchResult,
     TriHybridMatcher,
-    normalize_adversarial_text,
 )
 from vaxguard.nemo.streaming_interceptor import (
-    CircuitBreakerState,
     InterceptorAction,
     StreamingTokenInterceptor,
-    StreamingViolationEvent,
 )
 
 logger = get_logger("HuggingFaceGuard")

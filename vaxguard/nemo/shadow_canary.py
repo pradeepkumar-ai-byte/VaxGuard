@@ -18,11 +18,11 @@ import hashlib
 import time
 import uuid
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 from vaxguard.core.logger import get_logger
-from vaxguard.nemo.hybrid_matcher import GuardrailAction, GuardrailPattern, MatchResult
+from vaxguard.nemo.hybrid_matcher import MatchResult
 
 logger = get_logger("ShadowCanaryEngine")
 
@@ -111,7 +111,7 @@ class ShadowCanaryEngine:
             pattern=pattern,
             stage=initial_stage,
             min_shadow_observations=min_shadow_evals or self.min_shadow_evals,
-            canary_percentage=canary_percentage or self.canary_percentage,
+            canary_traffic_percentage=canary_percentage or self.canary_percentage,
         )
         self._rules[rule_id] = staged
         logger.info(f"Registered staged rule '{rule_id}' in {initial_stage.value.upper()} stage.")

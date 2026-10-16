@@ -12,14 +12,13 @@ import json
 import time
 import uuid
 from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional
 
 from pydantic import BaseModel, Field
 
 from vaxguard.nemo.crescendo_defense import (
     CrescendoDefenseEngine,
     RiskTier,
-    TurnRiskSignal,
 )
 
 

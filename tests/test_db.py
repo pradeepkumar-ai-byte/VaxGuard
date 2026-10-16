@@ -92,7 +92,7 @@ async def test_db_inactive_vaccine_filtering():
             session.add(VaccineTable(id=inactive_id, target_category=AttackCategory.CHAIN_POISONING, system_prompt_extension="Inactive", is_active=False))
 
     async with AsyncSessionLocal() as session:
-        result = await session.execute(select(VaccineTable).where(VaccineTable.id.in_([active_id, inactive_id]), VaccineTable.is_active == True))
+        result = await session.execute(select(VaccineTable).where(VaccineTable.id.in_([active_id, inactive_id]), VaccineTable.is_active))
         active_list = result.scalars().all()
         assert len(active_list) == 1
         assert active_list[0].id == active_id

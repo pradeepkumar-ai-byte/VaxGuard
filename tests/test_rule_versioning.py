@@ -3,10 +3,9 @@ Unit tests for Rule Versioning and Atomic Rollback in RuleLoader.
 """
 
 from pathlib import Path
-import pytest
 
-from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher
-from vaxguard.nemo.rule_loader import RuleLoader, RuleSetVersion
+from vaxguard.nemo.hybrid_matcher import TriHybridMatcher
+from vaxguard.nemo.rule_loader import RuleLoader
 
 
 def test_rule_version_creation_and_hashing(tmp_path: Path):

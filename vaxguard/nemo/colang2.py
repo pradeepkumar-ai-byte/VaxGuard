@@ -33,11 +33,9 @@ from typing import (
     Awaitable,
     Callable,
     Dict,
-    Iterator,
     List,
     Optional,
     Pattern,
-    Set,
     Tuple,
     Union,
 )
@@ -670,7 +668,6 @@ class FlowExecutionContext:
         """Interpolate $var or {var} in string using current context variables."""
         if not text:
             return ""
-        all_vars = self.context.all_variables()
 
         def _sub_dollar(m: re.Match[str]) -> str:
             var_name = m.group(1)

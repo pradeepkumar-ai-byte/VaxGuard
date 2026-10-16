@@ -16,7 +16,7 @@ from __future__ import annotations
 import re
 import time
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Tuple
 from pydantic import BaseModel, Field
 
 from vaxguard.core.logger import get_logger

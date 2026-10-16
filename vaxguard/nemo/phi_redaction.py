@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Set, Tuple
+from typing import List
 
 
 class HIPAAIdentifierCategory(str, Enum):

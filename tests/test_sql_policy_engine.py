@@ -20,12 +20,9 @@ import pytest
 
 from vaxguard.nemo.sql_policy_engine import (
     SQLAgentPolicyEngine,
-    SQLValidationResult,
     SQLViolationType,
-    KNOWN_SYSTEM_CATALOGS,
-    DESTRUCTIVE_DDL_COMMANDS,
 )
-from vaxguard.integrations.nemo_compat import LLMRails, RailsConfig
+from vaxguard.integrations.nemo_compat import LLMRails
 
 
 @pytest.fixture

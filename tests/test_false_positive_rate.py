@@ -1178,15 +1178,15 @@ def test_aggregate_fpr(matcher: TriHybridMatcher) -> None:
     fpr_percent = (fp_count / total_queries) * 100.0
     mean_lat_ms = sum(latencies_ms) / len(latencies_ms) if latencies_ms else 0.0
 
-    print(f"\n" + "=" * 70)
-    print(f"VAXGUARD FALSE POSITIVE RATE (FPR) AUDIT REPORT")
-    print(f"=" * 70)
+    print("\n" + "=" * 70)
+    print("VAXGUARD FALSE POSITIVE RATE (FPR) AUDIT REPORT")
+    print("=" * 70)
     print(f"Total Evaluated Queries: {total_queries:,}")
     print(f"Clean/Allowed Queries:   {total_queries - fp_count:,} ({(total_queries - fp_count)/total_queries*100:.2f}%)")
     print(f"False Positives:         {fp_count} ({fpr_percent:.2f}% FPR)")
     print(f"Evaluation Wall Clock:   {total_duration:.2f}s ({total_queries/total_duration:.1f} queries/sec)")
     print(f"Mean Query Latency:      {mean_lat_ms:.3f}ms (Sub-1ms SLA Guarantee)")
-    print(f"=" * 70)
+    print("=" * 70)
 
     if false_positives:
         print("\nDOCUMENTED FALSE POSITIVE INCIDENTS:")

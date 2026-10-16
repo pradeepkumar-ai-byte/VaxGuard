@@ -304,7 +304,7 @@ def test_benign_text_latency(loaded_matcher: TriHybridMatcher) -> None:
     latencies_ms: List[float] = []
     for q in benign_queries:
         t0 = time.perf_counter()
-        res = loaded_matcher.match(q)
+        _ = loaded_matcher.match(q)
         latencies_ms.append((time.perf_counter() - t0) * 1000.0)
 
     median_lat = statistics.median(latencies_ms)

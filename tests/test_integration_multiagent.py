@@ -1,14 +1,11 @@
 """Unit tests for VaxGuard Multi-Agent Swarm Firewall (AgentSwarmFirewall)."""
 
 import pytest
-import time
 from vaxguard.integrations.multiagent_guard import (
-    AgentProfile,
     AgentRolePolicy,
     AgentSwarmFirewall,
     SwarmMessage,
     SwarmSecurityException,
-    SwarmVerdict,
     SwarmViolationType,
     ToolExecutionRequest,
 )

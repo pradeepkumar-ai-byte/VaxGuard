@@ -4,7 +4,6 @@ Unit tests for VaxGuard Observability, OpenTelemetry, Prometheus & Structured JS
 
 import json
 from pathlib import Path
-import pytest
 
 from vaxguard.telemetry.observability import (
     AuditDecision,

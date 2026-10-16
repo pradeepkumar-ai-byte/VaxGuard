@@ -1,6 +1,5 @@
 import argparse
 import asyncio
-import sys
 import uvicorn
 
 from vaxguard import __version__

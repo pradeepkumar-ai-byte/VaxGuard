@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import time
 from collections import Counter
-import pytest
 
 from vaxguard.nemo.redteam_enterprise import generate_enterprise_production_samples
 from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher

@@ -26,7 +26,6 @@ from typing import (
     List,
     Optional,
     Tuple,
-    Union,
 )
 
 from pydantic import BaseModel, Field
@@ -34,9 +33,7 @@ from pydantic import BaseModel, Field
 from vaxguard.core.logger import get_logger
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
-    MatchResult,
     TriHybridMatcher,
-    normalize_adversarial_text,
 )
 
 logger = get_logger("StreamingInterceptor")

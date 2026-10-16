@@ -1,12 +1,12 @@
 import threading
-from typing import List
+from typing import List, Optional
 from vaxguard.core.config import GROQ_API_KEYS
 
 class GroqKeyManager:
     """
     Manages multiple Groq API keys using a thread-safe round-robin strategy.
     """
-    def __init__(self, keys: List[str] = None):
+    def __init__(self, keys: Optional[List[str]] = None):
         self.keys = keys if keys is not None else GROQ_API_KEYS
         if not self.keys:
             # In a real environment we'd raise an error, but for testing we allow empty init

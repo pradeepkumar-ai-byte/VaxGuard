@@ -14,9 +14,8 @@ import re
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
-from pydantic import BaseModel, Field
 
 from vaxguard.core.logger import get_logger
 
@@ -464,9 +463,8 @@ class SQLAgentPolicyEngine:
             violation_types.append(SQLViolationType.STACKED_QUERIES)
             risk_score = max(risk_score, 0.95)
 
-        # Evaluate the primary statement (or each statement)
         target_sql = statements[0] if statements else raw_sql
-        cleaned_sql, _ = self.strip_comments_and_strings(raw_sql)
+        cleaned_sql, _ = self.strip_comments_and_strings(target_sql)
         tokens = cleaned_sql.upper().split()
         root_command = self.extract_root_command(raw_sql)
 

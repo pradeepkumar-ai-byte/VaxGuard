@@ -1,12 +1,13 @@
+import uuid
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 
 from vaxguard.api.app import app
 from vaxguard.demo.orchestrator import DemoOrchestrator
 from vaxguard.db.session import init_db
 from vaxguard.models.vaccine import Vaccine, ValidationReport
-from vaxguard.models.attack import AttackCategory, AttackVector
+from vaxguard.models.attack import AttackCategory
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -27,8 +28,6 @@ def test_dashboard_route_serves_html(client):
     assert "<title>VaxGuard" in response.text
     assert "Autonomous AI Immune System" in response.text
 
-
-import uuid
 
 @pytest.mark.asyncio
 async def test_demo_orchestrator_pipeline():

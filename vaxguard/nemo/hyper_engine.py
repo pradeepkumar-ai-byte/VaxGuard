@@ -23,36 +23,25 @@ from typing import (
     AsyncIterator,
     Callable,
     Dict,
-    Iterator,
     List,
     Optional,
-    Tuple,
+    Sequence,
     Union,
 )
 
 from pydantic import BaseModel, Field
 
-from vaxguard.core.config import DEFAULT_MODEL
-from vaxguard.core.llm_client import VaxGuardLLM, engine_state, PROVIDER_CATALOG
+from vaxguard.core.llm_client import VaxGuardLLM, engine_state
 from vaxguard.core.logger import get_logger
 from vaxguard.nemo.colang import (
-    ColangDocument,
-    ColangParser,
-    FlowExecutionResult,
     FlowManager,
     RailCheckResult,
-    UserIntent,
-    BotResponse,
-    Flow,
-    FlowStep,
     FlowStepType,
 )
 from vaxguard.nemo.actions import (
     ActionContext,
-    ActionDescriptor,
     ActionRegistry,
     ActionResult,
-    ActionStatus,
 )
 from vaxguard.nemo.grounding import (
     EvidenceDocument,
@@ -61,9 +50,6 @@ from vaxguard.nemo.grounding import (
     MitigationStrategy,
 )
 from vaxguard.nemo.state import (
-    DialogueTurn,
-    Event,
-    EventType,
     StateTracker,
 )
 from vaxguard.nemo.hybrid_matcher import (
@@ -73,10 +59,7 @@ from vaxguard.nemo.hybrid_matcher import (
     TriHybridMatcher,
 )
 from vaxguard.nemo.streaming_interceptor import (
-    CircuitBreakerState,
-    InterceptorAction,
     StreamingTokenInterceptor,
-    StreamingViolationEvent,
 )
 
 logger = get_logger("HyperEngine")
@@ -650,7 +633,6 @@ class LLMRails:
         verbose: bool = False,
         **kwargs: Any,
     ) -> None:
-        import inspect
         from vaxguard.nemo.config import RailsConfig
 
         if isinstance(config, RailsConfig):

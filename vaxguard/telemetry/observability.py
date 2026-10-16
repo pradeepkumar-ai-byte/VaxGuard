@@ -10,15 +10,11 @@ Production-grade observability infrastructure:
 from __future__ import annotations
 
 import contextlib
-import json
-import os
-import sys
 import threading
-import time
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
 from vaxguard.core.logger import get_logger
@@ -31,9 +27,9 @@ try:
     from opentelemetry.trace import Status, StatusCode
     OPENTELEMETRY_AVAILABLE = True
 except ImportError:
-    trace = None  # type: ignore[assignment]
-    Status = None  # type: ignore[assignment]
-    StatusCode = None  # type: ignore[assignment]
+    trace = None  # type: ignore[assignment,misc]
+    Status = None  # type: ignore[assignment,misc]
+    StatusCode = None  # type: ignore[assignment,misc]
     OPENTELEMETRY_AVAILABLE = False
 
 

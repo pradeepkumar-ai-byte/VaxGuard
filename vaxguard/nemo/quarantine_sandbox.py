@@ -16,7 +16,7 @@ import hashlib
 import time
 import yaml
 from datetime import datetime, timezone
-from typing import List, Dict, Optional, Any, Union
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from vaxguard.core.logger import get_logger

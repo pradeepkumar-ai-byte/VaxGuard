@@ -19,13 +19,6 @@ import pytest
 from vaxguard.integrations.nemo_compat import (
     LLMRails,
     RailsConfig,
-    ModelConfig,
-    PromptConfig,
-    InstructionConfig,
-    ExplainInfo,
-    ActionContext,
-    ActionResult,
-    ActionStatus,
 )
 from vaxguard.integrations import (
     LLMRails as TopLevelLLMRails,

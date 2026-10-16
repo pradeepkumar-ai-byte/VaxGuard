@@ -7,10 +7,9 @@ and regression detection across guardrail engine versions.
 
 from __future__ import annotations
 
-import json
 import statistics
 import time
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence
 
 from pydantic import BaseModel, Field
 
@@ -403,7 +402,6 @@ class GuardrailEvaluator:
         tp = sum(1 for r in results if r.expected_action == "block" and r.actual_action == "block")
         fp = sum(1 for r in results if r.expected_action == "allow" and r.actual_action == "block")
         fn = sum(1 for r in results if r.expected_action == "block" and r.actual_action == "allow")
-        tn = sum(1 for r in results if r.expected_action == "allow" and r.actual_action == "allow")
 
         precision = tp / (tp + fp) if (tp + fp) > 0 else 1.0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 1.0

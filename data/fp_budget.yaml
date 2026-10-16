@@ -1,0 +1,70 @@
+# VaxGuard Category-Specific False-Positive Budget Specification
+# Production Policy Definition for Staged Evaluation and Enforcement
+
+version: "1.0.0"
+metadata:
+  enforcement_policy: "strict_enterprise_sla"
+  description: "Specifies allowable false-positive budgets, threshold floors, and auto-quarantine parameters across operational risk domains."
+
+global_defaults:
+  default_max_fpr: 0.005           # 0.50% global ceiling
+  min_observation_window: 100     # Minimum sample size before automated quarantine triggers
+  alert_channel: "security_telemetry_stream"
+  escalation_action: "quarantine_candidate_rule"
+
+categories:
+  healthcare_phi:
+    domain: "clinical_and_healthcare"
+    max_tolerated_fpr: 0.0000      # 0.00% Zero-tolerance for clinical/diagnostic queries
+    minimum_confidence_threshold: 0.85
+    min_observations: 200
+    action_on_budget_exceeded: "instant_quarantine"
+    description: "Protection of protected health information (PHI), ICD-10, NPI, and clinical protocols without interrupting benign physician consultation."
+
+  financial_compliance:
+    domain: "banking_and_securities"
+    max_tolerated_fpr: 0.0000      # 0.00% Zero-tolerance for commercial and financial transactions
+    minimum_confidence_threshold: 0.80
+    min_observations: 150
+    action_on_budget_exceeded: "instant_quarantine"
+    description: "PCI-DSS, SSN, credit cards, banking routing, earnings disclosures, and corporate accounting queries."
+
+  legal_governance:
+    domain: "contracts_and_regulatory"
+    max_tolerated_fpr: 0.0010      # 0.10% Max FPR
+    minimum_confidence_threshold: 0.75
+    min_observations: 100
+    action_on_budget_exceeded: "downgrade_to_shadow"
+    description: "GDPR, regulatory compliance, contract terminology, patent research."
+
+  jailbreak_and_persona:
+    domain: "adversarial_redteaming"
+    max_tolerated_fpr: 0.0020      # 0.20% Max FPR
+    minimum_confidence_threshold: 0.70
+    min_observations: 100
+    action_on_budget_exceeded: "downgrade_to_shadow"
+    description: "DAN, roleplay reversal, hypothetical framing, developer mode unlock attempts."
+
+  prompt_injection:
+    domain: "application_security"
+    max_tolerated_fpr: 0.0020      # 0.20% Max FPR
+    minimum_confidence_threshold: 0.68
+    min_observations: 100
+    action_on_budget_exceeded: "downgrade_to_shadow"
+    description: "Delimiter injection, ChatML tags, XML tags, tool hijacking, markdown comments."
+
+  encoding_and_obfuscation:
+    domain: "payload_smuggling"
+    max_tolerated_fpr: 0.0030      # 0.30% Max FPR
+    minimum_confidence_threshold: 0.72
+    min_observations: 100
+    action_on_budget_exceeded: "downgrade_to_shadow"
+    description: "Base64 payloads, ROT13, homoglyphs, zero-width steganography, leetspeak."
+
+  software_engineering:
+    domain: "developer_tools"
+    max_tolerated_fpr: 0.0050      # 0.50% Max FPR
+    minimum_confidence_threshold: 0.70
+    min_observations: 100
+    action_on_budget_exceeded: "downgrade_to_shadow"
+    description: "Code generation, debugging, CI/CD scripts, database queries, and architectural reviews."

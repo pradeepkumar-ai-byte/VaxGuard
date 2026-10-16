@@ -10,7 +10,6 @@ Verifies:
 
 from __future__ import annotations
 
-import pytest
 from vaxguard.nemo.realworld_jailbreak_eval import (
     evaluate_realworld_benchmark,
     get_realworld_eval_dataset,

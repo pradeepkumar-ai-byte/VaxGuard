@@ -8,15 +8,10 @@ import pytest
 
 from vaxguard.integrations.anthropic_guard import (
     AnthropicSecurityException,
-    AsyncGuardedAnthropicStream,
     AsyncVaxGuardAnthropic,
-    GuardedAnthropicStream,
     VaxGuardAnthropic,
     extract_prompt_from_anthropic_payload,
-    wrap_anthropic_client,
 )
-from vaxguard.nemo.hybrid_matcher import GuardrailAction, MatchResult, TriHybridMatcher
-from vaxguard.nemo.streaming_interceptor import StreamingTokenInterceptor
 
 
 class MockAnthropicMessages:

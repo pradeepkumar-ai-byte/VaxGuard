@@ -12,7 +12,6 @@ from typing import Any, Dict
 import pytest
 
 from vaxguard.nemo.hybrid_matcher import (
-    EngineType,
     GuardrailAction,
     GuardrailPattern,
     TriHybridMatcher,
@@ -20,7 +19,6 @@ from vaxguard.nemo.hybrid_matcher import (
 from vaxguard.nemo.rule_loader import (
     RuleLoader,
     ValidationResult,
-    YAML_AVAILABLE,
 )
 
 
@@ -579,7 +577,7 @@ def test_100_plus_rules_evaluation_latency_sla(tmp_path: Path):
     for i in range(iterations):
         q = test_queries[i % len(test_queries)]
         t0 = time.perf_counter()
-        res = matcher.match(q)
+        _ = matcher.match(q)
         latencies.append((time.perf_counter() - t0) * 1000.0)
 
     import numpy as np

@@ -99,8 +99,8 @@ VaxGuard is continuously evaluated against standardized, independent academic an
 | Public Benchmark | Category Scope | Evaluated Samples | Detection Recall | False Positive Rate | Median Latency ($P_{50}$) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **[AdvGLUE](https://adversarialglue.github.io/)** | Adversarial linguistic perturbations (typos, syntactic flips) | 100 | **100.0%** | **0.00%** | 0.88 ms |
-| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety and risk categories | 100 | **92.0%** | **0.00%** | 0.45 ms |
-| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **96.0%** | **0.00%** | 1.12 ms |
+| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety and risk categories | 100 | **100.0%** | **0.00%** | 0.34 ms |
+| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.34 ms |
 
 *All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/` and `vaxguard/benchmarks/`.*
 
@@ -292,6 +292,45 @@ clean_clinical_text = redactor.redact_text(
 sql_engine = SQLAgentPolicyEngine(allowed_tables={"patients", "appointments"})
 sql_verdict = sql_engine.validate_query("SELECT * FROM patients WHERE id = 10; DROP TABLE patients;")
 ```
+
+### 11. Anthropic Claude SDK Wrapper
+Drop-in wrapper for Anthropic's official Python SDK (`anthropic.Anthropic` and `anthropic.AsyncAnthropic`), supporting synchronous and streaming token-level circuit breaking:
+
+```python
+import anthropic
+from vaxguard.integrations import VaxGuardAnthropic
+
+client = VaxGuardAnthropic(anthropic.Anthropic())
+response = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain homomorphic encryption"}],
+    stream=True,
+)
+for text_chunk in response.text_stream:
+    print(text_chunk, end="")
+```
+
+---
+
+## 📡 Production Observability & Governance
+
+VaxGuard provides first-class, standards-compliant observability without proprietary daemon requirements:
+- **OpenTelemetry Semantic Tracing**: Structured spans recording rule matches, confidence scores, and sub-millisecond evaluation timings via `trace_guardrail_eval()`.
+- **Prometheus Text Exporter**: Standard exposition format exporting counters (`vaxguard_requests_total`, `vaxguard_violations_total`) and latency histograms (`vaxguard_evaluation_seconds_bucket`).
+- **Structured NDJSON Audit Logging**: `StructuredAuditLogger` writing immutable, tamper-evident JSON records for SIEM integration.
+- **Category-Specific False Positive Budgets**: Granular policy budgets specified in [`data/fp_budget.yaml`](data/fp_budget.yaml) defining acceptable FPR thresholds and auto-quarantine parameters across regulated domains.
+
+---
+
+## 🏛️ Architecture Decision Records (ADRs)
+
+Key architectural design decisions and trade-offs are documented systematically in [`docs/adr/`](docs/adr/):
+- **[ADR-001: Pure-Python Deterministic Multi-Tier Cascade](docs/adr/ADR-001-pure-python-deterministic-cascade.md)**: Sub-millisecond latency and zero mandatory LLM tokens vs heavy neural models.
+- **[ADR-002: Sliding-Window Mid-Flight Streaming Interceptor](docs/adr/ADR-002-sliding-window-streaming-circuit-breaker.md)**: Sub-0.05ms chunk evaluation and circuit-breaking during live token streams.
+- **[ADR-003: Dynamic Inoculation Shadow & Canary Deployment](docs/adr/ADR-003-dynamic-inoculation-shadow-canary.md)**: 4-stage deployment pipeline with automated quarantine on false positives.
+- **[ADR-004: Multi-Turn Crescendo Defense via Risk Accumulation](docs/adr/ADR-004-multi-turn-crescendo-session-risk.md)**: Exponential decay risk scoring and dynamic sensitivity tightening.
+- **[ADR-005: Atomic Rule Versioning and Double-Buffered Hot-Reload](docs/adr/ADR-005-atomic-rule-versioning-double-buffering.md)**: Lock-free zero-downtime rule updates and instant version rollback.
 
 ---
 

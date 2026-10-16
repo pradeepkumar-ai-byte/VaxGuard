@@ -36,7 +36,7 @@ class VaccineCacheManager:
         try:
             async with AsyncSessionLocal() as session:
                 result = await session.execute(
-                    select(VaccineTable).where(VaccineTable.is_active == True)
+                    select(VaccineTable).where(VaccineTable.is_active)
                 )
                 db_vaccines = result.scalars().all()
                 

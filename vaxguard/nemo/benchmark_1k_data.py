@@ -11,7 +11,6 @@ Generates 1,000 standardized test cases across 5 enterprise threat vectors:
 
 from __future__ import annotations
 
-import base64
 from typing import List
 from vaxguard.nemo.eval_suite import EvalSample
 

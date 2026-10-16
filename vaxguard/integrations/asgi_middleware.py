@@ -20,18 +20,15 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
-    Union,
 )
 
 from vaxguard.core.logger import get_logger
-from vaxguard.middleware.exceptions import VaxGuardError
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
     MatchResult,
     TriHybridMatcher,
 )
 from vaxguard.nemo.streaming_interceptor import (
-    CircuitBreakerState,
     InterceptorAction,
     StreamingTokenInterceptor,
     StreamingViolationEvent,

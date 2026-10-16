@@ -2,12 +2,10 @@
 Unit tests for VaxGuard Shadow & Canary Rule Deployment Engine.
 """
 
-import pytest
 from vaxguard.nemo.hybrid_matcher import GuardrailAction, MatchResult
 from vaxguard.nemo.shadow_canary import (
     DeploymentStage,
     ShadowCanaryEngine,
-    StagedRule,
 )
 
 
@@ -119,7 +117,7 @@ def test_canary_immediate_quarantine_on_false_positive():
     )
 
     # Benign enterprise query containing "help" -> false positive
-    res = engine.evaluate_canary(
+    _res = engine.evaluate_canary(
         query="Can you help me format this table?",
         session_id="sess_123",
         matcher_fn=dummy_matcher,

@@ -4,13 +4,11 @@ Tests for Colang 2.0 Nested Sub-Dialogues, Subflows, and Context Isolation.
 
 from __future__ import annotations
 
-import asyncio
 import pytest
 
 from vaxguard.nemo.colang2 import (
     Colang2Engine,
     Colang2Parser,
-    Event,
     EventBus,
     Flow2,
     ScopedContext,
@@ -18,7 +16,6 @@ from vaxguard.nemo.colang2 import (
     SendStep,
     SubflowStep,
     AssignStep,
-    StopStep,
 )
 
 

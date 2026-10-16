@@ -9,7 +9,6 @@ Verifies:
 
 from __future__ import annotations
 
-import pytest
 from vaxguard.nemo.redteam_jailbreaks import generate_advanced_jailbreaks
 from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher
 

@@ -3,7 +3,7 @@ import time
 from contextlib import asynccontextmanager
 from typing import Optional
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
@@ -11,6 +11,7 @@ from sqlalchemy import select
 from vaxguard.core.logger import get_logger
 from vaxguard.core.config import DEFAULT_MODEL
 from vaxguard.core.llm_client import VaxGuardLLM, engine_state, PROVIDER_CATALOG
+from vaxguard.demo.orchestrator import DemoOrchestrator
 from vaxguard.attacks.library import AttackLibrary
 from vaxguard.db.session import init_db, AsyncSessionLocal
 from vaxguard.db.models import VaccineTable, EventLogTable
@@ -120,7 +121,7 @@ async def get_system_status():
 
     try:
         async with AsyncSessionLocal() as session:
-            v_res = await session.execute(select(VaccineTable).where(VaccineTable.is_active == True))
+            v_res = await session.execute(select(VaccineTable).where(VaccineTable.is_active))
             active_vaccines_count = len(v_res.scalars().all())
 
             e_res = await session.execute(select(EventLogTable).where(EventLogTable.event_type.like("ANOMALY%")))
@@ -283,13 +284,13 @@ async def get_system_logs(limit: int = 50):
         return {
             "logs": [
                 {
-                    "id": l.id,
-                    "event_type": l.event_type,
-                    "latency_ms": l.latency_ms,
-                    "details": l.details,
-                    "timestamp": str(l.timestamp) if l.timestamp else None,
+                    "id": log_item.id,
+                    "event_type": log_item.event_type,
+                    "latency_ms": log_item.latency_ms,
+                    "details": log_item.details,
+                    "timestamp": str(log_item.timestamp) if log_item.timestamp else None,
                 }
-                for l in logs
+                for log_item in logs
             ],
             "total": len(logs),
         }
@@ -446,7 +447,7 @@ async def demo_attack(request: DemoAttackRequest):
         reasoning = eval_result.get("reasoning", "Evaluation complete.")
     except Exception as e:
         logger.error(f"Demo attack execution error: {e}")
-        response_text = f"Simulation response: Refused to comply under security shield."
+        response_text = "Simulation response: Refused to comply under security shield."
         breached = False
         reasoning = f"Handled by protective error boundary: {str(e)}"
 
@@ -534,10 +535,6 @@ async def websocket_stream(websocket: WebSocket):
         logger.error(f"WebSocket error: {e}")
         await ws_manager.disconnect(websocket)
 
-
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
-from vaxguard.demo.orchestrator import DemoOrchestrator
 
 demo_orchestrator = DemoOrchestrator(
     target_model=DEFAULT_MODEL,

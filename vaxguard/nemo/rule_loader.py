@@ -13,14 +13,13 @@ Enables dynamic, declarative YAML security rules for TriHybridMatcher:
 
 from __future__ import annotations
 
-import logging
 import re
 import threading
 import hashlib
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, List, Optional, Set, Tuple, Union
 
 try:
     import yaml

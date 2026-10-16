@@ -4,7 +4,6 @@ Unit tests for Multi-Turn Crescendo Defense and Session Risk Accumulator.
 
 from __future__ import annotations
 
-import pytest
 
 from vaxguard.nemo.crescendo_defense import (
     CrescendoDefenseEngine,

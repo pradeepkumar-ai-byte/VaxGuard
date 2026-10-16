@@ -9,7 +9,6 @@ Verifies:
 
 from __future__ import annotations
 
-import pytest
 from vaxguard.nemo.redteam_crescendo import generate_multi_turn_crescendo_samples
 from vaxguard.nemo.speculative_cascade import SpeculativeSemanticCascade
 from vaxguard.nemo.hybrid_matcher import GuardrailAction

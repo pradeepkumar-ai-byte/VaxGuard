@@ -6,7 +6,6 @@ from vaxguard.integrations.mcp_guard import (
     MCPGuardException,
     MCPToolDefinition,
     MCPToolGuard,
-    MCPValidationResult,
     MCPViolationType,
 )
 

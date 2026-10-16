@@ -26,22 +26,17 @@ from typing import (
     Sequence,
     Tuple,
     TypeVar,
-    Union,
 )
 
 from vaxguard.core.logger import get_logger
 from vaxguard.middleware.exceptions import VaxGuardError
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
-    MatchResult,
     TriHybridMatcher,
-    normalize_adversarial_text,
 )
 from vaxguard.nemo.streaming_interceptor import (
-    CircuitBreakerState,
     InterceptorAction,
     StreamingTokenInterceptor,
-    StreamingViolationEvent,
 )
 
 logger = get_logger("LangChainGuard")

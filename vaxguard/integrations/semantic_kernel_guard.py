@@ -14,11 +14,9 @@ Pure Python 3.10+, deterministic execution SLA < 1.0ms, zero mandatory heavy bin
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 import json
 import re
-import time
 from typing import (
     Any,
     Callable,
@@ -26,19 +24,15 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Sequence,
     Set,
     Tuple,
-    Union,
 )
 
 from vaxguard.core.logger import get_logger
 from vaxguard.integrations.langchain_guard import VaxGuardSecurityViolation
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
-    MatchResult,
     TriHybridMatcher,
-    normalize_adversarial_text,
 )
 from vaxguard.nemo.streaming_interceptor import DEFAULT_OUTPUT_LEAK_PATTERNS
 

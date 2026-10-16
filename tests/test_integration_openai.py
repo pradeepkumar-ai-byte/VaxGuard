@@ -23,15 +23,10 @@ import pytest
 from vaxguard.integrations.openai_guard import (
     VaxGuardOpenAI,
     AsyncVaxGuardOpenAI,
-    VaxGuardStream,
-    VaxGuardAsyncStream,
     VaxGuardSecurityException,
     extract_delta_content,
     set_delta_content,
-    extract_completion_content,
-    set_completion_content,
 )
-from vaxguard.nemo.streaming_interceptor import StreamingTokenInterceptor
 
 
 # ─── Mock Objects for OpenAI SDK ──────────────────────────────────────────────

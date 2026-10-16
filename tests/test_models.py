@@ -2,8 +2,8 @@ import pytest
 from pydantic import ValidationError
 from vaxguard.models.attack import AttackVector, AttackCategory
 from vaxguard.models.vaccine import Vaccine, ValidationReport
-from vaxguard.models.immune import AnomalyReport, SeverityLevel, BehavioralProfile, InteractionEvent
-from vaxguard.models.report import VulnerabilityReport, DiagnosticResult
+from vaxguard.models.immune import AnomalyReport, SeverityLevel
+from vaxguard.models.report import VulnerabilityReport
 
 
 def test_attack_vector_validation_success():

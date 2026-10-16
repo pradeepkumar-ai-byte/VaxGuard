@@ -89,7 +89,7 @@ class ImmuneMemoryManager:
         active_vaccine_count = 0
         try:
             async with AsyncSessionLocal() as session:
-                res = await session.execute(select(VaccineTable).where(VaccineTable.is_active == True))
+                res = await session.execute(select(VaccineTable).where(VaccineTable.is_active))
                 active_vaccine_count = len(res.scalars().all())
         except Exception as e:
             logger.warning(f"Could not count active vaccines during export: {e}")

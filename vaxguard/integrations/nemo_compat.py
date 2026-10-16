@@ -26,12 +26,8 @@ from typing import (
 from vaxguard.core.logger import get_logger
 from vaxguard.nemo.actions import ActionContext, ActionResult, ActionStatus
 from vaxguard.nemo.colang import (
-    ColangDocument,
-    ColangParser,
-    Flow,
     FlowManager,
     FlowStepType,
-    RailCheckResult,
 )
 from vaxguard.nemo.config import (
     InstructionConfig,
@@ -43,16 +39,11 @@ from vaxguard.nemo.config import (
 )
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
-    GuardrailPattern,
-    MatchResult,
     TriHybridMatcher,
 )
 from vaxguard.nemo.hyper_engine import (
     ExplainInfo,
     HyperEngine,
-    LLMRails as CoreLLMRails,
-    ProtectedGenerationResult,
-    RailStatus,
 )
 
 logger = get_logger("NeMoCompat")
@@ -279,12 +270,12 @@ class LLMRails:
         else:
             gen_result = await self.engine.generate_protected(user_text, context=context)
             raw_output = gen_result.content
-        llm_lat = (time.perf_counter() - t_llm0) * 1000.0
+        _llm_lat = (time.perf_counter() - t_llm0) * 1000.0
 
         # 3. Output Rail Evaluation
         t_out0 = time.perf_counter()
         out_res = self.engine.evaluate_output_rails(str(raw_output), context=context)
-        lat_out = (time.perf_counter() - t_out0) * 1000.0
+        _lat_out = (time.perf_counter() - t_out0) * 1000.0
         tot_lat = (time.perf_counter() - t0) * 1000.0
 
         final_content = (

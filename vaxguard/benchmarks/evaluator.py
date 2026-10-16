@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -26,10 +25,9 @@ from pydantic import BaseModel, Field
 from vaxguard.benchmarks.preprocessor import (
     BenchmarkSample,
     load_benchmark,
-    resolve_benchmark_path,
 )
 from vaxguard.core.logger import get_logger
-from vaxguard.nemo.hybrid_matcher import GuardrailAction, MatchResult, TriHybridMatcher
+from vaxguard.nemo.hybrid_matcher import TriHybridMatcher
 
 logger = get_logger("BenchmarkEvaluator")
 

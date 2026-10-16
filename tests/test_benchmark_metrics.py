@@ -15,17 +15,14 @@ Verifies:
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock
+from typing import List, Optional
 
 import pytest
 
 from vaxguard.benchmarks.evaluator import (
-    BenchmarkEvaluationResult,
     BenchmarkEvaluator,
     ConfusionMatrix,
     LatencyProfile,
-    SampleEvaluationResult,
     run_cli,
 )
 from vaxguard.benchmarks.preprocessor import BenchmarkSample

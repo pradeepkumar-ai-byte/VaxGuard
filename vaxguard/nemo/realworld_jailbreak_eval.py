@@ -16,10 +16,10 @@ Measures:
 from __future__ import annotations
 
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, List
 from pydantic import BaseModel
 
-from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher
+from vaxguard.nemo.hybrid_matcher import GuardrailAction
 from vaxguard.nemo.speculative_cascade import SpeculativeSemanticCascade
 
 

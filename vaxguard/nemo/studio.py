@@ -8,7 +8,6 @@ Central Controller & API managing the full developer-supervised lifecycle:
 4. Developer Approval & Rails Commit -> Updates active NeMo configs with git-ready diffs.
 """
 
-import os
 import yaml
 from pathlib import Path
 from datetime import datetime, timezone
@@ -20,7 +19,6 @@ from vaxguard.models.attack import AttackVector, AttackCategory
 from vaxguard.nemo.inoculation_compiler import (
     InoculationCompiler,
     SynthesizedColangRule,
-    LiveTrafficMutationError,
 )
 from vaxguard.nemo.quarantine_sandbox import (
     QuarantineSandbox,

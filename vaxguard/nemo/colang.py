@@ -8,7 +8,6 @@ Zero external heavy dependencies.
 from __future__ import annotations
 
 import re
-import string
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union

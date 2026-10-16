@@ -1,5 +1,4 @@
 import threading
-import pytest
 from vaxguard.core.key_manager import GroqKeyManager
 
 

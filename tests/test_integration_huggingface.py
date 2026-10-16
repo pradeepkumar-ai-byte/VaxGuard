@@ -23,7 +23,6 @@ Verifies:
 
 from __future__ import annotations
 
-import asyncio
 import time
 from typing import Any, List
 
@@ -216,7 +215,7 @@ def test_logits_processor_mid_flight_continuation_detection():
     input_ids_0 = [tokenizer.encode(clean_prompt)]
     scores_0 = np.zeros((1, 256), dtype=np.float32)
 
-    out_scores_0 = processor(input_ids_0, scores_0)
+    _out_scores_0 = processor(input_ids_0, scores_0)
     assert not processor.is_tripped
 
     # Step 1: LLM generates malicious injection payload as continuation

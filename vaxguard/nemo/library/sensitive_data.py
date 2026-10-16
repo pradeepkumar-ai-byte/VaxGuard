@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import re
 from typing import Any, Dict, List, Optional, Tuple
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from vaxguard.nemo.actions import RailOutcome, TransformTarget
 
 

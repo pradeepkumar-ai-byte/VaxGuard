@@ -11,10 +11,8 @@ Pure Python 3.10+, deterministic execution SLA < 1.0ms, zero mandatory heavy bin
 
 from __future__ import annotations
 
-import asyncio
 import copy
 import re
-import time
 from dataclasses import dataclass, field
 from typing import (
     Any,
@@ -22,7 +20,6 @@ from typing import (
     Dict,
     List,
     Optional,
-    Sequence,
     Tuple,
     Union,
 )
@@ -31,9 +28,7 @@ from vaxguard.core.logger import get_logger
 from vaxguard.integrations.langchain_guard import VaxGuardSecurityViolation
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
-    MatchResult,
     TriHybridMatcher,
-    normalize_adversarial_text,
 )
 
 logger = get_logger("LlamaIndexGuard")

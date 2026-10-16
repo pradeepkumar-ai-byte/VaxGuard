@@ -3,22 +3,17 @@ Tests for VaxGuard OpenTelemetry Observability & Prometheus Metric Exporters.
 """
 
 import asyncio
-import re
 import threading
 import time
 import pytest
 
 from vaxguard.core.telemetry_otel import (
-    DEFAULT_LATENCY_BUCKETS,
-    MetricType,
     PrometheusCounter,
     PrometheusGauge,
     PrometheusHistogram,
     Span,
-    SpanStatus,
     StatusCode,
     VaxGuardTelemetry,
-    get_telemetry,
     reset_telemetry,
 )
 

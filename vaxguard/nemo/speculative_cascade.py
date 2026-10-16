@@ -19,30 +19,33 @@ Zero external heavy binaries. Pure Python, typed, deterministic SLA.
 
 from __future__ import annotations
 
-import asyncio
-import math
 import re
 import time
 from enum import Enum
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
+
+import numpy as np
 
 from pydantic import BaseModel, Field
 
 from vaxguard.core.logger import get_logger
 from vaxguard.nemo.hybrid_matcher import (
-    EngineType,
     FastLocalEmbedder,
     GuardrailAction,
-    GuardrailPattern,
-    MatchResult,
     TriHybridMatcher,
-    normalize_adversarial_text,
 )
 from vaxguard.nemo.streaming_interceptor import (
-    CircuitBreakerState,
-    InterceptorAction,
     StreamingTokenInterceptor,
-    StreamingViolationEvent,
 )
 
 logger = get_logger("SpeculativeCascade")
@@ -136,7 +139,6 @@ class ContextDriftAnalyzer:
         Returns: (drift_velocity, detected_tactics)
         """
         detected_tactics: List[str] = []
-        full_text = current_prompt
 
         # 1. Detect manipulation tactics in current prompt and recent turns
         for reg, tactic in self._compiled_patterns:
@@ -186,9 +188,6 @@ class ContextDriftAnalyzer:
         combined_score = min(1.0, drift_velocity + tactic_weight)
 
         return round(combined_score, 4), detected_tactics
-
-
-import numpy as np
 
 
 # ─── Speculative Semantic Cascade Pipeline ─────────────────────────────────────
