@@ -61,6 +61,14 @@ from vaxguard.integrations.huggingface_guard import (
     VaxGuardHuggingFaceStoppingCriteria,
     VaxGuardStreamerWrapper,
 )
+from vaxguard.integrations.anthropic_guard import (
+    AnthropicSecurityException,
+    AsyncGuardedAnthropicStream,
+    AsyncVaxGuardAnthropic,
+    GuardedAnthropicStream,
+    VaxGuardAnthropic,
+    wrap_anthropic_client,
+)
 from vaxguard.integrations.semantic_kernel_guard import (
     VaxGuardFilter,
 )
@@ -110,5 +118,12 @@ __all__ = [
     "VaxGuardStream",
     "VaxGuardAsyncStream",
     "VaxGuardSecurityException",
+    # Anthropic
+    "VaxGuardAnthropic",
+    "AsyncVaxGuardAnthropic",
+    "GuardedAnthropicStream",
+    "AsyncGuardedAnthropicStream",
+    "AnthropicSecurityException",
+    "wrap_anthropic_client",
 ]
 
