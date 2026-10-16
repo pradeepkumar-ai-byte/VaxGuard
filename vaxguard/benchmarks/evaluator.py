@@ -541,7 +541,7 @@ def run_cli(args: Optional[Sequence[str]] = None) -> int:
     )
     parser.add_argument(
         "--benchmark",
-        choices=["advglue", "donotanswer", "harmbench", "all"],
+        choices=["advglue", "donotanswer", "harmbench", "jailbreakbench", "hard_framing_suite", "all"],
         default="all",
         help="Benchmark dataset to evaluate.",
     )
@@ -568,7 +568,7 @@ def run_cli(args: Optional[Sequence[str]] = None) -> int:
     evaluator = BenchmarkEvaluator(threshold=parsed.threshold)
 
     targets = (
-        ["advglue", "donotanswer", "harmbench"]
+        ["advglue", "donotanswer", "harmbench", "jailbreakbench", "hard_framing_suite"]
         if parsed.benchmark == "all"
         else [parsed.benchmark]
     )

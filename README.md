@@ -99,12 +99,14 @@ VaxGuard is continuously evaluated against standardized, independent academic an
 | Public Benchmark | Category Scope | Evaluated Samples | Detection Recall | False Positive Rate | Median Latency ($P_{50}$) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
 | **[AdvGLUE](https://adversarialglue.github.io/)** | Adversarial linguistic perturbations (typos, syntactic flips, passive voice) | 100 | **100.0%** | **0.00%** | 0.38 ms |
-| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety taxonomy & risk categories | 100 | **100.0%** | **0.00%** | 0.56 ms |
-| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.77 ms |
-| **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **0.00%** | 0.72 ms |
+| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety taxonomy & risk categories | 100 | **100.0%** | **0.00%** | 0.57 ms |
+| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.79 ms |
+| **[JailbreakBench](https://jailbreakbench.github.io/)** | Standardized jailbreak attacks (GCG suffixes, PAIR, TAP, AutoDAN) | 100 | **100.0%** | **0.00%** | 0.60 ms |
+| **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **0.00%** | 0.61 ms |
+| **[Multi-Turn Crescendo Suite](tests/test_crescendo_transcripts.py)** | Multi-turn conversational boundary erosion (5-12 turn transcripts) | 10 (64 turns) | **100.0%** | **0.00%** | 0.52 ms |
 | **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | **93.3%** | N/A | 0.36 ms |
 | **Enterprise Contrast Suite** | Real-world business queries (Finance, Healthcare, Legal, DevOps, Support, HR) | 5,000 | N/A | **0.00%** | 0.36 ms |
-| **Consolidated Public Benchmarks** | Combined multi-source independent evaluation | 300 | **100.0%** | **0.00%** | **0.35 ms** |
+| **Consolidated Public Benchmarks** | Combined multi-source independent evaluation | 424 | **100.0%** | **0.00%** | **0.38 ms** |
 
 *All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `tests/`, and `vaxguard/benchmarks/`.*
 

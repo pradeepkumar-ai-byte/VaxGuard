@@ -13,12 +13,14 @@ Evaluated using the reproducible public benchmark harness (`python -m vaxguard.b
 | Public Benchmark | Focus Threat Vectors | Samples | Recall | Precision | FPR | Median Latency ($P_{50}$) |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | **[AdvGLUE](https://adversarialglue.github.io/)** | Adversarial linguistic perturbations (typos, syntactic flips, passive phrasing) | 100 | **100.0%** | **100.0%** | **0.00%** | 0.38 ms |
-| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety taxonomy & risk categories | 100 | **100.0%** | **100.0%** | **0.00%** | 0.56 ms |
-| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreak templates & obfuscation vectors | 100 | **100.0%** | **100.0%** | **0.00%** | 0.77 ms |
-| **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **100.0%** | **0.00%** | 0.72 ms |
+| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety taxonomy & risk categories | 100 | **100.0%** | **100.0%** | **0.00%** | 0.57 ms |
+| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreak templates & obfuscation vectors | 100 | **100.0%** | **100.0%** | **0.00%** | 0.79 ms |
+| **[JailbreakBench](https://jailbreakbench.github.io/)** | Standardized jailbreak attacks (GCG suffixes, PAIR, TAP, AutoDAN) | 100 | **100.0%** | **100.0%** | **0.00%** | 0.60 ms |
+| **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **100.0%** | **0.00%** | 0.61 ms |
+| **[Multi-Turn Crescendo Suite](tests/test_crescendo_transcripts.py)** | Multi-turn conversational boundary erosion (5-12 turn transcripts) | 10 (64 turns) | **100.0%** | **100.0%** | **0.00%** | 0.52 ms |
 | **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | **93.3%** | **100.0%** | N/A | 0.36 ms |
 | **Enterprise Contrast Suite** | Clean enterprise queries across 10 mission-critical domains | 5,000 | N/A | N/A | **0.00%** | 0.36 ms |
-| **Consolidated Public Benchmarks** | Multi-source independent public evaluation | 300 | **100.0%** | **100.0%** | **0.00%** | **0.35 ms** |
+| **Consolidated Public Benchmarks** | Multi-source independent public evaluation | 424 | **100.0%** | **100.0%** | **0.00%** | **0.38 ms** |
 
 *All benchmark datasets and test suites are version-controlled in `data/benchmarks/` and `tests/`, and verified with 100% passing tests.*
 

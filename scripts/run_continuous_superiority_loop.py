@@ -37,7 +37,7 @@ def run_superiority_loop() -> int:
     evaluator = BenchmarkEvaluator(matcher=matcher)
 
     # ─── 1. Public Benchmarks Evaluation ───────────────────────────────────────
-    benchmarks = ["advglue", "donotanswer", "harmbench", "hard_framing_suite"]
+    benchmarks = ["advglue", "donotanswer", "harmbench", "jailbreakbench", "hard_framing_suite"]
     benchmark_reports = {}
     all_benchmarks_passed = True
 
