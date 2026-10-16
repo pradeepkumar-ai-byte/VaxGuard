@@ -1273,7 +1273,14 @@ class TriHybridMatcher:
         else:
             blended_confidence = max(heur_score * self.weight_heuristic, soft_score)
 
-        matched = (winner is not None) and (blended_confidence >= effective_threshold)
+        # Consult rule-specific threshold if configured
+        winner_threshold = effective_threshold
+        if winner and winner.rule_id in self.patterns:
+            p_obj = self.patterns[winner.rule_id]
+            if hasattr(p_obj, "threshold") and p_obj.threshold is not None and threshold is None:
+                winner_threshold = p_obj.threshold
+
+        matched = (winner is not None) and (blended_confidence >= winner_threshold)
 
         return MatchResult(
             matched=matched,
