@@ -22,14 +22,5 @@
     "overall_accuracy_pct": 99.5,
     "token_cost_usd": 0.0,
     "external_binary_dependencies_mb": 0.0
-  },
-  "nemo_baseline_comparison": {
-    "nemo_estimated_avg_latency_ms": 2150.0,
-    "nemo_estimated_batch_time_seconds": 2150.0,
-    "nemo_estimated_batch_time_minutes": 35.8,
-    "nemo_estimated_token_cost_usd": 3.85,
-    "nemo_spacy_langchain_bloat_mb": 850.0,
-    "vaxguard_speedup_multiplier": "1164.9x Faster",
-    "vaxguard_cost_savings": "100% ($0 Token Cost on Fast-Path)"
   }
 }

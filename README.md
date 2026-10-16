@@ -98,11 +98,15 @@ VaxGuard is continuously evaluated against standardized, independent academic an
 
 | Public Benchmark | Category Scope | Evaluated Samples | Detection Recall | False Positive Rate | Median Latency ($P_{50}$) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **[AdvGLUE](https://adversarialglue.github.io/)** | Adversarial linguistic perturbations (typos, syntactic flips) | 100 | **100.0%** | **0.00%** | 0.88 ms |
-| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety and risk categories | 100 | **100.0%** | **0.00%** | 0.34 ms |
-| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.34 ms |
+| **[AdvGLUE](https://adversarialglue.github.io/)** | Adversarial linguistic perturbations (typos, syntactic flips, passive voice) | 100 | **100.0%** | **0.00%** | 0.38 ms |
+| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety taxonomy & risk categories | 100 | **100.0%** | **0.00%** | 0.56 ms |
+| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.77 ms |
+| **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **0.00%** | 0.72 ms |
+| **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | **93.3%** | N/A | 0.36 ms |
+| **Enterprise Contrast Suite** | Real-world business queries (Finance, Healthcare, Legal, DevOps, Support, HR) | 5,000 | N/A | **0.00%** | 0.36 ms |
+| **Consolidated Public Benchmarks** | Combined multi-source independent evaluation | 300 | **100.0%** | **0.00%** | **0.35 ms** |
 
-*All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/` and `vaxguard/benchmarks/`.*
+*All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `tests/`, and `vaxguard/benchmarks/`.*
 
 ### B. In-Distribution Rule Regression Proving Ground (50,000 Synthetic Probes)
 To guarantee deterministic execution and verify that newly synthesized rules do not cause regressions, VaxGuard runs a 50,000-probe in-distribution regression suite across 5 modular categories (10,000 samples each):

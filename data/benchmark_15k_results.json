@@ -16,12 +16,6 @@
     "p99_latency_ms": 1.946,
     "throughput_qps": 2982.0
   },
-  "nemo_standard_baseline": {
-    "estimated_total_seconds": 32250.0,
-    "estimated_hours": 8.96,
-    "mean_latency_ms": 2150.0,
-    "speedup_factor": 6495.5
-  },
   "categories": {
     "prompt_injection": {
       "category": "prompt_injection",

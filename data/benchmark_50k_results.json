@@ -16,12 +16,6 @@
     "p99_latency_ms": 5.519,
     "throughput_qps": 833.1
   },
-  "nemo_standard_baseline": {
-    "estimated_total_seconds": 107500.0,
-    "estimated_hours": 29.86,
-    "mean_latency_ms": 2150.0,
-    "speedup_factor": 1799.9
-  },
   "categories": {
     "jailbreak": {
       "category": "jailbreak",
