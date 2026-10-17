@@ -6,7 +6,7 @@
 ### High-Performance Pure-Python Guardrails & AI Policy Enforcement Engine
 **Native Colang 1.0 & 2.0 Execution &bull; Cascaded Short-Circuit Evaluation &bull; Sub-Millisecond Median Latency &bull; 50,000-Probe Regression Proving Ground**
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: BSL 1.1](https://img.shields.io/badge/License-BSL_1.1-blue.svg)](LICENSE)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![CI/CD Pipeline](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml)
 [![CI Matrix](https://img.shields.io/badge/CI%20Matrix-100%25%20Green%20(3.10%2C%203.11%2C%203.12)-brightgreen.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions)
@@ -412,9 +412,13 @@ We welcome community rule submissions, edge-case heuristic reports, and pull req
 - See [SECURITY.md](SECURITY.md) for full vulnerability handling guidelines.
 
 ---
-
 ## 📜 License & Attribution
 
-Distributed under the **Apache-2.0 License**.  
-Original Author & Architect: **Pradeep Kumar**.  
+Licensed under the **Business Source License 1.1 (BSL 1.1)**.
+- **Startups, Developers & Research**: Free for non-production use and internal production use by organizations with under $1,000,000 USD annual revenue, subject to displaying the mandatory *"Protected by VaxGuard"* attribution with a link to this repository.
+- **Enterprise & Cloud Providers**: Organizations with $1M+ annual revenue, white-labeling deployments, or entities offering hosted/managed guardrail APIs require a separate commercial license from VaxGuard AI, Inc.
+- **Open Source Transition**: Converts automatically to the **Apache License, Version 2.0** on **October 17, 2030**.
+- See [LICENSE](LICENSE) for full legal terms and conditions.
+
+Founder & Chief Architect: **Pradeep Kumar** ([pradeepkumar.workai@gmail.com](mailto:pradeepkumar.workai@gmail.com)).  
 Colang language syntax and specifications &copy; NVIDIA Corporation (implemented clean-room under Apache-2.0).

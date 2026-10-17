@@ -11,10 +11,9 @@ authors = [
 description = "Autonomous AI Immune System for LLM Security — Continuous Vulnerability Scanning, Dynamic Inoculation, and Anomaly Defense"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+license = { text = "BSL-1.1" }
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Topic :: Security",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
