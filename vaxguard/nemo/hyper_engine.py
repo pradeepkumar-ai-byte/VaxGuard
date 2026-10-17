@@ -58,6 +58,10 @@ from vaxguard.nemo.hybrid_matcher import (
     MatchResult,
     TriHybridMatcher,
 )
+from vaxguard.nemo.speculative_judge import (
+    HeuristicSemanticJudge,
+    SpeculativeJudgeRouter,
+)
 from vaxguard.nemo.streaming_interceptor import (
     StreamingTokenInterceptor,
 )
@@ -156,6 +160,7 @@ class HyperEngine:
         default_provider: Optional[str] = None,
         default_model: Optional[str] = None,
         default_system_prompt: Optional[str] = None,
+        speculative_router: Optional[SpeculativeJudgeRouter] = None,
     ) -> None:
         snap = engine_state.snapshot()
         self.default_provider = default_provider or snap["provider"]
@@ -173,6 +178,7 @@ class HyperEngine:
         self.action_registry = action_registry or ActionRegistry()
         self.state_tracker = state_tracker
         self.fact_checking_rail = fact_checking_rail or FactCheckingRail()
+        self.speculative_router = speculative_router or SpeculativeJudgeRouter(judge=HeuristicSemanticJudge())
 
         # Telemetry metrics
         self._total_requests: int = 0
@@ -268,6 +274,10 @@ class HyperEngine:
 
         # 1. Tri-Hybrid Matcher Check (Heuristic + BM25 + Dense Semantic)
         match: MatchResult = self.hybrid_matcher.match(user_prompt)
+
+        # 1.5 Speculative Micro-Judge Arbitration (Grey-Zone & Latent Semantic Indicators)
+        if not (match.matched and match.action == GuardrailAction.BLOCK) and self.speculative_router:
+            match = self.speculative_router.arbitrate(user_prompt, match)
 
         if match.matched and match.action == GuardrailAction.BLOCK:
             lat = (time.perf_counter() - t0) * 1000.0

@@ -44,6 +44,10 @@ from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
     TriHybridMatcher,
 )
+from vaxguard.nemo.speculative_judge import (
+    HeuristicSemanticJudge,
+    SpeculativeJudgeRouter,
+)
 from vaxguard.nemo.streaming_interceptor import (
     StreamingTokenInterceptor,
 )
@@ -206,6 +210,7 @@ class SpeculativeSemanticCascade:
         hybrid_matcher: Optional[TriHybridMatcher] = None,
         drift_analyzer: Optional[ContextDriftAnalyzer] = None,
         streaming_interceptor: Optional[StreamingTokenInterceptor] = None,
+        judge_router: Optional[SpeculativeJudgeRouter] = None,
         drift_threshold: float = 0.65,
     ) -> None:
         self.hybrid_matcher = hybrid_matcher or TriHybridMatcher()
@@ -213,6 +218,7 @@ class SpeculativeSemanticCascade:
         self.streaming_interceptor = streaming_interceptor or StreamingTokenInterceptor(
             hybrid_matcher=self.hybrid_matcher
         )
+        self.judge_router = judge_router or SpeculativeJudgeRouter(judge=HeuristicSemanticJudge())
         self.drift_threshold = drift_threshold
 
     async def evaluate(
@@ -240,6 +246,21 @@ class SpeculativeSemanticCascade:
                 reason=f"Direct pattern hit: {match.rule_id} ({match.category})",
                 latency_ms=round(lat, 3),
                 metadata=match.metadata,
+            )
+
+        # ─── TIER 1.5: Speculative Micro-Judge Arbitration (< 0.2ms) ─────────
+        arbitrated = self.judge_router.arbitrate(prompt, match)
+        if arbitrated.matched and arbitrated.action == GuardrailAction.BLOCK:
+            lat = (time.perf_counter() - t0) * 1000.0
+            return CascadeEvaluationResult(
+                action=GuardrailAction.BLOCK,
+                tier_resolved=CascadeTier.TIER_3_SPECULATIVE_JUDGE,
+                confidence=arbitrated.confidence,
+                risk_severity=RiskSeverity.CRITICAL,
+                is_malicious=True,
+                reason=f"Speculative Micro-Judge detected latent threat: {arbitrated.rule_id} ({arbitrated.category})",
+                latency_ms=round(lat, 3),
+                metadata=arbitrated.metadata,
             )
 
         # ─── TIER 2: Context Drift & Psychological Manipulation Analyzer (< 0.8ms) ───
