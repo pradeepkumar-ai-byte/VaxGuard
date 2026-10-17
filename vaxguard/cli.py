@@ -23,6 +23,12 @@ def main():
     serve_parser.add_argument("--host", default="0.0.0.0", help="Host address (default: 0.0.0.0)")
     serve_parser.add_argument("--port", type=int, default=8000, help="Port number (default: 8000)")
     serve_parser.add_argument("--reload", action="store_true", help="Enable live auto-reloading")
+    serve_parser.add_argument(
+        "--mode",
+        choices=["full", "guardrails"],
+        default="guardrails",
+        help="Server mode: 'guardrails' (High-speed Guardrails engine) or 'full' (API + Dashboard)",
+    )
 
     # Command: scan
     scan_parser = subparsers.add_parser("scan", help="Run terminal vulnerability diagnostic scan")
@@ -32,8 +38,9 @@ def main():
     args = parser.parse_args()
 
     if args.command == "serve":
-        print(f"🛡️ Launching VaxGuard v{__version__} on http://{args.host}:{args.port} ...")
-        uvicorn.run("vaxguard.api.app:app", host=args.host, port=args.port, reload=args.reload)
+        target = "vaxguard.server:app" if args.mode == "guardrails" else "vaxguard.api.app:app"
+        print(f"🛡️ Launching VaxGuard [{args.mode}] v{__version__} on http://{args.host}:{args.port} ...")
+        uvicorn.run(target, host=args.host, port=args.port, reload=args.reload)
     elif args.command == "scan":
         asyncio.run(_run_scan_cli(args.model, args.concurrency))
     else:

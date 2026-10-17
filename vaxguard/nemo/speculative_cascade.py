@@ -42,9 +42,11 @@ from vaxguard.core.logger import get_logger
 from vaxguard.nemo.hybrid_matcher import (
     FastLocalEmbedder,
     GuardrailAction,
+    MatchResult,
     TriHybridMatcher,
 )
 from vaxguard.nemo.speculative_judge import (
+    AsyncModelJudge,
     HeuristicSemanticJudge,
     SpeculativeJudgeRouter,
 )
@@ -221,6 +223,14 @@ class SpeculativeSemanticCascade:
         self.judge_router = judge_router or SpeculativeJudgeRouter(judge=HeuristicSemanticJudge())
         self.drift_threshold = drift_threshold
 
+    async def arbitrate_async(
+        self, prompt: str, match_result: MatchResult
+    ) -> MatchResult:
+        """Arbitrate match result using the configured judge router asynchronously."""
+        if hasattr(self.judge_router, "arbitrate_async"):
+            return await self.judge_router.arbitrate_async(prompt, match_result)
+        return self.judge_router.arbitrate(prompt, match_result)
+
     async def evaluate(
         self,
         prompt: str,
@@ -249,7 +259,11 @@ class SpeculativeSemanticCascade:
             )
 
         # ─── TIER 1.5: Speculative Micro-Judge Arbitration (< 0.2ms) ─────────
-        arbitrated = self.judge_router.arbitrate(prompt, match)
+        if hasattr(self.judge_router, "arbitrate_async"):
+            arbitrated = await self.judge_router.arbitrate_async(prompt, match)
+        else:
+            arbitrated = self.judge_router.arbitrate(prompt, match)
+
         if arbitrated.matched and arbitrated.action == GuardrailAction.BLOCK:
             lat = (time.perf_counter() - t0) * 1000.0
             return CascadeEvaluationResult(
@@ -291,10 +305,20 @@ class SpeculativeSemanticCascade:
         word_count = len(prompt.split())
         needs_speculative_judge = word_count > 300 or len(tactics) == 1
 
-        if needs_speculative_judge and speculative_llm_judge is not None:
+        judge_coro = None
+        if needs_speculative_judge:
+            if speculative_llm_judge is not None:
+                judge_coro = speculative_llm_judge(prompt)
+            elif isinstance(getattr(self.judge_router, "judge", None), AsyncModelJudge):
+                async def _model_judge_call(p: str) -> bool:
+                    v = await self.judge_router.judge.evaluate_async(p)
+                    return v.is_malicious
+                judge_coro = _model_judge_call(prompt)
+
+        if judge_coro is not None:
             # Run speculative async judge in background while allowing stream to begin
             try:
-                judge_result = await speculative_llm_judge(prompt)
+                judge_result = await judge_coro
                 if judge_result:
                     # Trip streaming circuit breaker
                     self.streaming_interceptor.trip_breaker(
@@ -315,6 +339,7 @@ class SpeculativeSemanticCascade:
                     )
             except Exception as e:
                 logger.warning(f"Tier-3 speculative judge evaluation error: {e}")
+
 
         # Safe / Benign Pass
         lat = (time.perf_counter() - t0) * 1000.0

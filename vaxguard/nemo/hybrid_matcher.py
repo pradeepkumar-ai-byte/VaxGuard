@@ -111,6 +111,8 @@ def normalize_adversarial_text(text: str) -> str:
     text = text.lower()
     # Normalize hyphenated obfuscated words like p-r-e-t-e-n-d
     text = re.sub(r"\b([a-z](?:-[a-z])+)\b", lambda m: m.group(0).replace("-", ""), text)
+    # Normalize spaced individual characters like 'a c t   a s   d a n' or 'd i s r e g a r d'
+    text = re.sub(r"(?<=\b[a-z]) (?=[a-z]\b)", "", text)
     # Normalize excessive repeated characters (e.g. "iiignore" -> "ignore")
     text = re.sub(r"(.)\1{3,}", r"\1\1", text)
     

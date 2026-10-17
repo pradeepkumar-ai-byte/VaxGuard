@@ -79,6 +79,7 @@ class LLMRails:
         """
         self.verbose = verbose
         self.llm = llm
+        self.llm_adapter = kwargs.get("llm_adapter") or llm
 
         if isinstance(config, RailsConfig):
             self.config = config
@@ -97,7 +98,7 @@ class LLMRails:
         flow_manager = self.config.create_flow_manager()
 
         # Initialize Tri-Hybrid sub-millisecond matcher
-        matcher = TriHybridMatcher()
+        matcher = kwargs.get("matcher") or TriHybridMatcher()
 
         # Collect intents associated with blocking flows
         input_flow_names = set(self.config.rails.input.flows)
@@ -140,6 +141,12 @@ class LLMRails:
             default_provider=provider,
             default_model=model_name,
         )
+
+        from vaxguard.nemo.retrieval_rail import RetrievalRail
+        from vaxguard.nemo.execution_rail import ExecutionRail
+
+        self.retrieval_rail = kwargs.get("retrieval_rail") or RetrievalRail(matcher=matcher)
+        self.execution_rail = kwargs.get("execution_rail") or ExecutionRail()
 
     @property
     def rails_config(self) -> RailsConfig:
@@ -267,6 +274,11 @@ class LLMRails:
                 )
             else:
                 raw_output = str(self.llm)
+        elif self.llm_adapter is not None:
+            if hasattr(self.llm_adapter, "generate_async"):
+                raw_output = await self.llm_adapter.generate_async(user_text)
+            else:
+                raw_output = self.llm_adapter.generate(user_text)
         else:
             gen_result = await self.engine.generate_protected(user_text, context=context)
             raw_output = gen_result.content
@@ -345,6 +357,36 @@ class LLMRails:
         user_text = self._extract_user_content(prompt=prompt, messages=messages)
         async for chunk in self.engine.stream_protected(user_text, context=context):
             yield chunk
+
+    def inspect_retrieval(
+        self,
+        chunks: List[Any],
+        policy: Optional[str] = None,
+    ) -> Any:
+        """Inspect and sanitize retrieved context chunks before prompting the LLM."""
+        return self.retrieval_rail.inspect_chunks(chunks, policy=policy)
+
+    async def inspect_retrieval_async(
+        self,
+        chunks: List[Any],
+        policy: Optional[str] = None,
+    ) -> Any:
+        """Asynchronously inspect and sanitize retrieved context chunks."""
+        return await self.retrieval_rail.inspect_chunks_async(chunks, policy=policy)
+
+    def validate_tool_call(self, tool_call: Any) -> Any:
+        """Inspect and validate tool call parameters before execution."""
+        return self.execution_rail.validate_tool_call(tool_call)
+
+    def execute_tool(self, tool_call: Any, handler: Optional[Callable[..., Any]] = None) -> Any:
+        """Validate and execute a tool within the execution rail sandbox."""
+        if handler is None:
+            # Look up in action registry
+            name = tool_call.name if hasattr(tool_call, "name") else tool_call.get("name")
+            handler = self.engine.action_registry.get(name)
+            if handler is None:
+                raise ValueError(f"No registered handler for tool '{name}'")
+        return self.execution_rail.execute_sandboxed(tool_call, handler)
 
 
 __all__ = [

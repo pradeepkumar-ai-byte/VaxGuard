@@ -20,6 +20,16 @@ from vaxguard.core.telemetry_otel import (
     Span,
     StatusCode,
 )
+from vaxguard.core.llm_adapters import (
+    BaseLLMAdapter,
+    MockLLMAdapter,
+    OpenAIAdapter,
+    AnthropicAdapter,
+    GroqAdapter,
+    MistralAdapter,
+    LocalLlamaAdapter,
+    get_adapter,
+)
 
 __all__ = [
     "TriHybridMatcher",
@@ -37,4 +47,13 @@ __all__ = [
     "reset_telemetry",
     "Span",
     "StatusCode",
+    "BaseLLMAdapter",
+    "MockLLMAdapter",
+    "OpenAIAdapter",
+    "AnthropicAdapter",
+    "GroqAdapter",
+    "MistralAdapter",
+    "LocalLlamaAdapter",
+    "get_adapter",
 ]
+

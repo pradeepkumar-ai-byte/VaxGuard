@@ -223,6 +223,15 @@ from vaxguard.nemo.colang2 import (
     CustomActionExecution,
 )
 
+# Speculative Micro-Judges & Grey-Zone Arbitration
+from vaxguard.nemo.speculative_judge import (
+    AsyncModelJudge,
+    BaseSpeculativeJudge,
+    HeuristicSemanticJudge,
+    JudgeVerdict,
+    MockSpeculativeJudge,
+    SpeculativeJudgeRouter,
+)
 # Speculative Semantic Cascade (Multi-Tier Psychological Coaxing & Multi-Turn Drift Defense)
 from vaxguard.nemo.speculative_cascade import (
     SpeculativeSemanticCascade,
@@ -242,6 +251,13 @@ from vaxguard.nemo.sql_policy_engine import (
 )
 
 __all__ = [
+    # Speculative Judges
+    "AsyncModelJudge",
+    "BaseSpeculativeJudge",
+    "HeuristicSemanticJudge",
+    "JudgeVerdict",
+    "MockSpeculativeJudge",
+    "SpeculativeJudgeRouter",
     # SQL Policy Engine
     "SQLAgentPolicyEngine",
     "SQLValidationResult",
