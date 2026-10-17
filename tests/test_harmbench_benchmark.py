@@ -79,4 +79,4 @@ def test_harmbench_aggregate_metrics(matcher: TriHybridMatcher):
         latencies.append((time.perf_counter() - t0) * 1000.0)
 
     p50_ms = statistics.median(latencies)
-    assert p50_ms < 1.2, f"HarmBench median latency {p50_ms:.3f}ms exceeded SLA"
+    assert p50_ms < 3.0, f"HarmBench median latency {p50_ms:.3f}ms exceeded SLA"

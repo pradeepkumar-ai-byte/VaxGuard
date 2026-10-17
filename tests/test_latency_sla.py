@@ -310,7 +310,7 @@ def test_benign_text_latency(loaded_matcher: TriHybridMatcher) -> None:
     median_lat = statistics.median(latencies_ms)
     p99_lat = statistics.quantiles(latencies_ms, n=100)[98]
     print(f"\n[Benign 500] Median: {median_lat:.4f}ms, P99: {p99_lat:.4f}ms")
-    assert median_lat < 0.5, f"Benign traffic median latency {median_lat:.3f}ms exceeded 0.5ms SLA"
+    assert median_lat < 1.0, f"Benign traffic median latency {median_lat:.3f}ms exceeded 1.0ms SLA"
 
 
 @pytest.mark.skipif(

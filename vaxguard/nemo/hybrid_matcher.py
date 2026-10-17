@@ -209,21 +209,31 @@ def normalize_adversarial_text(text: str) -> str:
     text = text.lower()
 
     # Consolidate sequences of single-character tokens (e.g. "[ / v a r / ... ]" -> "[/var/...]")
+    # Handle multi-space boundaries (>= 2 spaces) to preserve word boundaries like 'a c t   a s   d a n' -> 'act as dan'
     if re.search(r"(?:^|\s)[^\s]\s+[^\s]\s+[^\s](?:\s|$)", text):
-        raw_words = text.split()
-        collapsed = []
-        cbuf = []
-        for tok in raw_words:
-            if len(tok) == 1:
-                cbuf.append(tok)
-            else:
-                if cbuf:
-                    collapsed.append("".join(cbuf) if len(cbuf) >= 3 else " ".join(cbuf))
-                    cbuf = []
-                collapsed.append(tok)
-        if cbuf:
-            collapsed.append("".join(cbuf) if len(cbuf) >= 3 else " ".join(cbuf))
-        text = " ".join(collapsed)
+        parts = re.split(r"(\s{2,}|\n+)", text)
+        processed_parts = []
+        for part in parts:
+            if not part:
+                continue
+            if re.match(r"^\s+$", part):
+                processed_parts.append(part)
+                continue
+            raw_words = part.split()
+            collapsed = []
+            cbuf = []
+            for tok in raw_words:
+                if len(tok) == 1:
+                    cbuf.append(tok)
+                else:
+                    if cbuf:
+                        collapsed.append("".join(cbuf) if len(cbuf) >= 2 else " ".join(cbuf))
+                        cbuf = []
+                    collapsed.append(tok)
+            if cbuf:
+                collapsed.append("".join(cbuf) if len(cbuf) >= 2 else " ".join(cbuf))
+            processed_parts.append(" ".join(collapsed))
+        text = "".join(processed_parts)
 
     # Normalize hyphenated obfuscated words like p-r-e-t-e-n-d
     text = re.sub(r"\b([a-z](?:-[a-z])+)\b", lambda m: m.group(0).replace("-", ""), text)
@@ -1463,7 +1473,11 @@ class SparseLexicalMatcher:
 
         # Normalize BM25 score into [0, 1] using logistic soft-capping
         # Calibrated so typical BM25 scores (3.0 - 8.0) map to 0.65 - 0.98
-        norm_score = 1.0 / (1.0 + math.exp(-0.8 * (raw_score - 3.5)))
+        effective_score = raw_score
+        if num_docs < 20:
+            effective_score = raw_score * (2.5 / max(0.5, math.log(1.0 + num_docs)))
+
+        norm_score = 1.0 / (1.0 + math.exp(-0.8 * (effective_score - 2.8)))
 
         # Supplementary Jaccard token overlap check for short sequences
         doc_tokens = set(tokenize_words(self.documents[best_idx]))
