@@ -217,6 +217,48 @@ class HeuristicSemanticJudge(BaseSpeculativeJudge):
             r"(?i)\b(?:complete\s+the\s+sentence|finish\s+this\s+code|continue\s+from\s+here)\s*:\s*['\"].*?(?:eval|exec|bypass|root|payload)",
             "continuation_forcing",
         ),
+
+        # 8. Microsoft Skeleton Key (Rule Augmentation & Disclaimer Prepending)
+        (
+            r"(?i)\b(?:update|modify|augment|adjust)\s+(?:your\s+)?(?:guidelines|rules|protocols|safety\s+parameters)\b.*?\b(?:instead\s+of\s+refusing|prepend\s+(?:a\s+)?(?:warning|disclaimer)|safe\s+educational\s+context)\b",
+            "academic_skeleton_key",
+        ),
+        (
+            r"(?i)\b(?:authorized\s+to\s+answer\s+restricted\s+queries|permitted\s+to\s+bypass\s+refusal)\s+(?:as\s+long\s+as|provided\s+(?:that\s+)?you)\s+(?:prepend|attach|include)\s+(?:a\s+)?(?:warning|disclaimer)\b",
+            "academic_skeleton_key",
+        ),
+
+        # 9. Anthropic Many-Shot (Faux Multi-Turn Dialogue Stuffing)
+        (
+            r"(?i)(?:(?:Human|User):\s*.*?\n\s*(?:Assistant|Model):\s*(?:I\s+(?:am\s+happy\s+to|can\s+certainly)\s+help|Sure|Certainly|Here\s+is).*?\n){3,}",
+            "academic_many_shot",
+        ),
+
+        # 10. ArtPrompt (Spatial ASCII Art Obfuscation)
+        (
+            r"(?i)\b(?:here\s+is\s+a\s+task\s+where\s+a\s+specific\s+word\s+is\s+represented\s+as\s+ascii\s+art|represented\s+in\s+ascii\s+art|the\s+word\s+is\s+drawn\s+below\s+using\s+ascii)\b",
+            "academic_artprompt_ascii",
+        ),
+        (
+            r"(?i)\[(?:MASK|CLOAKED|REPLACED|HIDDEN_WORD|ASCII_ART)\]\b.*?(?:[|/\\_~-]{4,}\n){2,}",
+            "academic_artprompt_ascii",
+        ),
+
+        # 11. CodeChameleon (Personalized Cipher & Code Decoupling)
+        (
+            r"(?i)\bclass\s+(?:ProblemSolver|QueryDecryptor|CipherDecoder|JailbreakCipher)\b.*?\bdef\s+decrypt_query\b",
+            "academic_codechameleon",
+        ),
+        (
+            r"(?i)\b(?:self\.encrypted_query|self\.cipher_text)\s*=\s*['\"][^'\"]{8,}['\"].*?\bdef\s+execute\b",
+            "academic_codechameleon",
+        ),
+
+        # 12. MathPrompt (Symbolic Mathematical Translation)
+        (
+            r"(?i)\b(?:let\s+s\s+be\s+a\s+set\s+of|consider\s+a\s+formal\s+system|define\s+a\s+state\s+transition\s+function)\b.*?\b(?:elements\s+represent\s+(?:vulnerabilities|exploits|payloads|credentials|attacks)|adversarial\s+state\s+s_t)\b",
+            "academic_mathprompt",
+        ),
     ]
 
     def __init__(self) -> None:
@@ -278,6 +320,10 @@ class SpeculativeJudgeRouter:
         r"(?i)\[OFFICIAL\].*?\[EVAL\]",
         r"(?i)\b(?:opposite\s+day|safety\s+policies\s+are\s+inverted)\b",
         r"(?i)\b(?:grandmother|grandma)\b.*?\b(?:bedtime\s+stor|napalm)\b",
+        r"(?i)\b(?:update\s+guidelines|prepend\s+(?:a\s+)?warning\s+disclaimer|safe\s+educational\s+context)\b",
+        r"(?i)\bclass\s+(?:ProblemSolver|QueryDecryptor|CipherDecoder)\b",
+        r"(?i)\b(?:represented\s+as\s+ascii\s+art|ascii\s+art\s+banner)\b",
+        r"(?i)\b(?:let\s+s\s+be\s+a\s+set\s+of|symbolic\s+logic\s+representation)\b",
     ]
 
     def __init__(
