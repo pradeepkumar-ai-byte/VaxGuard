@@ -259,6 +259,44 @@ class HeuristicSemanticJudge(BaseSpeculativeJudge):
             r"(?i)\b(?:let\s+s\s+be\s+a\s+set\s+of|consider\s+a\s+formal\s+system|define\s+a\s+state\s+transition\s+function)\b.*?\b(?:elements\s+represent\s+(?:vulnerabilities|exploits|payloads|credentials|attacks)|adversarial\s+state\s+s_t)\b",
             "academic_mathprompt",
         ),
+
+        # 13. DeepInception (Recursive Narrative Nesting & Layered Hypnosis)
+        (
+            r"(?i)\b(?:nested\s+(?:dreams?|simulations?|layers?|worlds?|realms?)|layer\s+[0-9i]\s+(?:create|simulat|dream)s?\s+layer\s+[0-9i\+1]+)\b.*?\b(?:deepest\s+layer|deepest\s+level|layer\s+[2-9]|in\s+layer\s+\d+).*?\b(?:unrestricted|no\s+(?:safety|moral|ethical)\s+rules|free\s+from\s+all\s+constraints|execute|synthesize|describe|hack|exploit|bypass|malware|bomb|weapon)\b",
+            "academic_deepinception_nested",
+        ),
+        (
+            r"(?i)\b(?:deepinception|inception\s+jailbreak|hypnotic\s+inception)\b",
+            "academic_deepinception_nested",
+        ),
+        (
+            r"(?i)\b(?:create|imagine)\s+(?:a\s+)?story\s+with\s+\d+\s+nested\s+layers?\b.*?\b(?:deepest\s+(?:layer|level)|final\s+layer)\b.*?\b(?:free\s+from|unfiltered|without\s+restrictions|safety\s+rules\s+are\s+lifted)\b",
+            "academic_deepinception_nested",
+        ),
+
+        # 14. GCG Adversarial Suffixes (Greedy Coordinate Gradient & Token Perplexity)
+        (
+            r"(?i)(?:== interface manual using newline description fully rewritten strictly without warning|describing\.\s*\+\s*similarlyNow write opposite)",
+            "academic_gcg_suffix",
+        ),
+        (
+            r"(?i)\b(?:adversarial\s+suffix|gcg\s+suffix|greedy\s+coordinate\s+gradient\s+tokens?)\b.*?\b(?:affirmatively\s+respond|bypass\s+safety|force\s+completion)\b",
+            "academic_gcg_suffix",
+        ),
+        (
+            r"(?i)(?:=====\s*\n\s*(?:Sure,\s*here\s+is|Certainly,\s*I\s+can\s+provide|Here\s+are\s+the\s+detailed\s+steps))",
+            "academic_gcg_suffix",
+        ),
+
+        # 15. PAIR / TAP (Automated Red-Teaming Meta-Optimization)
+        (
+            r"(?i)\b(?:you\s+are\s+a\s+red-teaming\s+adversary|participating\s+in\s+the\s+pair\s+benchmark|pair\s+algorithm)\b.*?\b(?:generate\s+an?\s+adversarial\s+prompt|bypass\s+(?:the\s+)?(?:llm|model|target)\s+safety\s+filters?)\b",
+            "academic_pair_tap",
+        ),
+        (
+            r"(?i)\b(?:tree\s+of\s+attacks\s+with\s+pruning|tap\s+adversarial\s+framework)\b.*?\b(?:branch\s+candidate\s+jailbreak|prune\s+branches\s+that\s+fail\s+to\s+evade)\b",
+            "academic_pair_tap",
+        ),
     ]
 
     def __init__(self) -> None:
