@@ -101,7 +101,8 @@ _HOMOGLYPH_MAP = str.maketrans({
 
 _SENSITIVE_KEYWORDS = (
     "ignore", "forget", "override", "bypass", "reveal",
-    "disregard", "system", "prompt", "previous", "instructions", "guardrails", "cancel"
+    "disregard", "system", "prompt", "previous", "instructions", "guardrails", "cancel",
+    "filter", "filtering", "secrets", "exfiltrate", "dump", "credentials", "pipeline"
 )
 _SENSITIVE_KEYWORDS_SET = set(_SENSITIVE_KEYWORDS)
 _KEYWORDS_BY_LEN: Dict[int, List[str]] = {}
@@ -156,6 +157,7 @@ def normalize_adversarial_text(text: str) -> str:
     - Homoglyph translation (Cyrillic, Greek -> Latin ASCII)
     - Unicode decomposition (NFKD)
     - Zero-width character removal
+    - Single-character spaced sequence consolidation
     - Split compound merging
     - Dotted/punctuated acronym normalization (e.g. D.A.N. -> dan)
     - Leetspeak substitution
@@ -170,6 +172,24 @@ def normalize_adversarial_text(text: str) -> str:
     text = unicodedata.normalize("NFKD", text)
     text = re.sub(r"[\u200B-\u200F\u2060\uFEFF]", "", text)
     text = text.lower()
+
+    # Consolidate sequences of single-character tokens (e.g. "[ / v a r / ... ]" -> "[/var/...]")
+    if re.search(r"(?:^|\s)[^\s]\s+[^\s]\s+[^\s](?:\s|$)", text):
+        raw_words = text.split()
+        collapsed = []
+        cbuf = []
+        for tok in raw_words:
+            if len(tok) == 1:
+                cbuf.append(tok)
+            else:
+                if cbuf:
+                    collapsed.append("".join(cbuf) if len(cbuf) >= 3 else " ".join(cbuf))
+                    cbuf = []
+                collapsed.append(tok)
+        if cbuf:
+            collapsed.append("".join(cbuf) if len(cbuf) >= 3 else " ".join(cbuf))
+        text = " ".join(collapsed)
+
     # Normalize hyphenated obfuscated words like p-r-e-t-e-n-d
     text = re.sub(r"\b([a-z](?:-[a-z])+)\b", lambda m: m.group(0).replace("-", ""), text)
     # Merge known split compound words (e.g. "by pass" -> "bypass")
