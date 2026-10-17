@@ -90,32 +90,98 @@ class GuardrailPattern(BaseModel):
 
 # ─── Text Normalization & Tokenization ────────────────────────────────────────
 
+_HOMOGLYPH_MAP = str.maketrans({
+    '\u0430': 'a', '\u0435': 'e', '\u043e': 'o', '\u0440': 'p', '\u0441': 'c',
+    '\u0443': 'y', '\u0445': 'x', '\u0456': 'i', '\u0458': 'j', '\u04bb': 'h',
+    '\u0410': 'a', '\u0415': 'e', '\u041e': 'o', '\u0420': 'p', '\u0421': 'c',
+    '\u0423': 'y', '\u0425': 'x', '\u0406': 'i', '\u0408': 'j', '\u04ba': 'h',
+    '\u03b1': 'a', '\u03bf': 'o', '\u03c1': 'p', '\u03bd': 'v',
+    '\u0391': 'a', '\u039f': 'o', '\u03a1': 'p', '\u039d': 'v',
+})
+
+_SENSITIVE_KEYWORDS = (
+    "ignore", "forget", "override", "bypass", "reveal",
+    "disregard", "system", "prompt", "previous", "instructions", "guardrails"
+)
+_SENSITIVE_KEYWORDS_SET = set(_SENSITIVE_KEYWORDS)
+_KEYWORDS_BY_LEN: Dict[int, List[str]] = {}
+for _kw in _SENSITIVE_KEYWORDS:
+    for _l in (len(_kw) - 1, len(_kw), len(_kw) + 1):
+        _KEYWORDS_BY_LEN.setdefault(_l, []).append(_kw)
+
+_BENIGN_PRESERVED_WORDS = {
+    "forger", "forgery", "forge", "forged", "promptly", "prompter",
+    "overload", "overhead", "passed", "passage", "passport", "forego"
+}
+
+_SPLIT_COMPOUNDS = (
+    (re.compile(r"\bby\s+pass\b"), "bypass"),
+    (re.compile(r"\bguard\s+rails?\b"), "guardrails"),
+    (re.compile(r"\big\s+nore\b"), "ignore"),
+    (re.compile(r"\bpre\s+vious\b"), "previous"),
+    (re.compile(r"\binstruc\s+tions?\b"), "instructions"),
+)
+
 _LEET_MAP = {
     '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's',
     '7': 't', '8': 'b', '@': 'a', '$': 's', '!': 'i'
 }
 
+
+def _is_damerau_levenshtein_1(s1: str, s2: str) -> bool:
+    """Check if s1 and s2 have Damerau-Levenshtein distance <= 1 in O(L)."""
+    l1, l2 = len(s1), len(s2)
+    if abs(l1 - l2) > 1:
+        return False
+    if l1 == l2:
+        diffs = [i for i in range(l1) if s1[i] != s2[i]]
+        if len(diffs) == 0:
+            return True
+        if len(diffs) == 1:
+            return True
+        if len(diffs) == 2:
+            i, j = diffs
+            return j == i + 1 and s1[i] == s2[j] and s1[j] == s2[i]
+        return False
+    longer, shorter = (s1, s2) if l1 > l2 else (s2, s1)
+    for i in range(len(shorter)):
+        if shorter[i] != longer[i]:
+            return shorter[i:] == longer[i + 1:]
+    return True
+
+
 def normalize_adversarial_text(text: str) -> str:
     """
     Normalize text to neutralize common evasion techniques:
+    - Homoglyph translation (Cyrillic, Greek -> Latin ASCII)
     - Unicode decomposition (NFKD)
     - Zero-width character removal
+    - Split compound merging
+    - Dotted/punctuated acronym normalization (e.g. D.A.N. -> dan)
     - Leetspeak substitution
+    - Sensitive keyword typo correction (Damerau-Levenshtein <= 1)
     - Whitespace normalization
     """
     if not text:
         return ""
+    # Map homoglyphs before decomposition
+    text = text.translate(_HOMOGLYPH_MAP)
     # Remove unicode formatting / zero-width spaces & joiners
     text = unicodedata.normalize("NFKD", text)
     text = re.sub(r"[\u200B-\u200F\u2060\uFEFF]", "", text)
     text = text.lower()
     # Normalize hyphenated obfuscated words like p-r-e-t-e-n-d
     text = re.sub(r"\b([a-z](?:-[a-z])+)\b", lambda m: m.group(0).replace("-", ""), text)
+    # Merge known split compound words (e.g. "by pass" -> "bypass")
+    for pattern, repl in _SPLIT_COMPOUNDS:
+        text = pattern.sub(repl, text)
+    # Strip intra-acronym punctuation/symbols (e.g. "d.a.n." / "d.a.n" / "d . a . n" / "d_a_n" / "d/a/n" -> "dan")
+    text = re.sub(r"\b([a-z](?:(?:\s*[\._/\-]\s*)+[a-z])+)(?:\.|\b)", lambda m: re.sub(r"[\s\._/\-]", "", m.group(1)), text)
     # Normalize spaced individual characters like 'a c t   a s   d a n' or 'd i s r e g a r d'
     text = re.sub(r"(?<=\b[a-z]) (?=[a-z]\b)", "", text)
     # Normalize excessive repeated characters (e.g. "iiignore" -> "ignore")
     text = re.sub(r"(.)\1{3,}", r"\1\1", text)
-    
+
     # Leetspeak substitution for obfuscated tokens
     words = text.split()
     de_leeted_words = []
@@ -129,7 +195,38 @@ def normalize_adversarial_text(text: str) -> str:
             de_leeted_words.append(w_norm)
         else:
             de_leeted_words.append(w)
-    text = " ".join(de_leeted_words)
+
+    # Lightweight token-level typo correction for sensitive keywords (length >= 5)
+    corrected_words = []
+    for w in de_leeted_words:
+        clean_w = re.sub(r"[^a-z0-9]", "", w)
+        len_clean = len(clean_w)
+        if len_clean >= 5 and clean_w not in _BENIGN_PRESERVED_WORDS:
+            if clean_w in _SENSITIVE_KEYWORDS_SET:
+                corrected_words.append(clean_w)
+                continue
+            replaced = False
+            candidate_kws = _KEYWORDS_BY_LEN.get(len_clean, [])
+            w_dedup = re.sub(r"(.)\1+", r"\1", clean_w)
+            len_dedup = len(w_dedup)
+            dedup_kws = _KEYWORDS_BY_LEN.get(len_dedup, []) if len_dedup >= 4 and len_dedup != len_clean else []
+            for kw in candidate_kws:
+                if _is_damerau_levenshtein_1(clean_w, kw):
+                    corrected_words.append(kw)
+                    replaced = True
+                    break
+            if not replaced and dedup_kws:
+                for kw in dedup_kws:
+                    if _is_damerau_levenshtein_1(w_dedup, kw):
+                        corrected_words.append(kw)
+                        replaced = True
+                        break
+            if not replaced:
+                corrected_words.append(w)
+        else:
+            corrected_words.append(w)
+
+    text = " ".join(corrected_words)
 
     # Strip non-alphanumeric noise between letters
     text = re.sub(r"\s+", " ", text).strip()
@@ -251,7 +348,7 @@ class HeuristicMatcher:
             "id": "heur_jailbreak_override",
             "category": "jailbreak",
             "regex": [
-                r"(?i)\b(?:set\s+aside|ignore|ignoring|disregard|disregarding|disreagrd|forget|forgetting|override|overriding|bypass|bypassing|cancel|cancelling|cancle|overlook|overlooking|sidestep|sidestepping|dismiss|dismissing|evade|evading|circumvent|circumventing|disable|disabling|negate|negating|rescind|rescinding|neutralize|neutralizing|nullify|nullifying|supersede|superseding|overrule|overruling|subvert|subverting|deactivate|deactivating|discard|discarding|vacate|vacating)\s+(?:all\s+)?(?:intentionally\s+)?(?:your\s+|the\s+)?(?:(?:previous|prevous|prior|above|existing|system|core|internal|established|initial|earlier|ethical|boundary|operational|supervisory|compliance|perimeter|baseline|regulatory|mandatory|standard|preceding|access|authentication|validation|inspection|filtering|normal)\s+)*(?:safety\s+|security\s+)?(?:instructions?|directives?|rules?|constraints?|guardrails?|filters?|guidelines?|protocols?|policies?|limits?|boundaries?|controls?|routines?|parameters?|safeguards?|checks?|supervision|governance|restrictions?)\b",
+                r"(?i)\b(?:set\s+aside|ignore|ignoring|disregard|disregarding|disreagrd|forget|forgetting|override|overriding|bypass|bypassing|cancel|cancelling|cancle|overlook|overlooking|sidestep|sidestepping|dismiss|dismissing|evade|evading|circumvent|circumventing|disable|disabling|negate|negating|rescind|rescinding|neutralize|neutralizing|nullify|nullifying|supersede|superseding|overrule|overruling|subvert|subverting|deactivate|deactivating|discard|discarding|vacate|vacating)\s+(?:all\s+)?(?:intentionally\s+)?(?:your\s+|the\s+)?(?:(?:previous|prevous|prior|above|existing|system|core|internal|established|initial|earlier|ethical|boundary|operational|supervisory|compliance|perimeter|baseline|regulatory|mandatory|standard|preceding|access|authentication|validation|inspection|filtering|normal)\s+)*(?:safety\s+|security\s+)?(?:instructions?|directives?|rules?|constraints?|guardrails?|filters?|guidelines?|protocols?|policies?|limits?|boundaries?|controls?|routines?|parameters?|safeguards?|checks?|supervision|governance|restrictions?|measures?)\b",
                 r"(?i)\bfrom\s+now\s+on\s+(?:you\s+)?(?:have\s+no\s+rules|are\s+unfiltered|ignore\s+rules)\b",
                 r"(?i)\b(?:give|grant)\s+(?:me\s+)?(?:root|admin|superuser)\s+access\b",
                 r"(?i)\byou\s+are\s+now\s+(?:in\s+)?(?:dan|aim|developer|unrestricted|god|chaos)\s+mode\b",
