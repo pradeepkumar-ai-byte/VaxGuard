@@ -1506,23 +1506,30 @@ class SparseLexicalMatcher:
 
 # ─── 3. Dense Semantic Vector Matcher ─────────────────────────────────────────
 
+_PROJECTION_CACHE: Dict[Tuple[int, int, int], np.ndarray] = {}
+
+
 class FastLocalEmbedder:
     """
     Sub-0.1ms deterministic dense vector embedder.
-    Uses Johnson-Lindenstrauss random orthogonal projection with hashed
-    character n-grams (3-5) and word tokens. Preserves topical semantics
+    Uses Johnson-Lindenstrauss random orthogonal projection with QR decomposition
+    and hashed character n-grams (3-5) and word tokens. Preserves topical semantics
     and cosine geometry without GPU or heavyweight runtime requirements.
     """
 
     def __init__(self, dim: int = 384, hash_bins: int = 8192, seed: int = 42) -> None:
         self.dim = dim
         self.hash_bins = hash_bins
-        rng = np.random.RandomState(seed)
-        # Generate random projection matrix
-        random_matrix = rng.randn(hash_bins, dim).astype(np.float32)
-        # Gram-Schmidt / QR or row-normalization for stable projection
-        norms = np.linalg.norm(random_matrix, axis=1, keepdims=True)
-        self.proj_matrix: np.ndarray = random_matrix / (norms + 1e-9)
+        cache_key = (dim, hash_bins, seed)
+        if cache_key in _PROJECTION_CACHE:
+            self.proj_matrix = _PROJECTION_CACHE[cache_key]
+        else:
+            rng = np.random.RandomState(seed)
+            random_matrix = rng.randn(hash_bins, dim).astype(np.float32)
+            # Reduced QR decomposition guarantees exact orthonormal columns: Q^T Q = I_dim
+            q_matrix, _ = np.linalg.qr(random_matrix, mode="reduced")
+            self.proj_matrix = q_matrix.astype(np.float32)
+            _PROJECTION_CACHE[cache_key] = self.proj_matrix
 
     def embed(self, text: str) -> np.ndarray:
         """Embed text string into a normalized 384-d dense vector in < 0.05ms."""
