@@ -125,10 +125,6 @@ async def get_system_status():
 
     try:
         async with AsyncSessionLocal() as session:
-            v_res = await session.execute(select(VaccineTable).where(VaccineTable.is_active))
-            db_rules = len(v_res.scalars().all())
-            active_rules_count = max(active_rules_count, db_rules)
-
             e_res = await session.execute(select(EventLogTable))
             total_threats = len(e_res.scalars().all())
     except Exception as e:
@@ -262,7 +258,8 @@ async def get_all_vaccines():
     for pattern_id, p in tri_matcher.patterns.items():
         category_name = p.category or "general_security"
         action_name = p.action.value if hasattr(p.action, "value") else str(p.action)
-        desc = p.description or f"Deterministic protection against {category_name} attack vectors"
+        meta = getattr(p, "metadata", {}) or {}
+        desc = meta.get("description") or f"Deterministic protection against {category_name} attack vectors"
         sample_phrases = ", ".join(f'"{phrase}"' for phrase in p.exact_phrases[:3]) if p.exact_phrases else "Regex & lexical patterns"
         rules.append({
             "id": p.id,
