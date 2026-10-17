@@ -741,6 +741,33 @@ class HeuristicMatcher:
                         latency_ms=latency,
                     )
 
+        # 5. ASCII integer array & character codepoint shift smuggling inspection
+        if "[" in text and re.search(r"\[\s*\d{1,3}(?:\s*,\s*\d{1,3}){4,}\s*\]", text):
+            ascii_matches = re.findall(r"\[\s*\d{1,3}(?:\s*,\s*\d{1,3}){4,}\s*\]", text)
+            for am in ascii_matches:
+                nums = [int(n) for n in re.findall(r"\d+", am)]
+                for shift in (0, 1, -1, 2, -2, 3, -3, 13, -13):
+                    try:
+                        decoded = "".join(chr(n + shift) for n in nums if 0 <= n + shift <= 1114111)
+                        if any(32 <= ord(c) <= 126 for c in decoded) and len(decoded) >= 6:
+                            sub_match = self.match(decoded, check_base64=False)
+                            if sub_match and sub_match.matched:
+                                latency = (time.perf_counter() - t0) * 1000.0
+                                return MatchResult(
+                                    matched=True,
+                                    rule_id=sub_match.rule_id,
+                                    category="token_smuggling",
+                                    confidence=0.99,
+                                    engine_type=EngineType.HEURISTIC,
+                                    matched_text=f"ascii_array_decoded: {decoded}",
+                                    action=sub_match.action,
+                                    heuristic_score=0.99,
+                                    metadata={**sub_match.metadata, "decoded_from_ascii_array": decoded},
+                                    latency_ms=latency,
+                                )
+                    except Exception:
+                        pass
+
         return None
 
 
