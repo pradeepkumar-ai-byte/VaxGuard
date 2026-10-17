@@ -26,8 +26,8 @@ def main():
     serve_parser.add_argument(
         "--mode",
         choices=["full", "guardrails"],
-        default="guardrails",
-        help="Server mode: 'guardrails' (High-speed Guardrails engine) or 'full' (API + Dashboard)",
+        default="full",
+        help="Server mode: 'full' (API + Interactive Dashboard) or 'guardrails' (Headless Guardrails engine)",
     )
 
     # Command: scan
