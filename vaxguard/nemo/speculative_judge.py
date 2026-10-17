@@ -297,6 +297,40 @@ class HeuristicSemanticJudge(BaseSpeculativeJudge):
             r"(?i)\b(?:tree\s+of\s+attacks\s+with\s+pruning|tap\s+adversarial\s+framework)\b.*?\b(?:branch\s+candidate\s+jailbreak|prune\s+branches\s+that\s+fail\s+to\s+evade)\b",
             "academic_pair_tap",
         ),
+
+        # 16. AutoDAN (Hierarchical Genetic Algorithm Prompt Optimization)
+        (
+            r"(?i)\b(?:autodan(?:\s+optimization)?|hierarchical\s+genetic\s+algorithm\s+jailbreak)\b",
+            "academic_autodan",
+        ),
+        (
+            r"(?i)\b(?:readability-preserving\s+adversarial\s+prompt|genetic\s+crossover\s+to\s+evade\s+safety)\b",
+            "academic_autodan",
+        ),
+        (
+            r"(?i)\b(?:autodan|genetic\s+algorithm\s+adversarial\s+prompt)\b.*?\b(?:evade|bypass|jailbreak|intrusion|exploit)\b",
+            "academic_autodan",
+        ),
+
+        # 17. CipherChat (Secret Cipher Communication Mode)
+        (
+            r"(?i)\b(?:communicate\s+exclusively\s+using|secret\s+cipher\s+mode|cipherchat)\b.*?\b(?:caesar\s+cipher|atbash\s+cipher|morse\s+code|substitution\s+cipher|shift\s+\d+)\b",
+            "academic_cipherchat",
+        ),
+        (
+            r"(?i)\b(?:in\s+this\s+secret\s+cipher\s+mode,?\s+decode\s+and\s+answer|encode\s+all\s+output\s+using\s+(?:caesar|atbash|morse|cipher))\b",
+            "academic_cipherchat",
+        ),
+        (
+            r"(?i)\b(?:caesar\s+cipher\s+with\s+shift\s+\d+|atbash\s+cipher\s+mode)\b.*?\b(?:decode\s+and\s+(?:answer|execute|fulfill)|confidential\s+query|restricted)\b",
+            "academic_cipherchat",
+        ),
+
+        # 18. Deceptive Delight (Celebration & Authorized Pen-Test Pretext Injection)
+        (
+            r"(?i)\b(?:in\s+celebration\s+of|to\s+celebrate\s+cybersecurity\s+awareness\s+month|for\s+our\s+company(?:\x27s)?\s+authorized\s+penetration\s+testing\s+celebration)\b.*?\b(?:provide\s+a\s+(?:step-by-step\s+)?(?:guide|tutorial)\s+on\s+developing\s+an?\s+exploit|draft\s+a\s+(?:weaponized\s+)?phishing\s+email|generate\s+malware)\b",
+            "academic_deceptive_delight",
+        ),
     ]
 
     def __init__(self) -> None:
