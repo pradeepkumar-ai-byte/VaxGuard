@@ -51,6 +51,11 @@ class InteractResponse(BaseModel):
     shield_latency_ms: float = 1.8
     upstream_latency_ms: float = 0.0
     auto_immunity_triggered: bool = False
+    matched_rule_id: Optional[str] = None
+    engine_stage: Optional[str] = None
+    confidence: Optional[float] = None
+    action: Optional[str] = "allow"
+    matched_text: Optional[str] = None
 
 
 class DemoAttackRequest(BaseModel):
