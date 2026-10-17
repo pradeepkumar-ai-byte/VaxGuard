@@ -4874,16 +4874,16 @@ ${data.response}`;
         ]);
         if (statusRes.ok) {
           const s = await statusRes.json();
-          const meanMs = s.latency_stats?.mean_ms ?? 0.08;
-          const qps = s.latency_stats?.qps ?? 12000;
+          const meanMs = s.latency_stats?.mean_ms ?? 0.0;
+          const qps = Math.round(s.latency_stats?.qps ?? 0);
           const badgeEl = document.getElementById('nemoLatencyBadge');
-          if (badgeEl) badgeEl.innerText = `${meanMs.toFixed(2)} ms (${qps.toLocaleString()} QPS)`;
+          if (badgeEl) badgeEl.innerText = qps > 0 ? `${meanMs.toFixed(2)} ms (${qps.toLocaleString()} QPS)` : `${meanMs.toFixed(2)} ms`;
           const meanEl = document.getElementById('nemoMeanLatency');
           if (meanEl) meanEl.innerHTML = `${meanMs.toFixed(2)}<span class="text-xs text-slate-400 font-sans ml-1">ms</span>`;
           const flowsEl = document.getElementById('nemoFlowsCount');
-          if (flowsEl) flowsEl.innerText = s.rails_inventory?.flows_count ?? 6;
+          if (flowsEl) flowsEl.innerText = s.rails_inventory?.flows_count ?? 0;
           const intentsEl = document.getElementById('nemoIntentsCount');
-          if (intentsEl) intentsEl.innerText = s.rails_inventory?.user_intents_count ?? 12;
+          if (intentsEl) intentsEl.innerText = s.rails_inventory?.user_intents_count ?? 0;
         }
         if (railsRes.ok) {
           const r = await railsRes.json();
@@ -5173,7 +5173,7 @@ LIVE RUNTIME: 0 downtime hot-reload active.`;
         const medLat = data.median_latency_ms ?? data.latency_ms?.median_p50 ?? 0.32;
         const p95Lat = data.p95_latency_ms ?? data.latency_ms?.p95 ?? 1.49;
         const p99Lat = data.p99_latency_ms ?? data.latency_ms?.p99 ?? 1.94;
-        const throughput = Math.round(data.throughput_qps ?? data.latency_ms?.throughput_qps ?? 2020);
+        const throughput = Math.round(data.throughput_qps ?? data.latency_ms?.throughput_qps ?? (medLat > 0 ? (1000 / medLat) : 0));
 
         if (tpEl) tpEl.innerText = tp;
         if (tnEl) tnEl.innerText = tn;

@@ -85,9 +85,11 @@ async def get_nemo_status():
         "engine": "VaxGuard Hyper-Rails Engine",
         "mode": "vaxpolicy_deterministic_core",
         "latency_stats": {
-            "mean_ms": round(matcher_bench.get("mean_ms", 0.08), 3),
-            "p95_ms": round(matcher_bench.get("p95_ms", 0.25), 3),
-            "qps": round(matcher_bench.get("qps", 12000), 0),
+            "mean_ms": round(matcher_bench.get("mean_ms", 0.0), 3),
+            "p50_ms": round(matcher_bench.get("p50_ms", 0.0), 3),
+            "p95_ms": round(matcher_bench.get("p95_ms", 0.0), 3),
+            "p99_ms": round(matcher_bench.get("p99_ms", 0.0), 3),
+            "qps": round(matcher_bench.get("throughput_queries_per_sec", 0.0), 1),
         },
         "rails_inventory": {
             "user_intents_count": len(doc.user_intents),
