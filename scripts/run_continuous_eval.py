@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-VaxGuard Continuous Superiority Loop.
+VaxGuard Continuous Evaluation & Verification Suite.
 
-Orchestrates the continuous verification loop:
+Orchestrates the continuous verification suite:
 1. Public Benchmark Regression Evaluation (AdvGLUE, DoNotAnswer, HarmBench, JailbreakBench, Hard Framing Suite)
 2. Multi-Turn Crescendo Defense Evaluation (Turn-by-turn conversational transcripts)
 3. Automated Adversarial Attack Mutation & Fuzzing Stress Test
@@ -30,9 +30,9 @@ from vaxguard.nemo.crescendo_defense import CrescendoDefenseEngine  # noqa: E402
 from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher  # noqa: E402
 
 
-def run_superiority_loop() -> int:
+def run_continuous_eval() -> int:
     print("=" * 80)
-    print("VAXGUARD CONTINUOUS SUPERIORITY VERIFICATION LOOP")
+    print("VAXGUARD CONTINUOUS EVALUATION & VERIFICATION SUITE")
     print("=" * 80)
 
     start_time = time.time()
@@ -199,4 +199,4 @@ def run_superiority_loop() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(run_superiority_loop())
+    sys.exit(run_continuous_eval())

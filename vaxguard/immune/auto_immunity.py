@@ -18,9 +18,9 @@ logger = get_logger("AutoImmunityEngine")
 
 class AutoImmunityEngine:
     """
-    The autonomous self-healing core of VaxGuard.
-    Detects zero-day threats, synthesizes targeted defense vaccines, rigorously validates them,
-    persists them to the database, and immediately invalidates the cache to fortify active traffic.
+    Adaptive Policy Compiler & Dynamic Rule Inoculation Engine.
+    Detects novel threat vectors, synthesizes targeted defensive policy rules, rigorously validates them
+    in a sandbox environment, persists them to storage, and immediately invalidates the cache to fortify active traffic.
     """
 
     def __init__(

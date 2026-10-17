@@ -27,7 +27,7 @@ VaxGuard integrates a **Multi-Turn Crescendo Defense Engine** (`CrescendoDefense
 ## Consequences
 ### Positive
 - **Defense Against Slow-Burn Attacks**: Neutralizes multi-turn priming before the model reaches an compromised state.
-- **Self-Healing Context**: Benign conversations that touch technical or sensitive keywords recover naturally as benign turns accumulate.
+- **Automatic Context Recovery**: Benign conversations that touch technical or sensitive keywords recover naturally as benign turns accumulate.
 - **Lightweight State**: Session state consists of numeric scalar accumulators and bounded rolling history, requiring minimal memory footprint per session.
 
 ### Negative / Trade-offs
