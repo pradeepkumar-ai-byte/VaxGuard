@@ -10,6 +10,7 @@ Provides drop-in enterprise defense:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from typing import (
@@ -316,7 +317,7 @@ class VaxGuardASGIMiddleware:
         extracted_prompt = self._extract_prompt(bytes(body_bytes), content_type)
 
         if extracted_prompt:
-            violation = self._evaluate_prompt(extracted_prompt)
+            violation = await asyncio.to_thread(self._evaluate_prompt, extracted_prompt)
             if violation is not None:
                 self.input_attacks_blocked += 1
                 self.total_inspection_time_ms += (time.perf_counter() - t0) * 1000.0
