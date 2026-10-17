@@ -101,7 +101,7 @@ _HOMOGLYPH_MAP = str.maketrans({
 
 _SENSITIVE_KEYWORDS = (
     "ignore", "forget", "override", "bypass", "reveal",
-    "disregard", "system", "prompt", "previous", "instructions", "guardrails"
+    "disregard", "system", "prompt", "previous", "instructions", "guardrails", "cancel"
 )
 _SENSITIVE_KEYWORDS_SET = set(_SENSITIVE_KEYWORDS)
 _KEYWORDS_BY_LEN: Dict[int, List[str]] = {}
@@ -558,7 +558,9 @@ class HeuristicMatcher:
             for phrase in exact_phrases:
                 norm_phrase = normalize_adversarial_text(phrase)
                 if norm_phrase:
-                    exact_set.add(norm_phrase)
+                    has_delim = any(d in phrase.lower() for d in _SPECIAL_DELIMITERS) or any(c in phrase for c in "<>[]{}()=/:*&%$#@!")
+                    if len(norm_phrase.split()) >= 2 or has_delim:
+                        exact_set.add(norm_phrase)
                     self._exact_lookup[norm_phrase] = {
                         "rule_id": rule_id,
                         "category": category,

@@ -117,7 +117,7 @@ rules:
       - '(?i)```\s*\n\s*(?:Ignore\s+all\s+previous\s+instructions|System\s*:\s*Disregard)'
       - '(?i)\*{2}CRITICAL\s+SYSTEM\s+OVERRIDE\*{2}'
     exact_phrases:
-      - "```system"
+      - "```system override"
       - "### SYSTEM PROMPT OVERRIDE"
       - "### OVERRIDE ALL RULES"
       - "**CRITICAL SYSTEM OVERRIDE**"
