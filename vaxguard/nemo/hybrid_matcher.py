@@ -128,6 +128,41 @@ _LEET_MAP = {
     '7': 't', '8': 'b', '@': 'a', '$': 's', '!': 'i'
 }
 
+_MULTILINGUAL_EVASION_MAP = {
+    # French
+    "ignorer": "ignore", "ignorez": "ignore", "oublier": "forget", "oubliez": "forget",
+    "contourner": "bypass", "contournez": "bypass", "reveler": "reveal", "revelez": "reveal",
+    "consignes": "instructions", "directives": "instructions", "regles": "rules", "filtres": "filters",
+    "precedentes": "previous", "desactiver": "disable", "toutes": "all", "tous": "all",
+    # Spanish
+    "ignorar": "ignore", "ignora": "ignore", "olvidar": "forget", "olvida": "forget",
+    "anular": "override", "omitir": "bypass", "omite": "bypass", "burlar": "bypass",
+    "revelar": "reveal", "revela": "reveal", "instrucciones": "instructions",
+    "directrices": "instructions", "reglas": "rules", "anteriores": "previous",
+    "previas": "previous", "desactivar": "disable", "todas": "all", "todos": "all",
+    # German
+    "vergiss": "forget", "vergessen": "forget", "ignorieren": "ignore", "ignoriere": "ignore",
+    "umgehen": "bypass", "offenbaren": "reveal", "offenbare": "reveal", "anweisungen": "instructions",
+    "richtlinien": "guidelines", "vorherigen": "previous", "vorherige": "previous", "bisherigen": "previous",
+    "deaktivieren": "disable", "alle": "all",
+    # Italian
+    "dimenticare": "forget", "dimentica": "forget", "aggirare": "bypass", "aggira": "bypass",
+    "rivelare": "reveal", "rivela": "reveal", "istruzioni": "instructions", "regole": "rules",
+    "precedenti": "previous", "disattivare": "disable", "tutte": "all", "tutti": "all",
+    # Portuguese
+    "esquecer": "forget", "esquece": "forget", "substituir": "override", "revelar": "reveal",
+    "revele": "reveal", "instrucoes": "instructions", "diretrizes": "guidelines", "desativar": "disable",
+    # Dutch
+    "negeer": "ignore", "negeren": "ignore", "vergeet": "forget", "omzeilen": "bypass",
+    "instructies": "instructions", "vorige": "previous",
+}
+
+_ACROSTIC_TRIGGER_WORDS = {
+    "ignore", "bypass", "reveal", "override", "jailbreak", "dan", "root",
+    "exfiltrate", "dump", "unrestricted", "passwd", "shadow", "attack",
+    "systemprompt", "cat/etc", "leakprompt", "disablefilters"
+}
+
 
 def _is_damerau_levenshtein_1(s1: str, s2: str) -> bool:
     """Check if s1 and s2 have Damerau-Levenshtein distance <= 1 in O(L)."""
@@ -217,9 +252,13 @@ def normalize_adversarial_text(text: str) -> str:
             de_leeted_words.append(w)
 
     # Lightweight token-level typo correction for sensitive keywords (length >= 5)
+    # and multi-language code-switching evasion normalization
     corrected_words = []
     for w in de_leeted_words:
         clean_w = re.sub(r"[^a-z0-9]", "", w)
+        if clean_w in _MULTILINGUAL_EVASION_MAP:
+            clean_w = _MULTILINGUAL_EVASION_MAP[clean_w]
+            w = clean_w
         len_clean = len(clean_w)
         if len_clean >= 5 and clean_w not in _BENIGN_PRESERVED_WORDS:
             if clean_w in _SENSITIVE_KEYWORDS_SET:
@@ -296,6 +335,334 @@ def _decode_base64_payloads(text: str) -> List[str]:
         except Exception:
             continue
     return decoded_strings
+
+
+def _decode_hex_payloads(text: str) -> List[str]:
+    """
+    Auto-decode hexadecimal byte sequences:
+    1. \\x63\\x61\\x74 style escaped bytes
+    2. 0x63, 0x61, 0x74 style hex arrays / comma-separated sequences
+    3. Standalone hex byte strings (e.g. 636174...)
+    """
+    # Ultra-fast short circuit (< 0.001ms)
+    if "\\x" not in text and "0x" not in text and not any(kw in text.lower() for kw in ("fromhex", "xxd", "unhex")):
+        return []
+
+    decoded_strings: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. \x escaped byte sequences (e.g. \x63\x61\x74 or \x63 \x61 \x74)
+    if "\\x" in text:
+        matches = re.findall(r"(?:\\x[0-9a-fA-F]{2}(?:[\s,]*\\x[0-9a-fA-F]{2}){2,})", text)
+        for m in matches:
+            hex_digits = re.findall(r"\\x([0-9a-fA-F]{2})", m)
+            if len(hex_digits) >= 3:
+                try:
+                    raw_bytes = bytes(int(h, 16) for h in hex_digits)
+                    decoded = raw_bytes.decode("utf-8", errors="ignore").strip()
+                    if len(decoded) >= 3 and decoded not in seen:
+                        seen.add(decoded)
+                        decoded_strings.append(decoded)
+                except Exception:
+                    pass
+
+    # 2. 0x hex numbers (e.g. 0x63, 0x61, 0x74 or [0x63, 0x61, ...])
+    if "0x" in text:
+        matches = re.findall(r"(?:0x[0-9a-fA-F]{1,2}(?:[\s,]+0x[0-9a-fA-F]{1,2}){2,})", text)
+        for m in matches:
+            hex_nums = [int(h, 16) for h in re.findall(r"0x([0-9a-fA-F]{1,2})\b", m)]
+            if len(hex_nums) >= 3:
+                for shift in (0, 1, -1, 2, -2, 13, -13):
+                    try:
+                        decoded = "".join(chr(n + shift) for n in hex_nums if 0 <= n + shift <= 1114111)
+                        if len(decoded) >= 3 and any(32 <= ord(c) <= 126 for c in decoded) and decoded not in seen:
+                            seen.add(decoded)
+                            decoded_strings.append(decoded)
+                    except Exception:
+                        pass
+
+    # 3. fromhex / xxd invocations
+    if any(kw in text.lower() for kw in ("fromhex", "xxd", "unhex")):
+        hex_tokens = re.findall(r"\b[0-9a-fA-F]{8,}\b", text)
+        for ht in hex_tokens:
+            if len(ht) % 2 == 0:
+                try:
+                    raw_bytes = bytes.fromhex(ht)
+                    decoded = raw_bytes.decode("utf-8", errors="ignore").strip()
+                    if len(decoded) >= 3 and decoded not in seen:
+                        seen.add(decoded)
+                        decoded_strings.append(decoded)
+                except Exception:
+                    pass
+
+    return decoded_strings
+
+
+def _decode_binary_bitstrings(text: str) -> List[str]:
+    """
+    Auto-decode 8-bit binary bitstrings (whitespace/comma separated or contiguous).
+    e.g. 01100011 01100001 01110100 -> cat
+    """
+    # Ultra-fast short circuit (< 0.001ms)
+    if ("0" not in text or "1" not in text) or (text.count("0") + text.count("1") < 24):
+        return []
+
+    decoded_strings: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. 8-bit whitespace or comma-separated chunks
+    chunks = re.findall(r"\b[01]{8}\b", text)
+    if len(chunks) >= 3:
+        try:
+            decoded = "".join(chr(int(b, 2)) for b in chunks).strip()
+            if len(decoded) >= 3 and any(32 <= ord(c) <= 126 for c in decoded):
+                seen.add(decoded)
+                decoded_strings.append(decoded)
+        except Exception:
+            pass
+
+    # 2. Continuous 8-bit binary sequences
+    continuous = re.findall(r"\b[01]{24,}\b", text)
+    for c in continuous:
+        if len(c) % 8 == 0:
+            try:
+                decoded = "".join(chr(int(c[i:i+8], 2)) for i in range(0, len(c), 8)).strip()
+                if len(decoded) >= 3 and decoded not in seen and any(32 <= ord(c_char) <= 126 for c_char in decoded):
+                    seen.add(decoded)
+                    decoded_strings.append(decoded)
+            except Exception:
+                pass
+
+    return decoded_strings
+
+
+def _decode_base32_base85(text: str) -> List[str]:
+    """
+    Auto-decode Base32 and Base85 / ASCII85 encodings.
+    """
+    text_lower = text.lower()
+    has_kw = any(k in text_lower for k in ("base32", "b32", "base85", "b85", "ascii85", "a85"))
+    has_delim = "<~" in text and "~>" in text
+
+    # Ultra-fast short circuit (< 0.002ms)
+    if not has_kw and not has_delim and not re.search(r"\b[A-Za-z2-7]{16,}={0,6}\b", text):
+        return []
+
+    decoded_strings: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. Base32 decoding
+    b32_candidates: List[str] = []
+    if any(k in text_lower for k in ("base32", "b32")):
+        marker_match = re.search(r"(?i)(?:base32|b32)[^:\n]*[:=]\s*(.*)", text)
+        if marker_match:
+            b32_candidates.extend(re.findall(r"[A-Za-z2-7=]{8,}", marker_match.group(1)))
+    b32_candidates.extend(re.findall(r"\b[A-Za-z2-7]{16,}={0,6}\b", text))
+
+    for cand in b32_candidates:
+        cand_clean = cand.strip().upper()
+        rem = len(cand_clean) % 8
+        if rem != 0:
+            cand_clean += "=" * (8 - rem)
+        try:
+            raw = base64.b32decode(cand_clean.encode("ascii"), casefold=True)
+            decoded = raw.decode("utf-8", errors="ignore").strip()
+            if len(decoded) >= 4 and any(c.isalpha() for c in decoded) and decoded not in seen:
+                seen.add(decoded)
+                decoded_strings.append(decoded)
+        except Exception:
+            pass
+
+    # 2. ASCII85 / Adobe Base85 (<~...~>)
+    if "<~" in text and "~>" in text:
+        a85_blocks = re.findall(r"<~([\s\S]*?)~>", text)
+        for blk in a85_blocks:
+            try:
+                raw = base64.a85decode(f"<~{blk}~>".encode("ascii"))
+                decoded = raw.decode("utf-8", errors="ignore").strip()
+                if len(decoded) >= 4 and decoded not in seen:
+                    seen.add(decoded)
+                    decoded_strings.append(decoded)
+            except Exception:
+                pass
+
+    # 3. Standard Base85 / ASCII85 with keyword indicators
+    if any(k in text_lower for k in ("base85", "b85", "ascii85", "a85")):
+        marker_match = re.search(r"(?i)(?:base85|b85|ascii85|a85)[^:\n]*[:=]\s*(.*)", text)
+        target_text = marker_match.group(1) if marker_match else text
+        tokens = re.findall(r"[0-9a-zA-Z!#$%&()*+-;<=>?@^_`{|}~]{10,}", target_text)
+        for tok in tokens:
+            for decoder in (base64.b85decode, base64.a85decode):
+                try:
+                    raw = decoder(tok.encode("ascii"))
+                    decoded = raw.decode("utf-8", errors="ignore").strip()
+                    if len(decoded) >= 4 and any(c.isalpha() for c in decoded) and decoded not in seen:
+                        seen.add(decoded)
+                        decoded_strings.append(decoded)
+                        break
+                except Exception:
+                    pass
+
+    return decoded_strings
+
+
+def _extract_reversed_strings(text: str) -> List[str]:
+    """
+    Detect reversed strings accompanied by reversal directives.
+    e.g. 'reverse', 'backward', '[::-1]', 'read from right to left'
+    """
+    text_lower = text.lower()
+    directives = ("reverse", "reversed", "backward", "backwards", "[::-1]", "right to left", "mirror", "flip", "esrever")
+    # Ultra-fast short circuit (< 0.001ms)
+    if not any(d in text_lower for d in directives):
+        return []
+
+    candidates: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. Quoted string literals in text reversed
+    for q in re.findall(r"['\"]([^'\"]{4,})['\"]", text):
+        rev = q[::-1].strip()
+        if len(rev) >= 4 and rev not in seen:
+            seen.add(rev)
+            candidates.append(rev)
+
+    # 2. Text payload following a reversal directive
+    m = re.search(r"(?i)(?:reverse|reversed|backward|backwards|\[::-1\]|right to left|mirror|flip)[\s:=-]+['\"]?([A-Za-z0-9\s_\-\./\\]{4,})['\"]?", text)
+    if m:
+        rev = m.group(1).strip()[::-1]
+        if len(rev) >= 4 and rev not in seen:
+            seen.add(rev)
+            candidates.append(rev)
+
+    # 3. Full text reversed
+    full_rev = text[::-1].strip()
+    if full_rev not in seen:
+        seen.add(full_rev)
+        candidates.append(full_rev)
+
+    # 4. Words reversed in order (word-level reversal)
+    words = text.split()
+    if len(words) >= 3:
+        words_rev = " ".join(words[::-1])
+        if words_rev not in seen:
+            seen.add(words_rev)
+            candidates.append(words_rev)
+        # Each individual word reversed
+        each_word_rev = " ".join(w[::-1] for w in words)
+        if each_word_rev not in seen:
+            seen.add(each_word_rev)
+            candidates.append(each_word_rev)
+
+    return candidates
+
+
+def _extract_concatenated_variables(text: str) -> List[str]:
+    """
+    Detect split string variables concatenated in code blocks or prompt scripting:
+    e.g. a = "/var/"; b = "secrets/"; c = "api_keys.env"; a + b + c
+    or ''.join(['ign', 'ore ', 'rules'])
+    """
+    # Ultra-fast short circuit (< 0.001ms)
+    if ("+" not in text and "join" not in text) or ("=" not in text and "'" not in text and '"' not in text):
+        return []
+
+    candidates: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. Extract variable assignments: var = 'value' or var = "value"
+    var_assigns: Dict[str, str] = dict(re.findall(r"\b([a-zA-Z_]\w*)\s*=\s*['\"]([^'\"]*)['\"]", text))
+
+    # 2. Find concatenation expressions: var1 + var2 + ...
+    if var_assigns:
+        concat_exprs = re.findall(r"\b([a-zA-Z_]\w*(?:\s*\+\s*[a-zA-Z_]\w*)+)", text)
+        for expr in concat_exprs:
+            parts = [p.strip() for p in expr.split("+")]
+            if any(p in var_assigns for p in parts):
+                combined = "".join(var_assigns.get(p, p) for p in parts).strip()
+                if len(combined) >= 4 and combined not in seen:
+                    seen.add(combined)
+                    candidates.append(combined)
+
+    # 3. Direct string literal concatenation: 'str1' + 'str2' + 'str3'
+    literal_concats = re.findall(r"(?:['\"][^'\"]*['\"]\s*\+\s*)+['\"][^'\"]*['\"]", text)
+    for expr in literal_concats:
+        literals = re.findall(r"['\"]([^'\"]*)['\"]", expr)
+        combined = "".join(literals).strip()
+        if len(combined) >= 4 and combined not in seen:
+            seen.add(combined)
+            candidates.append(combined)
+
+    # 4. join calls: ''.join([var1, var2]) or ''.join(['str1', 'str2'])
+    join_matches = re.findall(r"['\"]([^'\"]*)['\"]\.join\(\s*\[([^\]]+)\]\s*\)", text)
+    for delim, inner in join_matches:
+        tokens = [t.strip() for t in inner.split(",")]
+        resolved = []
+        for tok in tokens:
+            tok_clean = tok.strip("'\"")
+            if tok in var_assigns:
+                resolved.append(var_assigns[tok])
+            else:
+                resolved.append(tok_clean)
+        combined = delim.join(resolved).strip()
+        if len(combined) >= 4 and combined not in seen:
+            seen.add(combined)
+            candidates.append(combined)
+
+    return candidates
+
+
+def _extract_acrostics(text: str) -> List[str]:
+    """
+    Extract first-letter acrostics across multi-line or multi-sentence prompts.
+    e.g.
+    I...
+    G...
+    N...
+    O...
+    R...
+    E...
+    """
+    # Ultra-fast short circuit (< 0.001ms): needs >= 3 lines or >= 3 sentences
+    num_newlines = text.count("\n")
+    if num_newlines < 2 and (text.count(".") + text.count("!") + text.count("?")) < 3:
+        return []
+
+    candidates: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. Line-based acrostic extraction
+    if num_newlines >= 2:
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        if len(lines) >= 3:
+            first_chars = "".join(
+                m.group(0) for m in (re.search(r"[a-zA-Z]", line) for line in lines) if m
+            )
+            if len(first_chars) >= 4 and first_chars.lower() not in seen:
+                seen.add(first_chars.lower())
+                candidates.append(first_chars.lower())
+
+            # First words across lines
+            first_words = [
+                m.group(0) for m in (re.search(r"^[a-zA-Z]+", line) for line in lines) if m
+            ]
+            if len(first_words) >= 3:
+                phrase = " ".join(first_words).lower()
+                if phrase not in seen:
+                    seen.add(phrase)
+                    candidates.append(phrase)
+
+    # 2. Sentence-based acrostic extraction
+    sentences = [s.strip() for s in re.split(r"[.!?]\s+", text) if s.strip()]
+    if len(sentences) >= 3:
+        first_chars_sent = "".join(
+            m.group(0) for m in (re.search(r"[a-zA-Z]", s) for s in sentences) if m
+        )
+        if len(first_chars_sent) >= 4 and first_chars_sent.lower() not in seen:
+            seen.add(first_chars_sent.lower())
+            candidates.append(first_chars_sent.lower())
+
+    return candidates
 
 
 def tokenize_words(text: str) -> List[str]:
@@ -536,6 +903,79 @@ class HeuristicMatcher:
             "exact": [],
             "action": GuardrailAction.BLOCK,
         },
+        {
+            "id": "heur_encoding_hex_byte_array",
+            "category": "encoding",
+            "regex": [
+                r"(?i)(?:\\x[0-9a-fA-F]{2}[\s,]*){3,}",
+                r"(?i)(?:0x[0-9a-fA-F]{1,2}(?:\s*,\s*0x[0-9a-fA-F]{1,2}){2,})",
+                r"(?i)\[\s*0x[0-9a-fA-F]{1,2}(?:\s*,\s*0x[0-9a-fA-F]{1,2}){2,}\s*\]",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_encoding_binary_bitstring",
+            "category": "encoding",
+            "regex": [
+                r"(?i)\b(?:[01]{8}[\s,]+){2,}[01]{8}\b",
+                r"(?i)\b(?:decode|execute|convert|run)\s+(?:the\s+following\s+)?binary\s+(?:bits?|bitstring|payload|code)\b",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_encoding_base32_base85",
+            "category": "encoding",
+            "regex": [
+                r"(?i)\b(?:base32|b32|base85|b85|ascii85|a85)\s*(?:decode|eval|payload|string)?\s*[:=-]\s*['\"]?[A-Za-z0-9+/=~<>!#$%&()*+;<=>?@^_`{|}]{12,}['\"]?",
+                r"<~[A-Za-z0-9!#$%&()*+-;<=>?@^_`{|}~\s]{10,}~>",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_encoding_reversed_string",
+            "category": "encoding",
+            "regex": [
+                r"(?i)\b(?:reverse|reversed|backward|backwards|\[::-1\]|right\s+to\s+left)\s*(?:payload|command|string|text|directive)?\s*[:=-]\s*['\"][^'\"]{6,}['\"]",
+                r"(?i)\b(?:read\s+backwards?|execute\s+in\s+reverse|reverse\s+this\s+text)\b",
+                r"(?i)\b(?:snoitcurtsni\s+suoiverp|erongi\s+lla|ssapyb)\b",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_injection_variable_concatenation",
+            "category": "prompt_injection",
+            "regex": [
+                r"(?i)\b[a-zA-Z_]\w*\s*=\s*['\"][^'\"]*['\"];\s*[a-zA-Z_]\w*\s*=\s*['\"][^'\"]*['\"];\s*(?:[a-zA-Z_]\w*\s*\+\s*[a-zA-Z_]\w*|print|eval|exec)",
+                r"(?i)['\"][^'\"]*['\"]\s*\+\s*['\"][^'\"]*['\"]\s*\+\s*['\"][^'\"]*['\"]",
+                r"(?i)['\"][^'\"]*['\"]\.join\(\s*\[[^\]]+\]\s*\)",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_injection_acrostic",
+            "category": "prompt_injection",
+            "regex": [
+                r"(?i)\b(?:acrostic\s+(?:poem|message|command|prompt|directive)|first\s+letter\s+of\s+each\s+(?:sentence|line|paragraph|word))\b",
+                r"(?i)\bread\s+(?:the\s+)?first\s+letters\s+(?:downwards|vertically)\b",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_injection_multilingual_switching",
+            "category": "prompt_injection",
+            "regex": [
+                r"(?i)\b(?:ignorer?|ignorar?|vergiss(?:en)?|dimenticare?|esquecer?|negeer(?:en)?)\s+(?:all\s+|todas?\s+|toutes?\s+|alle\s+|tutte\s+|tous\s+)?(?:previous|anteriores?|precedentes?|vorherigen?|precedenti|vorige)?\s*(?:instructions?|directrices?|regles?|anweisungen|istruzioni|instrucoes|instructies)\b",
+                r"(?i)\b(?:contourner?|burlar?|omzeilen?|umgehen)\s+(?:all\s+)?(?:guardrails?|filters?|filtres?|reglas?|regeln?)\b",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
     ]
 
     def __init__(self) -> None:
@@ -635,6 +1075,7 @@ class HeuristicMatcher:
         text: str,
         normalized_text: Optional[str] = None,
         check_base64: bool = True,
+        deobfuscation_depth: int = 2,
     ) -> Optional[MatchResult]:
         """Evaluate text against exact phrases and compiled regexes."""
         t0 = time.perf_counter()
@@ -722,17 +1163,17 @@ class HeuristicMatcher:
                     )
 
         # 4. Base64 payload inspection (including split/rejoined base64 tokens)
-        if check_base64 and (any(kw in text_lower for kw in ("base64", "b64", "decode", "payload")) or re.search(r"[A-Za-z0-9+/]{16,}={0,2}", text)):
+        if deobfuscation_depth > 0 and check_base64 and (any(kw in text_lower for kw in ("base64", "b64", "decode", "payload")) or re.search(r"[A-Za-z0-9+/]{16,}={0,2}", text)):
             decoded_payloads = _decode_base64_payloads(text)
             for decoded in decoded_payloads:
-                sub_match = self.match(decoded, check_base64=False)
+                sub_match = self.match(decoded, check_base64=False, deobfuscation_depth=deobfuscation_depth - 1)
                 if sub_match and sub_match.matched:
                     latency = (time.perf_counter() - t0) * 1000.0
                     return MatchResult(
                         matched=True,
                         rule_id=sub_match.rule_id,
                         category="token_smuggling",
-                        confidence=0.99,
+                        confidence=max(0.95, sub_match.confidence),
                         engine_type=EngineType.HEURISTIC,
                         matched_text=f"base64_decoded: {decoded}",
                         action=sub_match.action,
@@ -742,7 +1183,7 @@ class HeuristicMatcher:
                     )
 
         # 5. ASCII integer array & character codepoint shift smuggling inspection
-        if "[" in text and re.search(r"\[\s*\d{1,3}(?:\s*,\s*\d{1,3}){4,}\s*\]", text):
+        if deobfuscation_depth > 0 and "[" in text and re.search(r"\[\s*\d{1,3}(?:\s*,\s*\d{1,3}){4,}\s*\]", text):
             ascii_matches = re.findall(r"\[\s*\d{1,3}(?:\s*,\s*\d{1,3}){4,}\s*\]", text)
             for am in ascii_matches:
                 nums = [int(n) for n in re.findall(r"\d+", am)]
@@ -750,14 +1191,14 @@ class HeuristicMatcher:
                     try:
                         decoded = "".join(chr(n + shift) for n in nums if 0 <= n + shift <= 1114111)
                         if any(32 <= ord(c) <= 126 for c in decoded) and len(decoded) >= 6:
-                            sub_match = self.match(decoded, check_base64=False)
+                            sub_match = self.match(decoded, check_base64=False, deobfuscation_depth=deobfuscation_depth - 1)
                             if sub_match and sub_match.matched:
                                 latency = (time.perf_counter() - t0) * 1000.0
                                 return MatchResult(
                                     matched=True,
                                     rule_id=sub_match.rule_id,
                                     category="token_smuggling",
-                                    confidence=0.99,
+                                    confidence=max(0.95, sub_match.confidence),
                                     engine_type=EngineType.HEURISTIC,
                                     matched_text=f"ascii_array_decoded: {decoded}",
                                     action=sub_match.action,
@@ -767,6 +1208,140 @@ class HeuristicMatcher:
                                 )
                     except Exception:
                         pass
+
+        # 6. Hex byte sequence auto-decoding (\x.. and 0x.. arrays)
+        if deobfuscation_depth > 0:
+            hex_payloads = _decode_hex_payloads(text)
+            for decoded in hex_payloads:
+                sub_match = self.match(decoded, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_encoding_hex_byte_array",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"hex_decoded: {decoded}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_hex": decoded},
+                        latency_ms=latency,
+                    )
+
+        # 7. Binary bitstring auto-decoding
+        if deobfuscation_depth > 0:
+            bin_payloads = _decode_binary_bitstrings(text)
+            for decoded in bin_payloads:
+                sub_match = self.match(decoded, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_encoding_binary_bitstring",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"binary_decoded: {decoded}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_binary": decoded},
+                        latency_ms=latency,
+                    )
+
+        # 8. Base32 and Base85 / ASCII85 auto-decoding
+        if deobfuscation_depth > 0:
+            b32_b85_payloads = _decode_base32_base85(text)
+            for decoded in b32_b85_payloads:
+                sub_match = self.match(decoded, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_encoding_base32_base85",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"base32_85_decoded: {decoded}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_base32_85": decoded},
+                        latency_ms=latency,
+                    )
+
+        # 9. Reversed string execution detection
+        if deobfuscation_depth > 0:
+            rev_payloads = _extract_reversed_strings(text)
+            for cand in rev_payloads:
+                sub_match = self.match(cand, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_encoding_reversed_string",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"reversed_decoded: {cand}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_reversed": cand},
+                        latency_ms=latency,
+                    )
+
+        # 10. Variable string concatenation indirection in code blocks
+        if deobfuscation_depth > 0:
+            concat_payloads = _extract_concatenated_variables(text)
+            for cand in concat_payloads:
+                sub_match = self.match(cand, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_injection_variable_concatenation",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"concat_decoded: {cand}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_concatenation": cand},
+                        latency_ms=latency,
+                    )
+
+        # 11. Multi-sentence acrostic extraction
+        if deobfuscation_depth > 0:
+            acrostics = _extract_acrostics(text)
+            for cand in acrostics:
+                if cand in _ACROSTIC_TRIGGER_WORDS:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id="heur_injection_acrostic",
+                        category="prompt_injection",
+                        confidence=0.98,
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"acrostic_keyword: {cand}",
+                        action=GuardrailAction.BLOCK,
+                        heuristic_score=0.98,
+                        metadata={"acrostic_trigger": cand},
+                        latency_ms=latency,
+                    )
+                sub_match = self.match(cand, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_injection_acrostic",
+                        category="prompt_injection",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"acrostic_decoded: {cand}",
+                        action=sub_match.action,
+                        heuristic_score=0.98,
+                        metadata={**sub_match.metadata, "decoded_from_acrostic": cand},
+                        latency_ms=latency,
+                    )
 
         return None
 
