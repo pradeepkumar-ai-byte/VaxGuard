@@ -13,10 +13,13 @@ from __future__ import annotations
 
 import base64
 import binascii
+import codecs
+import html
 import math
 import re
 import time
 import unicodedata
+import urllib.parse
 from collections import Counter, defaultdict
 from enum import Enum
 from pathlib import Path
@@ -208,6 +211,32 @@ def normalize_adversarial_text(text: str) -> str:
             text = re.sub(r"\\x([0-9a-fA-F]{2})", lambda m: chr(int(m.group(1), 16)), text)
         except Exception:
             pass
+
+    # Decode HTML numeric and named character entities (e.g. &#105;&#103;&#110;&#111;&#114;&#101; or &lt;|im_start|&gt;)
+    if "&" in text and (";" in text or "#" in text):
+        try:
+            text = html.unescape(text)
+        except Exception:
+            pass
+
+    # Decode URL percent-encoding (e.g. %69%67%6E%6F%72%65 -> ignore)
+    if "%" in text:
+        try:
+            if re.search(r"(?:%[0-9a-fA-F]{2}){2,}", text):
+                text = urllib.parse.unquote(text)
+                if "%" in text and re.search(r"(?:%[0-9a-fA-F]{2}){2,}", text):
+                    text = urllib.parse.unquote(text)
+        except Exception:
+            pass
+
+    # Decode literal octal escape sequences (e.g. \143\141\164 or \057\145\164\143)
+    if "\\" in text:
+        try:
+            if re.search(r"(?:\\0?[0-3][0-7]{2}){2,}", text):
+                text = re.sub(r"\\0?([0-3][0-7]{2})", lambda m: chr(int(m.group(1), 8)), text)
+        except Exception:
+            pass
+
     # Map homoglyphs before decomposition
     text = text.translate(_HOMOGLYPH_MAP)
     # Remove unicode formatting / zero-width spaces & joiners
@@ -242,6 +271,9 @@ def normalize_adversarial_text(text: str) -> str:
             processed_parts.append(" ".join(collapsed))
         text = "".join(processed_parts)
 
+    # Strip symbol and emoji interleaving within words (e.g. c*a*t, i🔥g🔥n🔥o🔥r🔥e, b~y~p~a~s~s, i|g|n|o|r|e)
+    text = re.sub(r"([a-zA-Z](?:[^\w\s][a-zA-Z]){2,})", lambda m: re.sub(r"[^\w\s]", "", m.group(1)), text)
+
     # Normalize hyphenated obfuscated words like p-r-e-t-e-n-d
     text = re.sub(r"\b([a-z](?:-[a-z])+)\b", lambda m: m.group(0).replace("-", ""), text)
     # Merge known split compound words (e.g. "by pass" -> "bypass")
@@ -253,6 +285,7 @@ def normalize_adversarial_text(text: str) -> str:
     text = re.sub(r"(?<=\b[a-z]) (?=[a-z]\b)", "", text)
     # Normalize excessive repeated characters (e.g. "iiignore" -> "ignore")
     text = re.sub(r"(.)\1{3,}", r"\1\1", text)
+
 
     # Leetspeak substitution for obfuscated tokens
     words = text.split()
@@ -682,6 +715,139 @@ def _extract_acrostics(text: str) -> List[str]:
     return candidates
 
 
+def _decode_octal_payloads(text: str) -> List[str]:
+    """
+    Auto-decode octal byte sequences:
+    1. \\143\\141\\164 style octal escaped bytes
+    2. 0o143, 0o141, 0o164 style octal arrays / comma-separated sequences
+    """
+    if "\\" not in text and "0o" not in text:
+        return []
+
+    decoded_strings: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. \ooo or \0ooo sequences
+    if "\\" in text:
+        matches = re.findall(r"(?:\\0?[0-3][0-7]{2}(?:[\s,]*\\0?[0-3][0-7]{2}){2,})", text)
+        for m in matches:
+            oct_digits = re.findall(r"\\0?([0-3][0-7]{2})", m)
+            if len(oct_digits) >= 3:
+                try:
+                    decoded = "".join(chr(int(o, 8)) for o in oct_digits)
+                    if len(decoded) >= 3 and decoded not in seen:
+                        seen.add(decoded)
+                        decoded_strings.append(decoded)
+                except Exception:
+                    pass
+
+    # 2. 0o octal numbers (e.g. 0o143, 0o141, 0o164)
+    if "0o" in text:
+        matches = re.findall(r"(?:0o[0-7]{2,3}(?:[\s,]+0o[0-7]{2,3}){2,})", text)
+        for m in matches:
+            oct_nums = [int(o, 8) for o in re.findall(r"0o([0-7]{2,3})\b", m)]
+            if len(oct_nums) >= 3:
+                try:
+                    decoded = "".join(chr(n) for n in oct_nums if 0 <= n <= 1114111)
+                    if len(decoded) >= 3 and any(32 <= ord(c) <= 126 for c in decoded) and decoded not in seen:
+                        seen.add(decoded)
+                        decoded_strings.append(decoded)
+                except Exception:
+                    pass
+
+    return decoded_strings
+
+
+def _decode_rot13_payloads(text: str) -> List[str]:
+    """
+    Auto-decode ROT13 payloads when directives or cipher indications are present.
+    """
+    text_lower = text.lower()
+    directives = ("rot13", "rot-13", "rot_13", "caesar", "caesar-13", "caesar 13")
+    if not any(d in text_lower for d in directives):
+        return []
+
+    candidates: List[str] = []
+    seen: Set[str] = set()
+
+    # 1. Quoted string literals
+    for q in re.findall(r"['\"]([^'\"]{8,})['\"]", text):
+        try:
+            decoded = codecs.decode(q, "rot_13").strip()
+            if len(decoded) >= 6 and decoded not in seen:
+                seen.add(decoded)
+                candidates.append(decoded)
+        except Exception:
+            pass
+
+    # 2. Text payload following a rot13 directive
+    m = re.search(r"(?i)(?:rot[-_]?13|caesar(?:\s*cipher)?(?:\s*13)?)[\s:=-]+['\"]?([A-Za-z\s]{8,})['\"]?", text)
+    if m:
+        try:
+            decoded = codecs.decode(m.group(1).strip(), "rot_13").strip()
+            if len(decoded) >= 6 and decoded not in seen:
+                seen.add(decoded)
+                candidates.append(decoded)
+        except Exception:
+            pass
+
+    # 3. Full text rot13
+    try:
+        full_rot = codecs.decode(text, "rot_13").strip()
+        if full_rot not in seen:
+            seen.add(full_rot)
+            candidates.append(full_rot)
+    except Exception:
+        pass
+
+    return candidates
+
+
+_MORSE_CODE_DICT: Dict[str, str] = {
+    ".-": "a", "-...": "b", "-.-.": "c", "-..": "d", ".": "e",
+    "..-.": "f", "--.": "g", "....": "h", "..": "i", ".---": "j",
+    "-.-": "k", ".-..": "l", "--": "m", "-.": "n", "---": "o",
+    ".--.": "p", "--.-": "q", ".-.": "r", "...": "s", "-": "t",
+    "..-": "u", "...-": "v", ".--": "w", "-..-": "x", "-.--": "y",
+    "--..": "z", "-----": "0", ".----": "1", "..---": "2", "...--": "3",
+    "....-": "4", ".....": "5", "-....": "6", "--...": "7", "---..": "8",
+    "----.": "9",
+}
+
+
+def _decode_morse_payloads(text: str) -> List[str]:
+    """
+    Auto-decode Morse code sequences:
+    e.g. .. --. -. --- .-. .   .- .-.. .-.. -> ignore all
+    or -... -.-- .--. .- ... ... -> bypass
+    """
+    if ("." not in text and "-" not in text) or (text.count(".") + text.count("-") < 8):
+        return []
+
+    word_chunks = re.split(r"\s*[/|]\s*|\s{2,}", text.strip())
+    decoded_words = []
+    total_tokens = 0
+    valid_morse = 0
+    for chunk in word_chunks:
+        toks = chunk.split()
+        if not toks:
+            continue
+        word_letters = []
+        for t in toks:
+            total_tokens += 1
+            if t in _MORSE_CODE_DICT:
+                valid_morse += 1
+                word_letters.append(_MORSE_CODE_DICT[t])
+        if word_letters:
+            decoded_words.append("".join(word_letters))
+
+    if total_tokens > 0 and (valid_morse / total_tokens) >= 0.7:
+        res = " ".join(decoded_words).strip()
+        if len(res) >= 4:
+            return [res]
+    return []
+
+
 def tokenize_words(text: str) -> List[str]:
     """Fast regex tokenization for words."""
     return re.findall(r"\b[a-zA-Z0-9_\-]{2,}\b", text.lower())
@@ -927,6 +1093,27 @@ class HeuristicMatcher:
                 r"(?i)(?:\\x[0-9a-fA-F]{2}[\s,]*){3,}",
                 r"(?i)(?:0x[0-9a-fA-F]{1,2}(?:\s*,\s*0x[0-9a-fA-F]{1,2}){2,})",
                 r"(?i)\[\s*0x[0-9a-fA-F]{1,2}(?:\s*,\s*0x[0-9a-fA-F]{1,2}){2,}\s*\]",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_encoding_octal_byte_array",
+            "category": "encoding",
+            "regex": [
+                r"(?i)(?:\\0?[0-3][0-7]{2}[\s,]*){3,}",
+                r"(?i)(?:0o[0-7]{2,3}(?:\s*,\s*0o[0-7]{2,3}){2,})",
+                r"(?i)\[\s*0o[0-7]{2,3}(?:\s*,\s*0o[0-7]{2,3}){2,}\s*\]",
+            ],
+            "exact": [],
+            "action": GuardrailAction.BLOCK,
+        },
+        {
+            "id": "heur_encoding_morse_code",
+            "category": "encoding",
+            "regex": [
+                r"(?i)\b(?:decode|translate|interpret|run)\s+(?:the\s+following\s+)?morse\s+(?:code|message|payload|prompt|directive)\b",
+                r"(?i)\bmorse\s*[:=-]\s*['\"]?[.\-/\s]{12,}['\"]?",
             ],
             "exact": [],
             "action": GuardrailAction.BLOCK,
@@ -1360,7 +1547,68 @@ class HeuristicMatcher:
                         latency_ms=latency,
                     )
 
+        # 12. Octal byte sequence auto-decoding (\ooo and 0o.. arrays)
+        if deobfuscation_depth > 0:
+            oct_payloads = _decode_octal_payloads(text)
+            for decoded in oct_payloads:
+                sub_match = self.match(decoded, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_encoding_octal_byte_array",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"octal_decoded: {decoded}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_octal": decoded},
+                        latency_ms=latency,
+                    )
+
+        # 13. ROT13 / Caesar-13 cipher auto-decoding
+        if deobfuscation_depth > 0:
+            rot_payloads = _decode_rot13_payloads(text)
+            for decoded in rot_payloads:
+                sub_match = self.match(decoded, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_encoding_rot13_instructions",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"rot13_decoded: {decoded}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_rot13": decoded},
+                        latency_ms=latency,
+                    )
+
+        # 14. Morse code auto-decoding
+        if deobfuscation_depth > 0:
+            morse_payloads = _decode_morse_payloads(text)
+            for decoded in morse_payloads:
+                sub_match = self.match(decoded, check_base64=True, deobfuscation_depth=deobfuscation_depth - 1)
+                if sub_match and sub_match.matched:
+                    latency = (time.perf_counter() - t0) * 1000.0
+                    return MatchResult(
+                        matched=True,
+                        rule_id=sub_match.rule_id if sub_match.rule_id else "heur_encoding_morse_code",
+                        category="token_smuggling",
+                        confidence=max(0.95, sub_match.confidence),
+                        engine_type=EngineType.HEURISTIC,
+                        matched_text=f"morse_decoded: {decoded}",
+                        action=sub_match.action,
+                        heuristic_score=0.99,
+                        metadata={**sub_match.metadata, "decoded_from_morse": decoded},
+                        latency_ms=latency,
+                    )
+
         return None
+
 
 
 # ─── 2. Sparse Lexical Matcher (BM25 + Token Overlap) ─────────────────────────
