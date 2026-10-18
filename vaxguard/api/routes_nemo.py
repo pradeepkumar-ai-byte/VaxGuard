@@ -21,9 +21,10 @@ logger = get_logger("NemoRoutes")
 router = APIRouter(prefix="/api/nemo", tags=["NeMo Hyper-Rails & Inoculation Studio"])
 
 # ─── Global NeMo Engine Singleton ─────────────────────────────────────────────
-DEFAULT_RAILS_PATH = os.path.abspath(
+DEFAULT_RAILS_PATH = os.environ.get("VAXGUARD_RAILS_DIR") or os.path.abspath(
     os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "nemo_rails")
 )
+
 
 # Initialize global NeMo orchestrator
 _flow_manager = FlowManager()

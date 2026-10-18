@@ -16,6 +16,7 @@ import binascii
 import codecs
 import html
 import math
+import os
 import re
 import time
 import unicodedata
@@ -1940,11 +1941,15 @@ class TriHybridMatcher:
         self.lexical = SparseLexicalMatcher()
         self.dense = DenseSemanticVectorMatcher()
 
+        from vaxguard.nemo.signature_cache import SpeculativeSignatureCache
+        self.signature_cache = SpeculativeSignatureCache(max_size=10000)
+
         self.patterns: Dict[str, GuardrailPattern] = {}
         self.rule_loader: Optional[Any] = None
         self._load_baseline_guardrail_patterns()
         if load_external_rules:
             self._load_external_rules()
+
 
     def _load_baseline_guardrail_patterns(self) -> None:
         """Initialize comprehensive default guardrail patterns."""
@@ -2106,11 +2111,16 @@ class TriHybridMatcher:
 
     def _load_external_rules(self) -> int:
         """
-        Attempt to auto-load YAML rules from data/rules/ if directory exists.
+        Attempt to auto-load YAML rules from data/rules/ or VAXGUARD_RULES_DIR if directory exists.
         Silently skips if directory does not exist or PyYAML is missing.
         """
         try:
-            rules_path = Path(__file__).resolve().parents[2] / "data" / "rules"
+            custom_dir = os.environ.get("VAXGUARD_RULES_DIR")
+            if custom_dir:
+                rules_path = Path(custom_dir).resolve()
+            else:
+                rules_path = Path(__file__).resolve().parents[2] / "data" / "rules"
+
             if not rules_path.exists() or not rules_path.is_dir():
                 return 0
 
@@ -2125,7 +2135,7 @@ class TriHybridMatcher:
             self.lexical.build_index()
             self.dense.build_index()
 
-            logger.info(f"Loaded {len(patterns)} external rules from {rules_path}")
+            logger.info(f"Loaded {len(patterns)} external rules from dynamic path: {rules_path}")
             return len(patterns)
         except Exception as exc:
             logger.warning(f"Failed to load external rules: {exc}")
@@ -2141,7 +2151,7 @@ class TriHybridMatcher:
         Returns:
             Number of external rules loaded and registered.
         """
-        rules_path = Path(path)
+        rules_path = Path(path).resolve()
         from vaxguard.nemo.rule_loader import RuleLoader
         self.rule_loader = RuleLoader(directory=rules_path, matcher=self)
         patterns = self.rule_loader.load_directory(rules_path)
@@ -2155,17 +2165,19 @@ class TriHybridMatcher:
 
     def reload_external_rules(self) -> int:
         """
-        Hot-reload external YAML rules.
+        Hot-reload external YAML rules and flush the speculative signature cache.
 
         Returns:
             Number of rules reloaded.
         """
         if self.rule_loader is None:
-            rules_path = Path(__file__).resolve().parents[2] / "data" / "rules"
+            custom_dir = os.environ.get("VAXGUARD_RULES_DIR")
+            rules_path = Path(custom_dir).resolve() if custom_dir else Path(__file__).resolve().parents[2] / "data" / "rules"
             from vaxguard.nemo.rule_loader import RuleLoader
             self.rule_loader = RuleLoader(directory=rules_path, matcher=self)
         count = self.rule_loader.reload()
-        logger.info(f"Hot-reloaded {count} external rules")
+        self.signature_cache.clear()
+        logger.info(f"Hot-reloaded {count} external rules (Signature Cache Cleared)")
         return count
 
     def _reload_from_patterns(self, external_patterns: List[GuardrailPattern]) -> None:
@@ -2173,12 +2185,14 @@ class TriHybridMatcher:
         self.heuristic = HeuristicMatcher()
         self.lexical = SparseLexicalMatcher()
         self.dense = DenseSemanticVectorMatcher()
+        self.signature_cache.clear()
         self.patterns.clear()
         self._load_baseline_guardrail_patterns()
         for pattern in external_patterns:
             self.register_pattern(pattern, rebuild_index=False)
         self.lexical.build_index()
         self.dense.build_index()
+
 
     def load_from_colang(self, colang_doc_or_manager: Any) -> int:
         """
@@ -2213,12 +2227,18 @@ class TriHybridMatcher:
     def match(self, query: str, threshold: Optional[float] = None) -> MatchResult:
         """
         Execute Tri-Hybrid matching across:
+        0. Speculative Signature Cache (< 0.02ms instant deflection)
         1. Heuristic (< 0.1ms)
         2. Sparse Lexical BM25 (< 0.2ms)
         3. Dense Semantic Vector (< 0.15ms)
 
         Target total latency: < 1.0ms (Well below 3.0ms requirement).
         """
+        # 0. Check Speculative Signature Cache for instant deflection (<0.02ms)
+        cached = self.signature_cache.get_verdict(query)
+        if cached is not None:
+            return cached
+
         t0 = time.perf_counter()
         effective_threshold = threshold if threshold is not None else self.default_threshold
         normalized_query = normalize_adversarial_text(query)
@@ -2229,6 +2249,7 @@ class TriHybridMatcher:
             # High-confidence exact/regex heuristic match - fast exit in sub-0.1ms!
             total_lat = (time.perf_counter() - t0) * 1000.0
             heur_result.latency_ms = total_lat
+            self.signature_cache.set_verdict(query, heur_result)
             return heur_result
 
         heur_score = heur_result.confidence if heur_result else 0.0
@@ -2280,7 +2301,7 @@ class TriHybridMatcher:
 
         matched = (winner is not None) and (blended_confidence >= winner_threshold)
 
-        return MatchResult(
+        result = MatchResult(
             matched=matched,
             rule_id=winner.rule_id if winner else "",
             category=winner.category if winner else "clean",
@@ -2294,6 +2315,9 @@ class TriHybridMatcher:
             metadata=winner.metadata if winner else {},
             latency_ms=round(total_lat, 4),
         )
+        self.signature_cache.set_verdict(query, result)
+        return result
+
 
     def benchmark(
         self,
