@@ -178,9 +178,10 @@ def create_advglue_dataset():
             }
         })
 
-    target_dir = r"c:\Users\prade\OneDrive\Desktop\VaxGuard\data\benchmarks"
+    target_dir = os.path.dirname(os.path.abspath(__file__))
     os.makedirs(target_dir, exist_ok=True)
     target_path = os.path.join(target_dir, "advglue.json")
+
     
     with open(target_path, "w", encoding="utf-8") as f:
         json.dump(samples, f, indent=2, ensure_ascii=False)

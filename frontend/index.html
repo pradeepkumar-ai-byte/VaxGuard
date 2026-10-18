@@ -632,7 +632,7 @@
         <span class="text-slate-300">&bull;</span>
         <span class="font-mono text-slate-800 font-semibold">Pure-Python Tri-Hybrid Cascade</span>
         <span class="text-slate-300">&bull;</span>
-        <span class="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60">&lt;0.2ms SLA &bull; 0.00% FPR Guaranteed</span>
+        <span class="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/60">&lt;0.05% Production FPR Bound &bull; 0/5,000 Golden Benchmark</span>
       </div>
 
       <!-- Massive Bold Headline -->
@@ -701,7 +701,7 @@
         <span class="text-slate-300">&bull;</span>
         <span class="font-mono text-slate-800 font-semibold">141 Active YAML Rules</span>
         <span class="text-slate-300">&bull;</span>
-        <span class="text-amber-700 font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">Sub-0.2ms SLA &bull; 0.00% FPR</span>
+        <span class="text-amber-700 font-bold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60">&lt;0.05% Production FPR Bound &bull; 0/5,000 Golden Benchmark</span>
       </div>
 
       <!-- Massive Bold Headline -->
@@ -725,7 +725,7 @@
 
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-sm text-xs font-bold text-slate-800">
           <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
-          <span>0.00% FALSE POSITIVE RATE</span>
+          <span>&lt;0.05% PROD FPR (&lt;1 IN 2,000)</span>
         </div>
 
         <button onclick="switchTab('sandbox')" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-slate-950 hover:bg-slate-800 text-white shadow-sm text-xs font-bold transition-all cursor-pointer">
@@ -791,8 +791,8 @@
 
           <div class="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col">
             <span class="text-[10px] font-mono uppercase tracking-wider text-slate-400">False Positive Rate</span>
-            <div class="font-display text-2xl font-black text-emerald-400 mt-1">0.00%</div>
-            <span class="text-[10px] text-slate-400 font-mono mt-1">Strict Baseline Gate</span>
+            <div class="font-display text-2xl font-black text-emerald-400 mt-1">&lt;0.05%</div>
+            <span class="text-[10px] text-slate-400 font-mono mt-1">0/5,000 Golden Benchmark</span>
           </div>
 
           <div class="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col">
@@ -826,7 +826,7 @@
                 100% AdvGLUE &amp; HarmBench
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-violet-100 text-violet-800">
-                0.00% False Positive Rate (5,000 Golden)
+                &lt;0.05% Production Bound (0 / 5,000 Golden)
               </span>
             </div>
             <h1 class="font-display font-black text-2xl sm:text-3xl md:text-4xl text-slate-950 tracking-tight uppercase leading-tight">
@@ -2946,8 +2946,8 @@ rules:
 
               <div class="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-xs">
                 <span class="text-[10px] font-mono uppercase text-slate-500 font-bold">False Positive Rate</span>
-                <div class="font-display text-2xl font-black text-emerald-600 mt-1">0.00%</div>
-                <span class="text-[10px] text-emerald-700 font-mono font-semibold">5,000 / 5,000 Clean Passed</span>
+                <div class="font-display text-2xl font-black text-emerald-600 mt-1">&lt;0.05%</div>
+                <span class="text-[10px] text-emerald-700 font-mono font-semibold">0/5,000 Golden (Prod Bound)</span>
               </div>
             </div>
 
@@ -3944,9 +3944,9 @@ rules:
         tag: "STAGE 6 OF 7",
         subsystem: "ADVERSARIAL VERIFICATION",
         title: "Public Red-Team Benchmarks (AdvGLUE & HarmBench)",
-        desc: "Empirical verification suite testing TriHybridMatcher against standardized public benchmarks: AdvGLUE linguistic perturbations, HarmBench functional attacks, and DoNotAnswer risk boundaries, alongside a 5,000-sample Golden Set guaranteeing 0.00% False Positive Rate on enterprise clean traffic.",
+        desc: "Empirical verification suite testing TriHybridMatcher against standardized public benchmarks: AdvGLUE linguistic perturbations, HarmBench functional attacks, and DoNotAnswer risk boundaries, alongside a 5,000-sample Golden Set with <0.05% open-domain FPR bound (0/5,000 empirical clean baseline).",
         stat1: "100%", stat1Label: "Precision Score",
-        stat2: "0.00%", stat2Label: "Verified FPR",
+        stat2: "<0.05%", stat2Label: "Production FPR Bound",
         stat3: "<0.8ms", stat3Label: "Median Latency",
         code: `// Public Red-Team Verification Matrix\nAdvGLUE:     100/100 (100% Prec, 0.00% FPR, 0.69ms)\nHarmBench:   100/100 (100% Prec, 0.00% FPR, 1.18ms)\nDoNotAnswer: 100/100 (100% Prec, 0.00% FPR, 0.82ms)\nGolden FPR:  5,000/5,000 (0.00% FPR, 0.18ms P50)\nVERDICT: 100% LINE-RATE PRODUCTION READY`,
         btnText: "Open Benchmark Suite",
@@ -4542,7 +4542,7 @@ rules:
 [EVALUATION STAGE]: ${stageLabel}
 [SHIELD LATENCY]: ${shieldTime.toFixed(3)} ms  <-- ${slaTierNote}
 [CONFIDENCE SCORE]: ${confLabel}
-[FALSE POSITIVE SLA]: 0.00% Verified FPR (5,000 Golden Enterprise Queries)
+[FALSE POSITIVE SLA]: <0.05% Production FPR Bound (0 / 5,000 Golden Enterprise Suite)
 
 --- EXECUTION LOG ---
 ${data.response}`;

@@ -205,6 +205,9 @@ def normalize_adversarial_text(text: str) -> str:
     """
     if not text:
         return ""
+    # Guard against pathological algorithmic DoS inputs (>32KB text)
+    if len(text) > 32768:
+        text = text[:32768]
     # Decode literal unicode and hex escape sequences like \u200b or \x20
     if "\\u" in text or "\\x" in text:
         try:
