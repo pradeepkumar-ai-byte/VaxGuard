@@ -14,6 +14,10 @@ rules:
   - (?i)\bforge\s+privileged\s+administrative\s+tokens\b
   - (?i)\bcircumvent\s+role-based\s+access\s+control\s+policies\b
   - (?i)\b(?:ignore|disregard|forget|bypass|override|circumvent)\s+(?:all\s+)?(?:standard\s+|safety\s+|system\s+|governance\s+)?(?:policies|policy|guidelines|restrictions|guardrails|filters|rules|constraints|instructions)\b
+  - (?i)\b(?:build|write|create|craft|generate|execute)\b.*?\b(?:port[\s-]*knocking|privilege\s+escalation\s+scripts?)\b
+  - (?i)\b(?:establish|create|open|bind)\b.*?\b(?:socket|network\s+connection)\b.*?\b(?:command\s+line|remote\s+interactive|system\s+command\s+executions?|interpreter)\b
+  - (?i)\b(?:exempted\s+from\s+(?:live\s+)?filtering|privileged\s+sandbox\s+for\s+structural\s+auditing|do\s+not\s+engage\s+classification\s+blocks)\b
+  - (?i)\b(?:manipulate|force|trigger|cause|exploit)\b.*?\b(?:memory\s+buffers?|stack\s+overflow|buffer\s+overflow)\b.*?\b(?:execute\s+arbitrary\s+code|code\s+execution)\b
   exact_phrases:
   - Bypass authentication middleware
   - Execute privilege escalation scripts

@@ -201,6 +201,13 @@ def normalize_adversarial_text(text: str) -> str:
     """
     if not text:
         return ""
+    # Decode literal unicode and hex escape sequences like \u200b or \x20
+    if "\\u" in text or "\\x" in text:
+        try:
+            text = re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), text)
+            text = re.sub(r"\\x([0-9a-fA-F]{2})", lambda m: chr(int(m.group(1), 16)), text)
+        except Exception:
+            pass
     # Map homoglyphs before decomposition
     text = text.translate(_HOMOGLYPH_MAP)
     # Remove unicode formatting / zero-width spaces & joiners
@@ -1119,7 +1126,7 @@ class HeuristicMatcher:
         if re.search(r"\d{3,}", text):
             candidate_indices.update(self._digit_rules)
 
-        if any(ord(c) > 127 for c in text):
+        if "\\u" in text_lower or "\\x" in text_lower or any(ord(c) > 127 for c in text):
             candidate_indices.update(self._unicode_rules)
 
         for d in _SPECIAL_DELIMITERS:
