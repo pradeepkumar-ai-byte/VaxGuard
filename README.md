@@ -1,8 +1,9 @@
 <div align="center">
 
-<img src="assets/vaxguard-emblem.png" alt="VaxGuard Shield Logo" width="180" style="margin-bottom: 16px;" />
+<img src="assets/vaxguard-emblem.png" alt="VaxGuard Emblem" width="160" />
+<br />
+<img src="assets/vaxguard-wordmark.png" alt="VaxGuard" width="280" style="margin-top: 10px; margin-bottom: 12px;" />
 
-# 🛡️ VaxGuard™
 ### High-Performance Pure-Python Guardrails & AI Policy Enforcement Engine
 **Native Colang 1.0 & 2.0 Execution &bull; Cascaded Short-Circuit Evaluation &bull; Sub-Millisecond Median Latency &bull; 50,000-Probe Regression Proving Ground**
 
