@@ -86,19 +86,19 @@ Empirical execution results from [`scripts/run_50k_benchmark.py`](file:///script
 
 ---
 
-## 🛡️ Transparent First-Party Codebase Inventory (159 Files | 38,862 Lines of Code)
+## 🛡️ Transparent First-Party Codebase Inventory (248 Files | 83,152 Lines of Code)
 
 To guarantee complete authenticity, VaxGuard counts **zero vendored or third-party code**:
 
 | Directory | Files | Lines of Code | Description |
 | :--- | :---: | :---: | :--- |
-| `vaxguard/` | 82 | 21,598 | Pure-Python security engines, Colang 1.0/2.0 state bus, 10 ecosystem adapters, dataset suites, API |
-| `tests/` | 48 | 8,750 | 1,424 automated unit & integration tests running across Python 3.10, 3.11, and 3.12 |
-| `frontend/` | 1 | 4,183 | Single-page operational telemetry console with WebSocket metrics and Monaco Colang editor |
-| `data/` | 11 | 2,266 | Colang rule definitions, baseline vectors, and benchmark datasets |
-| `benchmarks/` & `scripts/` | 7 | 1,202 | CLI evaluation harnesses and empirical reproducibility runners |
-| Root & Documentation | 10 | 863 | Pyproject, CI configuration, and architecture whitepapers |
-| **Total First-Party Codebase** | **159** | **38,862** | **100% original code (Zero vendored lines counted)** |
+| `vaxguard/` | 102 | 29,144 | Pure-Python security engines, Colang 1.0/2.0 state bus, 10 ecosystem adapters, dataset suites, API |
+| `tests/` | 78 | 15,424 | Automated unit, evasion matrix, latency SLA, and 5,000-sample FPR integration suites |
+| `frontend/` | 3 | 7,558 | Single-page operational telemetry console with live WebSockets, metric radars, and policy vault |
+| `data/` | 31 | 13,245 | Declarative YAML security rules, Colang rails, and standardized benchmark datasets |
+| `scripts/` | 7 | 1,173 | CLI threat inoculation tools, dataset generators, and reproducibility benchmark runners |
+| Root & Documentation | 27 | 16,608 | Pyproject, CI/CD workflows, Docker, license, and architecture documentation |
+| **Total First-Party Codebase** | **248** | **83,152** | **100% original code (Zero vendored lines counted)** |
 
 ---
 

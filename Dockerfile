@@ -17,5 +17,6 @@ COPY . .
 # Expose FastAPI port
 EXPOSE 8000
 
-# Run Uvicorn server
-CMD ["python", "-m", "uvicorn", "vaxguard.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run multi-worker production ASGI server (bypasses Python GIL)
+ENV WEB_CONCURRENCY=4
+CMD ["gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "vaxguard.api.app:app", "--bind", "0.0.0.0:8000", "--timeout", "30", "--access-logfile", "-"]

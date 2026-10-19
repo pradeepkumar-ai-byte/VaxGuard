@@ -12,6 +12,7 @@ cachetools
 numpy
 scikit-learn
 fastapi
-uvicorn
+uvicorn[standard]
+gunicorn
 websockets
 httpx
