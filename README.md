@@ -15,7 +15,7 @@
 [![Benchmark](https://img.shields.io/badge/Benchmark-50%2C000%20Probes%20Evaluated-orange.svg)](RESULTS.md)
 [![Throughput](https://img.shields.io/badge/Throughput-833.1%20QPS-blueviolet.svg)]()
 [![GitHub commits](https://img.shields.io/github/commits-since/pradeepkumar-ai-byte/VaxGuard/v0.1.0/main?label=Commits&color=blueviolet)](https://github.com/pradeepkumar-ai-byte/VaxGuard/commits/main)
-[![First-Party Code](https://img.shields.io/badge/First--Party%20Code-83%2C152%20LOC-success.svg)](RESULTS.md#-transparent-first-party-codebase-inventory-248-files--83152-lines-of-code)
+[![First-Party Code](https://img.shields.io/badge/First--Party%20Code-46%2C416%20Python%20LOC-success.svg)](RESULTS.md#-transparent-first-party-codebase-inventory-46416-python-loc)
 
 <p align="center">
   <b>Cascaded Short-Circuit Filter &bull; Zero External Neural Network Latency in Hot Path &bull; Pure Python 3.10+ &bull; Multi-Provider Adapters</b>

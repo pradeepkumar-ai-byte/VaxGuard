@@ -86,19 +86,20 @@ Empirical execution results from [`scripts/run_50k_benchmark.py`](file:///script
 
 ---
 
-## 🛡️ Transparent First-Party Codebase Inventory (248 Files | 83,152 Lines of Code)
+## 🛡️ Transparent First-Party Codebase Inventory (46,416 Python LOC | 58,732 Total Code)
 
-To guarantee complete authenticity, VaxGuard counts **zero vendored or third-party code**:
+To guarantee complete authenticity, VaxGuard counts **zero vendored or third-party code, and excludes binary asset files**:
 
-| Directory | Files | Lines of Code | Description |
+| Directory / Layer | Files | Lines of Code | Description |
 | :--- | :---: | :---: | :--- |
-| `vaxguard/` | 102 | 29,144 | Pure-Python security engines, Colang 1.0/2.0 state bus, 10 ecosystem adapters, dataset suites, API |
-| `tests/` | 78 | 15,424 | Automated unit, evasion matrix, latency SLA, and 5,000-sample FPR integration suites |
-| `frontend/` | 3 | 7,558 | Single-page operational telemetry console with live WebSockets, metric radars, and policy vault |
-| `data/` | 31 | 13,245 | Declarative YAML security rules, Colang rails, and standardized benchmark datasets |
-| `scripts/` | 7 | 1,173 | CLI threat inoculation tools, dataset generators, and reproducibility benchmark runners |
-| Root & Documentation | 27 | 16,608 | Pyproject, CI/CD workflows, Docker, license, and architecture documentation |
-| **Total First-Party Codebase** | **248** | **83,152** | **100% original code (Zero vendored lines counted)** |
+| `vaxguard/` (Core Engine) | 102 | 29,144 | Pure-Python security engines, Colang 1.0/2.0 state bus, 10 ecosystem adapters, API |
+| `tests/` (Test Suites) | 78 | 15,424 | Automated unit, evasion matrix, latency SLA, and 5,000-sample FPR integration suites |
+| `scripts/` (CLI Tools) | 7 | 1,848 | CLI threat inoculation tools, dataset generators, and reproducibility benchmark runners |
+| **Total Pure Python** | **187** | **46,416** | **100% pure Python 3.10+ executable source code** |
+| `frontend/` (Dashboard) | 1 | 5,307 | Single-page operational telemetry console with live WebSockets and policy vault |
+| `data/rules/` (Policies) | 10 | 4,224 | Declarative YAML security rules loaded directly into TriHybridMatcher |
+| `data/nemo_rails/` (Colang) | 5 | 2,296 | Declarative Colang 1.0 & 2.0 guardrail dialog flows |
+| **Total Executable Code** | **203** | **58,732** | **Complete first-party software implementation** |
 
 ---
 
