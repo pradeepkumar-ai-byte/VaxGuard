@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="VaxGuard Logo" width="160" style="border-radius: 28px; box-shadow: 0 8px 32px rgba(0, 242, 254, 0.35); margin-bottom: 16px;" />
+<img src="assets/vaxguard-emblem.png" alt="VaxGuard Shield Logo" width="180" style="margin-bottom: 16px;" />
 
 # 🛡️ VaxGuard™
 ### High-Performance Pure-Python Guardrails & AI Policy Enforcement Engine
@@ -8,12 +8,12 @@
 
 [![License: BSL 1.1](https://img.shields.io/badge/License-BSL_1.1-blue.svg)](LICENSE)
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
-[![CI/CD Pipeline](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml)
+[![VaxGuard CI/CD Pipeline](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions)
 [![CI Matrix](https://img.shields.io/badge/CI%20Matrix-100%25%20Green%20(3.10%2C%203.11%2C%203.12)-brightgreen.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions)
 [![Tests Passing](https://img.shields.io/badge/Tests-7%2C000%2B%20Passing-brightgreen.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/actions)
 [![Benchmark](https://img.shields.io/badge/Benchmark-50%2C000%20Probes%20Evaluated-orange.svg)](RESULTS.md)
 [![Throughput](https://img.shields.io/badge/Throughput-833.1%20QPS-blueviolet.svg)]()
-[![Commits](https://img.shields.io/badge/Commits-101%20Verified-blueviolet.svg)](https://github.com/pradeepkumar-ai-byte/VaxGuard/commits/main)
+[![GitHub commits](https://img.shields.io/github/commit-activity/y/pradeepkumar-ai-byte/VaxGuard?label=Commits&color=blueviolet)](https://github.com/pradeepkumar-ai-byte/VaxGuard/commits/main)
 [![First-Party Code](https://img.shields.io/badge/First--Party%20Code-38%2C862%20LOC-success.svg)](RESULTS.md#-transparent-codebase-inventory-159-files--38862-lines-of-code)
 
 <p align="center">
