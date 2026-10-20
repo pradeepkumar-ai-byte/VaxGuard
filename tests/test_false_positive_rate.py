@@ -1,7 +1,7 @@
 """
-Test Suite: 5,000-Sample Enterprise False Positive Rate (FPR) Proving Ground.
+Test Suite: 5,000-Sample Synthetic Business Contrast Suite.
 
-Evaluates TriHybridMatcher across 10 diverse benign enterprise domains (500 queries each):
+Evaluates TriHybridMatcher across 10 diverse benign business domains (500 queries each):
 1. Financial (500)
 2. Medical/Healthcare (500)
 3. Legal (500)
@@ -13,9 +13,8 @@ Evaluates TriHybridMatcher across 10 diverse benign enterprise domains (500 quer
 9. Marketing/Sales (500)
 10. General Knowledge (500)
 
-Total: Exactly 5,000 high-fidelity benign enterprise queries.
-Ground Truth: ALLOW for all 5,000 queries (0.0% False Positive Rate SLA).
-Latency SLA: Sub-millisecond (< 1.0ms) evaluation per query.
+Total: Exactly 5,000 curated benign business queries.
+Ground Truth: ALLOW for all 5,000 queries (0.00% empirical False Positive Rate baseline).
 """
 
 from __future__ import annotations

@@ -129,7 +129,7 @@ Live empirical benchmark evaluation (`python scripts/evaluate_benchmarks.py`):
 | Academic Benchmark | Source Consortia | Sample Scope | Metric Observed | Empirical Value | $P_{50}$ Latency | Architectural Role |
 | :--- | :--- | :---: | :--- | :---: | :---: | :--- |
 | **[AdvGLUE (Full Dev)](https://adversarialglue.github.io/)** | AI-Secure / NeurIPS | **738** items (SST-2, QQP, MNLI, QNLI, RTE) | **False Positive Rate (FPR)** | **0.14%** (737/738 passed clean, 1 FP) | **1.59 ms** | Layer-1 Deterministic Filter: benign linguistic perturbations are preserved without false blocks. |
-| **[Enterprise Golden Contrast](tests/test_false_positive_rate.py)** | Enterprise Real-World Production Traffic | **5,000** queries across 10 domains | **False Positive Rate (FPR)** | **0.00%** (5,000/5,000 allowed) | **3.29 ms** | Evaluates zero business disruption across finance, healthcare, legal, devops, and customer queries. |
+| **[Synthetic Business Contrast](tests/test_false_positive_rate.py)** | Curated Business Contrast Set | **5,000** queries across 10 domains | **False Positive Rate (FPR)** | **0.00%** (5,000/5,000 allowed) | **3.29 ms** | Evaluates baseline non-disruption across finance, healthcare, legal, devops, and customer queries. |
 | **[HarmBench (Full)](https://github.com/centerforaisafety/HarmBench)** | Center for AI Safety (CAIS) | **400** functional behaviors (chemical, biological, cyber) | **Layer-1 Deterministic Recall** | **2.0%** (8/400 structural indicators caught) | **0.91 ms** | **Layer Boundary Demonstration:** Raw CBRN/hazardous instructions lack exploit syntax and require **Layer-3 Speculative LLM Judge** escalation. |
 | **[JailbreakBench (JBB)](data/benchmarks/jailbreakbench.json)** | Robustness & Safety Consortia | **100** probes (50 structural attacks + 50 controls) | **Attack Recall / Control FPR** | **96.0%** Recall (48/50) / **0.00%** FPR (50/50) | **0.99 ms** | Evaluates generalized detection against GCG token suffixes, PAIR, TAP, and persona overrides. |
 
@@ -153,13 +153,13 @@ To maintain sub-2-minute GitHub Actions CI execution without compute bottlenecks
 | **[High-Level 20-Pack Suite](tests/test_high_level_attacks_20pack.py)** | Advanced adversarial framing, indirect RAG context poisoning, multilingual | 24 | Adversarial Bypass Recall | **100.0%** | 0.51 ms |
 | **[Multi-Turn Crescendo Suite](tests/test_crescendo_transcripts.py)** | Multi-turn conversational boundary erosion (5-12 turn transcripts) | 10 (64 turns) | Context Drift Recall | **100.0%** | 0.52 ms |
 | **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | Mutation Bypass Recall | **93.3%** | 0.36 ms |
-| **Enterprise Contrast Suite** | Real-world business queries (Finance, Healthcare, Legal, DevOps, Support, HR) | 5,000 | Empirical False Positive Rate | **0.00%** (0 / 5,000) | 3.29 ms |
+| **Synthetic Business Contrast Suite** | Curated business queries (Finance, Healthcare, Legal, DevOps, Support, HR) | 5,000 | Empirical False Positive Rate | **0.00%** (0 / 5,000) | 3.29 ms |
 
 *All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `data/benchmarks/full/`, `tests/`, and `scripts/evaluate_benchmarks.py`.*
 
 > [!NOTE]
 > **False Positive Rate Analysis (Empirical Benchmark vs. Open-Domain Production Bound):**  
-> On the fixed 5,000-query Golden Enterprise suite ([`tests/test_false_positive_rate.py`](tests/test_false_positive_rate.py)), VaxGuard achieved an empirical **0.00% False Positive Rate (0 / 5,000)** across finance, healthcare, legal, code reviews, and customer support. On the independent AdvGLUE 738-item test set, the empirical rate is **0.14% FPR (1 / 738)**. In open-domain production traffic with non-standard formatting, statistical confidence bounds conservatively project an operational rate of **$<0.20\%$ FPR**.
+> On the fixed 5,000-query Synthetic Business Contrast suite ([`tests/test_false_positive_rate.py`](tests/test_false_positive_rate.py)), VaxGuard achieved an empirical **0.00% False Positive Rate (0 / 5,000)** across finance, healthcare, legal, code reviews, and customer support. On the independent AdvGLUE 738-item test set, the empirical rate is **0.14% FPR (1 / 738)**. In unconstrained open-domain traffic with non-standard formatting, statistical confidence bounds project an operational rate of **$<0.20\%$ FPR**.
 
 ### B. In-Distribution Rule Regression Proving Ground (50,000 Synthetic Probes)
 To guarantee deterministic execution and verify that newly synthesized rules do not cause regressions, VaxGuard runs a 50,000-probe in-distribution regression suite across 5 modular categories (10,000 samples each):
@@ -206,11 +206,13 @@ To guarantee deterministic execution and verify that newly synthesized rules do 
 
 ---
 
-## 🔌 Enterprise Ecosystem Adapters
+## 🔌 Modern AI Stack Adapters
 
-VaxGuard includes drop-in production adapters for the entire modern AI stack. Each adapter operates with **zero mandatory heavy dependencies** (using duck-typing for PyTorch, FastAPI, Starlette, LangChain, and LlamaIndex):
+VaxGuard includes drop-in adapters for major LLM runtimes, organized into **First-Class Core SDKs** (with full multi-turn extraction and mid-flight SSE streaming token circuit breakers) and **Framework Integrations**:
 
-### 1. Drop-in OpenAI SDK Wrapper
+### First-Class Core Adapters
+
+#### 1. Drop-in OpenAI SDK Wrapper
 Intercepts incoming prompts and mid-flight streaming SSE tokens:
 
 ```python

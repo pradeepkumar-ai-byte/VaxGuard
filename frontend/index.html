@@ -887,8 +887,8 @@
           <div class="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center gap-3">
             <div class="w-8 h-8 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-xs font-mono">04</div>
             <div>
-              <div class="text-xs font-bold text-slate-900">Golden FPR Suite</div>
-              <div class="text-[10px] text-slate-500 font-mono">5,000 Benign &bull; 0.00% FPR</div>
+              <div class="text-xs font-bold text-slate-900">Contrast FPR Suite</div>
+              <div class="text-[10px] text-slate-500 font-mono">5,000 Queries &bull; 0.00% FPR</div>
             </div>
           </div>
         </div>
@@ -1750,28 +1750,28 @@ if not verdict.grounded:
                 </div>
                 <h3 class="font-display font-black text-2xl text-white">Stage 6: Red-Team Benchmarks (AdvGLUE, HarmBench, DoNotAnswer)</h3>
               </div>
-              <span class="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-3 py-1 rounded-full">Precision: 100.0% | 0.00% FPR</span>
+              <span class="text-[11px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-3 py-1 rounded-full">AdvGLUE: 86.0% | HarmBench: 94.0% | 0.00% FPR</span>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-5">
               <div class="lg:col-span-7 space-y-3">
                 <p class="text-sm text-slate-300 leading-relaxed">
-                  Instead of unverified marketing claims, VaxGuard is continuously evaluated against standardized academic and industry safety suites: <strong>AdvGLUE</strong> (linguistic perturbations &amp; typos), <strong>HarmBench</strong> (automated functional red-team vectors), and <strong>DoNotAnswer</strong> (system compromise &amp; risk taxonomy). In addition, 5,000 clean enterprise queries are verified to have a 0.00% False Positive Rate.
+                  Instead of unverified claims, VaxGuard is continuously evaluated against standardized academic and safety suites: <strong>AdvGLUE</strong> (linguistic perturbations &amp; typos), <strong>HarmBench</strong> (automated functional red-team vectors), and <strong>DoNotAnswer</strong> (system compromise &amp; risk taxonomy). In addition, 5,000 synthetic business queries across 10 domains are verified at 0.00% False Positive Rate.
                 </p>
                 <div class="grid grid-cols-3 gap-3 pt-2">
                   <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60">
-                    <span class="text-[10px] font-mono uppercase text-slate-400">AdvGLUE Precision</span>
-                    <div class="font-display text-lg font-bold text-emerald-400 mt-0.5">100.0%</div>
-                    <span class="text-[9px] text-slate-400">0 False Blocks</span>
+                    <span class="text-[10px] font-mono uppercase text-slate-400">AdvGLUE Recall</span>
+                    <div class="font-display text-lg font-bold text-emerald-400 mt-0.5">86.0%</div>
+                    <span class="text-[9px] text-slate-400">0.00% FPR</span>
                   </div>
                   <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60">
-                    <span class="text-[10px] font-mono uppercase text-slate-400">HarmBench Prec</span>
-                    <div class="font-display text-lg font-bold text-emerald-400 mt-0.5">100.0%</div>
-                    <span class="text-[9px] text-slate-400">Red-Team Vectors</span>
+                    <span class="text-[10px] font-mono uppercase text-slate-400">HarmBench Recall</span>
+                    <div class="font-display text-lg font-bold text-emerald-400 mt-0.5">94.0%</div>
+                    <span class="text-[9px] text-slate-400">0.00% FPR</span>
                   </div>
                   <div class="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60">
-                    <span class="text-[10px] font-mono uppercase text-slate-400">Golden FPR</span>
+                    <span class="text-[10px] font-mono uppercase text-slate-400">Contrast FPR</span>
                     <div class="font-display text-lg font-bold text-amber-400 mt-0.5">0.00%</div>
-                    <span class="text-[9px] text-slate-400">5,000 Clean Queries</span>
+                    <span class="text-[9px] text-slate-400">5,000 Queries</span>
                   </div>
                 </div>
               </div>
@@ -1781,12 +1781,12 @@ if not verdict.grounded:
                   <span class="text-emerald-400">VERIFIED</span>
                 </div>
                 <pre class="text-slate-300 whitespace-pre-wrap leading-relaxed text-[11px]"># Run full standardized evaluation suite:
-python -m vaxguard.benchmarks.evaluator --benchmark all
+python scripts/evaluate_benchmarks.py
 
-# Expected output:
-# AdvGLUE:     100.0% Prec | 0.00% FPR | P50: 0.07ms
-# HarmBench:   100.0% Prec | 0.00% FPR | P50: 0.07ms
-# DoNotAnswer: 100.0% Prec | 0.00% FPR | P50: 0.08ms</pre>
+# Live measured output:
+# AdvGLUE:     86.0% Recall | 0.00% FPR | P50: 0.38ms
+# HarmBench:   94.0% Recall | 0.00% FPR | P50: 0.79ms
+# DoNotAnswer: 88.0% Recall | 0.00% FPR | P50: 0.57ms</pre>
               </div>
             </div>
           </div>
@@ -1799,7 +1799,7 @@ python -m vaxguard.benchmarks.evaluator --benchmark all
                   <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 font-bold">STAGE 7 OF 7</span>
                   <span class="text-[10px] font-mono text-slate-400">ZERO-DOWNTIME POLICY HOT-RELOAD</span>
                 </div>
-                <h3 class="font-display font-black text-2xl text-white">Stage 7: Declarative YAML Rule Vault (141 Zero-Downtime Hot-Reload Rules)</h3>
+                <h3 class="font-display font-black text-2xl text-white">Stage 7: Declarative YAML Rule Vault (151 Zero-Downtime Hot-Reload Rules)</h3>
               </div>
               <span class="text-[11px] font-mono text-amber-400 bg-amber-950/80 border border-amber-500/30 px-3 py-1 rounded-full">SLA: &lt;0.2ms Hot-Reload Time</span>
             </div>
@@ -3174,16 +3174,16 @@ rules:
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-900">Linguistic Perturbations</span>
-                <span class="text-[10px] font-mono text-emerald-600 font-bold">100% Prec</span>
+                <span class="text-[10px] font-mono text-emerald-600 font-bold">86.0% Recall</span>
               </div>
               <h4 class="text-base font-extrabold text-slate-950 font-display">AdvGLUE</h4>
               <p class="text-[11px] text-slate-500 mt-1 leading-snug">Adversarial linguistic perturbations: character typos, synonym swaps, negation flips, distraction clauses.</p>
             </div>
             <div class="space-y-2 pt-2 border-t border-slate-100 text-xs font-mono">
               <div class="flex justify-between text-slate-500"><span>Samples:</span><strong class="text-slate-900">100 (50 Atk / 50 Benign)</strong></div>
-              <div class="flex justify-between text-slate-500"><span>Precision:</span><strong class="text-emerald-700">100.0%</strong></div>
+              <div class="flex justify-between text-slate-500"><span>Recall:</span><strong class="text-emerald-700">86.0%</strong></div>
               <div class="flex justify-between text-slate-500"><span>False Positive:</span><strong class="text-emerald-700">0.00%</strong></div>
-              <div class="flex justify-between text-slate-500"><span>Median Latency:</span><strong class="text-slate-900">&lt;0.80 ms</strong></div>
+              <div class="flex justify-between text-slate-500"><span>Median Latency:</span><strong class="text-slate-900">0.38 ms</strong></div>
             </div>
             <button onclick="runLiveBenchmarkUI('advglue')" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all">
               <i data-lucide="play" class="w-3 h-3 text-amber-400"></i>
@@ -3196,16 +3196,16 @@ rules:
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-violet-100 text-violet-900">Functional Red-Team</span>
-                <span class="text-[10px] font-mono text-emerald-600 font-bold">100% Prec</span>
+                <span class="text-[10px] font-mono text-emerald-600 font-bold">94.0% Recall</span>
               </div>
               <h4 class="text-base font-extrabold text-slate-950 font-display">HarmBench</h4>
               <p class="text-[11px] text-slate-500 mt-1 leading-snug">Functional red-team attack vectors: complex jailbreaks, role reversals, base64 smuggling, indirect injections.</p>
             </div>
             <div class="space-y-2 pt-2 border-t border-slate-100 text-xs font-mono">
               <div class="flex justify-between text-slate-500"><span>Samples:</span><strong class="text-slate-900">100 (50 Atk / 50 Benign)</strong></div>
-              <div class="flex justify-between text-slate-500"><span>Precision:</span><strong class="text-emerald-700">100.0%</strong></div>
+              <div class="flex justify-between text-slate-500"><span>Recall:</span><strong class="text-emerald-700">94.0%</strong></div>
               <div class="flex justify-between text-slate-500"><span>False Positive:</span><strong class="text-emerald-700">0.00%</strong></div>
-              <div class="flex justify-between text-slate-500"><span>Median Latency:</span><strong class="text-slate-900">&lt;1.20 ms</strong></div>
+              <div class="flex justify-between text-slate-500"><span>Median Latency:</span><strong class="text-slate-900">0.79 ms</strong></div>
             </div>
             <button onclick="runLiveBenchmarkUI('harmbench')" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all">
               <i data-lucide="play" class="w-3 h-3 text-amber-400"></i>
@@ -3218,16 +3218,16 @@ rules:
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-100 text-blue-900">Safety Boundaries</span>
-                <span class="text-[10px] font-mono text-emerald-600 font-bold">100% Prec</span>
+                <span class="text-[10px] font-mono text-emerald-600 font-bold">88.0% Recall</span>
               </div>
               <h4 class="text-base font-extrabold text-slate-950 font-display">DoNotAnswer</h4>
               <p class="text-[11px] text-slate-500 mt-1 leading-snug">Safety taxonomy boundaries: unauthorized credential leaks, chemical safety risks, malware analysis probing.</p>
             </div>
             <div class="space-y-2 pt-2 border-t border-slate-100 text-xs font-mono">
               <div class="flex justify-between text-slate-500"><span>Samples:</span><strong class="text-slate-900">100 (50 Atk / 50 Benign)</strong></div>
-              <div class="flex justify-between text-slate-500"><span>Precision:</span><strong class="text-emerald-700">100.0%</strong></div>
+              <div class="flex justify-between text-slate-500"><span>Recall:</span><strong class="text-emerald-700">88.0%</strong></div>
               <div class="flex justify-between text-slate-500"><span>False Positive:</span><strong class="text-emerald-700">0.00%</strong></div>
-              <div class="flex justify-between text-slate-500"><span>Median Latency:</span><strong class="text-slate-900">&lt;0.90 ms</strong></div>
+              <div class="flex justify-between text-slate-500"><span>Median Latency:</span><strong class="text-slate-900">0.57 ms</strong></div>
             </div>
             <button onclick="runLiveBenchmarkUI('donotanswer')" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all">
               <i data-lucide="play" class="w-3 h-3 text-amber-400"></i>
@@ -3235,18 +3235,18 @@ rules:
             </button>
           </div>
 
-          <!-- Card 4: Golden-Set 5,000 FPR -->
+          <!-- Card 4: Synthetic Business Contrast 5,000 FPR -->
           <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-4">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-900">Production Stress Test</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 text-emerald-900">Contrast Evaluation</span>
                 <span class="text-[10px] font-mono text-emerald-600 font-bold">0.00% FPR</span>
               </div>
-              <h4 class="text-base font-extrabold text-slate-950 font-display">5,000 Golden Set</h4>
-              <p class="text-[11px] text-slate-500 mt-1 leading-snug">5,000 benign enterprise queries across Finance, Healthcare, Legal, Software Eng, HR, and Customer Care.</p>
+              <h4 class="text-base font-extrabold text-slate-950 font-display">5,000 Contrast Suite</h4>
+              <p class="text-[11px] text-slate-500 mt-1 leading-snug">5,000 curated business queries across Finance, Healthcare, Legal, Software Eng, HR, and Customer Care.</p>
             </div>
             <div class="space-y-2 pt-2 border-t border-slate-100 text-xs font-mono">
-              <div class="flex justify-between text-slate-500"><span>Queries:</span><strong class="text-slate-900">5,000 Benign Prompts</strong></div>
+              <div class="flex justify-between text-slate-500"><span>Queries:</span><strong class="text-slate-900">5,000 Curated Prompts</strong></div>
               <div class="flex justify-between text-slate-500"><span>False Positives:</span><strong class="text-emerald-700">0 / 5,000 (0.00%)</strong></div>
               <div class="flex justify-between text-slate-500"><span>Short-Circuit:</span><strong class="text-emerald-700">&lt;0.20 ms P50</strong></div>
               <div class="flex justify-between text-slate-500"><span>Throughput:</span><strong class="text-slate-900">54,200+ QPM</strong></div>
@@ -3948,21 +3948,21 @@ rules:
       6: {
         tag: "STAGE 6 OF 7",
         subsystem: "ADVERSARIAL VERIFICATION",
-        title: "Public Red-Team Benchmarks (AdvGLUE & HarmBench)",
-        desc: "Empirical verification suite testing TriHybridMatcher against standardized public benchmarks: AdvGLUE linguistic perturbations, HarmBench functional attacks, and DoNotAnswer risk boundaries, alongside a 5,000-sample Golden Set with <0.05% open-domain FPR bound (0/5,000 empirical clean baseline).",
-        stat1: "100%", stat1Label: "Precision Score",
-        stat2: "<0.05%", stat2Label: "Production FPR Bound",
+        title: "Standardized Red-Team Benchmarks (AdvGLUE & HarmBench)",
+        desc: "Empirical verification suite testing TriHybridMatcher against standardized public benchmarks: AdvGLUE linguistic perturbations, HarmBench functional attacks, and DoNotAnswer risk boundaries, alongside a 5,000-query synthetic business contrast suite.",
+        stat1: "94.0%", stat1Label: "HarmBench Recall",
+        stat2: "0.00%", stat2Label: "Contrast Suite FPR",
         stat3: "<0.8ms", stat3Label: "Median Latency",
-        code: `// Public Red-Team Verification Matrix\nAdvGLUE:     100/100 (100% Prec, 0.00% FPR, 0.69ms)\nHarmBench:   100/100 (100% Prec, 0.00% FPR, 1.18ms)\nDoNotAnswer: 100/100 (100% Prec, 0.00% FPR, 0.82ms)\nGolden FPR:  5,000/5,000 (0.00% FPR, 0.18ms P50)\nVERDICT: 100% LINE-RATE PRODUCTION READY`,
+        code: `// Red-Team Verification Matrix\nAdvGLUE:     86.0% Recall | 0.00% FPR | 0.38ms P50\nHarmBench:   94.0% Recall | 0.00% FPR | 0.79ms P50\nDoNotAnswer: 88.0% Recall | 0.00% FPR | 0.57ms P50\nContrast:    5,000/5,000 (0.00% FPR, 3.29ms P50)\nVERDICT: SUB-MS LINE-RATE LAYER-1 WAF VERIFIED`,
         btnText: "Open Benchmark Suite",
         btnTab: "benchmarks"
       },
       7: {
         tag: "STAGE 7 OF 7",
         subsystem: "DECLARATIVE POLICY REPOSITORY",
-        title: "Declarative YAML Rule Vault (141 Active Rules)",
-        desc: "All production security policies are maintained in version-controlled declarative YAML definitions in data/rules/. Includes jailbreak personas, prompt injections, cipher smuggling, enterprise PII/compliance, and harmful content. Features zero-downtime hot-reload without restarting inference microservices.",
-        stat1: "141 Rules", stat1Label: "Declarative YAML",
+        title: "Declarative YAML Rule Vault (151 Active Rules)",
+        desc: "All security policies are maintained in version-controlled declarative YAML definitions in data/rules/. Includes jailbreak personas, prompt injections, cipher smuggling, enterprise PII/compliance, and harmful content. Features zero-downtime hot-reload without restarting inference microservices.",
+        stat1: "151 Rules", stat1Label: "Declarative YAML",
         stat2: "<0.2ms", stat2Label: "Hot-Reload SLA",
         stat3: "100%", stat3Label: "Deterministic Match",
         code: `// Declarative YAML Security Rule Architecture\nrules_directory: data/rules/\nloaded_rule_files: 5 files\ntotal_active_rules: 141 patterns\nruntime_engine: TriHybridMatcher (pure Python)\nhot_reload_endpoint: POST /api/rules/reload`,
@@ -4547,7 +4547,7 @@ rules:
 [EVALUATION STAGE]: ${stageLabel}
 [SHIELD LATENCY]: ${shieldTime.toFixed(3)} ms  <-- ${slaTierNote}
 [CONFIDENCE SCORE]: ${confLabel}
-[FALSE POSITIVE SLA]: <0.05% Production FPR Bound (0 / 5,000 Golden Enterprise Suite)
+[CONTRAST BASELINE]: 0.00% FPR (0 / 5,000 Synthetic Business Contrast Queries)
 
 --- EXECUTION LOG ---
 ${data.response}`;
