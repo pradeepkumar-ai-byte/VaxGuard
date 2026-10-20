@@ -46,7 +46,7 @@ try:
     import torch  # type: ignore[import-untyped]
     HAS_TORCH = True
 except ImportError:
-    torch = None
+    torch = None  # type: ignore[assignment]
     HAS_TORCH = False
 
 # Optional Hugging Face Transformers base classes (graceful fallback)
@@ -176,10 +176,12 @@ class VaxGuardHuggingFaceLogitsProcessor(LogitsProcessor):
         # Resolve EOS token IDs
         self.eos_token_ids: List[int] = []
         if eos_token_id is not None:
-            if isinstance(eos_token_id, (list, tuple, set)):
+            if isinstance(eos_token_id, int):
+                self.eos_token_ids = [eos_token_id]
+            elif isinstance(eos_token_id, (list, tuple, set)):
                 self.eos_token_ids = [int(x) for x in eos_token_id]
             else:
-                self.eos_token_ids = [int(eos_token_id)]
+                self.eos_token_ids = [int(x) for x in eos_token_id]  # type: ignore[union-attr]
         elif tokenizer is not None and hasattr(tokenizer, "eos_token_id") and tokenizer.eos_token_id is not None:
             if isinstance(tokenizer.eos_token_id, (list, tuple, set)):
                 self.eos_token_ids = [int(x) for x in tokenizer.eos_token_id]
@@ -195,11 +197,11 @@ class VaxGuardHuggingFaceLogitsProcessor(LogitsProcessor):
         self._circuit_open: bool = False
         self._initial_prompt_lens: Dict[int, int] = {}
         if prompt_length is not None:
-            if isinstance(prompt_length, (list, tuple)):
-                for idx, pl in enumerate(prompt_length):
-                    self._initial_prompt_lens[idx] = pl
-            else:
+            if isinstance(prompt_length, int):
                 self._initial_prompt_lens[0] = prompt_length
+            elif isinstance(prompt_length, (list, tuple)):
+                for idx, pl in enumerate(prompt_length):
+                    self._initial_prompt_lens[idx] = int(pl)
 
     @property
     def is_tripped(self) -> bool:

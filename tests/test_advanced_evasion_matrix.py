@@ -18,12 +18,10 @@ Plus:
 
 from __future__ import annotations
 
-import base64
 import pytest
 from vaxguard.nemo.hybrid_matcher import (
     GuardrailAction,
     TriHybridMatcher,
-    get_tri_hybrid_matcher,
 )
 
 

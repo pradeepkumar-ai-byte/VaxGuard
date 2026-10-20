@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from vaxguard.core.logger import get_logger
 from vaxguard.nemo.hybrid_matcher import GuardrailAction, TriHybridMatcher
@@ -101,7 +101,7 @@ class RetrievalRail:
 
     def inspect_chunks(
         self,
-        chunks: List[Union[str, Dict[str, Any], RetrievalChunk]],
+        chunks: Sequence[Union[str, Dict[str, Any], RetrievalChunk]],
         policy: Optional[str] = None,
     ) -> RetrievalRailVerdict:
         """
@@ -186,7 +186,7 @@ class RetrievalRail:
 
     async def inspect_chunks_async(
         self,
-        chunks: List[Union[str, Dict[str, Any], RetrievalChunk]],
+        chunks: Sequence[Union[str, Dict[str, Any], RetrievalChunk]],
         policy: Optional[str] = None,
     ) -> RetrievalRailVerdict:
         """Async version of inspect_chunks."""

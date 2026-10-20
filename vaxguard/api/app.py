@@ -1,7 +1,7 @@
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,7 +43,7 @@ from vaxguard.api.ws_manager import ConnectionManager
 from vaxguard.api.routes_nemo import router as nemo_router
 
 from vaxguard import __version__
-from vaxguard.nemo.hybrid_matcher import TriHybridMatcher, GuardrailAction, EngineType
+from vaxguard.nemo.hybrid_matcher import TriHybridMatcher, GuardrailAction
 
 logger = get_logger("VaxGuardAPI")
 
@@ -358,7 +358,7 @@ async def get_benchmark_summary():
 
 
 @app.post("/api/benchmarks/run")
-async def run_live_benchmark(req: dict = None):
+async def run_live_benchmark(req: Optional[Dict[str, Any]] = None):
     """Runs live evaluation against the specified benchmark using BenchmarkEvaluator."""
     req = req or {}
     bench_name = req.get("benchmark", "advglue")

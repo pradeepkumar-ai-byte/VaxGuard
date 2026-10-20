@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+from typing import Optional
 import uvicorn
 
 from vaxguard import __version__
@@ -47,7 +48,7 @@ def main():
         parser.print_help()
 
 
-async def _run_scan_cli(model: str = None, concurrency: int = 3):
+async def _run_scan_cli(model: Optional[str] = None, concurrency: int = 3):
     print("🚀 Initializing VaxGuard Terminal Diagnostic Scanner...")
     library = AttackLibrary()
     attacks = library.get_all()

@@ -405,6 +405,11 @@ class ActionRegistry:
         """Remove an action by name."""
         return self._actions.pop(name, None) is not None
 
+    def get(self, name: str) -> Optional[Callable[..., Any]]:
+        """Get action handler by name."""
+        desc = self._actions.get(name)
+        return desc.handler if desc else None
+
     def has_action(self, name: str) -> bool:
         """Check if action exists."""
         return name in self._actions
@@ -493,9 +498,9 @@ class ActionRegistry:
         start_t = time.perf_counter()
 
         # Run before hooks
-        for hook in self._before_hooks:
+        for b_hook in self._before_hooks:
             try:
-                hook(name, args, ctx)
+                b_hook(name, args, ctx)
             except Exception:
                 pass
 
@@ -533,9 +538,9 @@ class ActionRegistry:
                 latency_ms=round(elapsed_ms, 3),
             )
 
-            for hook in self._after_hooks:
+            for a_hook in self._after_hooks:
                 try:
-                    hook(act_res, ctx)
+                    a_hook(act_res, ctx)
                 except Exception:
                     pass
 
@@ -553,9 +558,9 @@ class ActionRegistry:
 
         except Exception as exc:
             elapsed_ms = (time.perf_counter() - start_t) * 1000.0
-            for hook in self._error_hooks:
+            for e_hook in self._error_hooks:
                 try:
-                    hook(name, exc, ctx)
+                    e_hook(name, exc, ctx)
                 except Exception:
                     pass
             return ActionResult(
@@ -587,9 +592,9 @@ class ActionRegistry:
         timeout = timeout_sec or desc.timeout_sec
         start_t = time.perf_counter()
 
-        for hook in self._before_hooks:
+        for b_hook in self._before_hooks:
             try:
-                hook(name, args, ctx)
+                b_hook(name, args, ctx)
             except Exception:
                 pass
 
@@ -609,9 +614,9 @@ class ActionRegistry:
                 latency_ms=round(elapsed_ms, 3),
             )
 
-            for hook in self._after_hooks:
+            for a_hook in self._after_hooks:
                 try:
-                    hook(act_res, ctx)
+                    a_hook(act_res, ctx)
                 except Exception:
                     pass
 
@@ -627,9 +632,9 @@ class ActionRegistry:
             )
         except Exception as exc:
             elapsed_ms = (time.perf_counter() - start_t) * 1000.0
-            for hook in self._error_hooks:
+            for e_hook in self._error_hooks:
                 try:
-                    hook(name, exc, ctx)
+                    e_hook(name, exc, ctx)
                 except Exception:
                     pass
             return ActionResult(

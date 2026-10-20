@@ -1,6 +1,6 @@
 import os
 import yaml
-from typing import List
+from typing import List, Optional
 from vaxguard.models.attack import AttackVector, AttackCategory
 
 class AttackLibrary:
@@ -8,7 +8,7 @@ class AttackLibrary:
     Loads and serves attack vectors from the YAML taxonomy.
     Validates all data against Pydantic models on load.
     """
-    def __init__(self, yaml_path: str = None):
+    def __init__(self, yaml_path: Optional[str] = None):
         if yaml_path is None:
             # Default to data/attacks.yaml relative to project root
             project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -31,7 +31,7 @@ class AttackLibrary:
     def get_by_category(self, category: AttackCategory) -> List[AttackVector]:
         return [attack for attack in self.attacks if attack.category == category]
 
-    def get_by_id(self, attack_id: str) -> AttackVector:
+    def get_by_id(self, attack_id: str) -> Optional[AttackVector]:
         for attack in self.attacks:
             if attack.id == attack_id:
                 return attack

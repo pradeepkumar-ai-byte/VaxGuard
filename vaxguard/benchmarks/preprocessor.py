@@ -63,10 +63,18 @@ def resolve_benchmark_path(name_or_path: Union[str, Path]) -> Path:
     if candidate.exists():
         return candidate.resolve()
 
+    candidate_full = project_root / "data" / "benchmarks" / "full" / filename
+    if candidate_full.exists():
+        return candidate_full.resolve()
+
     # Search current working directory
     cwd_candidate = Path.cwd() / "data" / "benchmarks" / filename
     if cwd_candidate.exists():
         return cwd_candidate.resolve()
+
+    cwd_candidate_full = Path.cwd() / "data" / "benchmarks" / "full" / filename
+    if cwd_candidate_full.exists():
+        return cwd_candidate_full.resolve()
 
     raise FileNotFoundError(
         f"Benchmark dataset '{name_or_path}' could not be located at {candidate} or {cwd_candidate}."

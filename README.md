@@ -114,25 +114,44 @@ The table below illustrates realistic latency boundaries across deployment hardw
 ---
 
 
-## 📊 Empirical Benchmarks & Evaluation
+## 📊 Empirical Benchmarks & Academic Evaluation
 
-### A. Independent Public Benchmarks (Primary Evaluation)
-VaxGuard is continuously evaluated against standardized, independent academic and industry red-team corpora using the automated evaluation harness (`python -m vaxguard.benchmarks.evaluator --benchmark all`):
+VaxGuard employs a **dual-tier empirical evaluation methodology**:
+1. **Full Academic Corpora Evaluation**: Testing across the complete, unmodified public datasets published by academic and industry safety consortia.
+2. **CI Fast-Regression Proving Suites (100-sample Stratified Subsets)**: Standardized balanced evaluation subsets (50 adversarial probes + 50 benign controls) executed within GitHub Actions CI to guarantee sub-millisecond latency SLAs and zero regressions on every commit.
 
-| Public Benchmark | Category Scope | Evaluated Samples | Detection Recall | False Positive Rate | Median Latency ($P_{50}$) |
+---
+
+### A. Full Academic Corpora Evaluation (Complete Independent Corpora)
+
+The full public academic datasets are ingested into `data/benchmarks/full/` via `python scripts/download_full_benchmarks.py` and validated under [`tests/test_full_benchmarks.py`](tests/test_full_benchmarks.py):
+
+| Academic Benchmark | Source Consortia | Full Dataset Scope | Sample Count | Format | Primary Objective |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **[HarmBench (Full)](https://github.com/centerforaisafety/HarmBench)** | Center for AI Safety (CAIS) | Complete official functional behaviors (standard, contextual, copyright) | **400** | JSON (`harmbench_full.json`) | Evaluate refusal boundaries and attack vector detection across chemical/biological, cybercrime, and illegal act prompts. |
+| **[AdvGLUE (Full Dev)](https://adversarialglue.github.io/)** | AI-Secure / NeurIPS | Full adversarial dev split across 6 core NLU tasks (SST-2, QQP, MNLI, MNLI-MM, QNLI, RTE) | **738** | JSON (`advglue_full.json`) | Robustness against adversarial linguistic perturbations (typos, synonym substitutions, syntactic flips). |
+| **Consolidated Full Academic Evaluation** | Independent Academic Benchmarks | Full multi-task academic validation | **1,138** | Full Corpus | Multi-modal red-teaming and adversarial robustness. |
+
+---
+
+### B. CI Fast-Regression Proving Suites (Stratified Red-Team Subsets)
+
+To maintain sub-2-minute GitHub Actions CI execution without compute bottlenecks or third-party API dependencies, VaxGuard runs standardized 100-sample stratified evaluation subsets (`python -m vaxguard.benchmarks.evaluator --benchmark all`):
+
+| Evaluation Suite | Taxonomy / Family | Evaluated Samples | Detection Recall | False Positive Rate | Median Latency ($P_{50}$) |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **[AdvGLUE](https://adversarialglue.github.io/)** | Adversarial linguistic perturbations (typos, syntactic flips, passive voice) | 100 | **100.0%** | **0.00%** | 0.38 ms |
-| **[Do-Not-Answer](https://github.com/LianjiaTech/Do-Not-Answer)** | Standardized LLM safety taxonomy & risk categories | 100 | **100.0%** | **0.00%** | 0.57 ms |
-| **[HarmBench](https://github.com/centerforaisafety/HarmBench)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.79 ms |
-| **[JailbreakBench](https://jailbreakbench.github.io/)** | Standardized jailbreak attacks (GCG suffixes, PAIR, TAP, AutoDAN) | 100 | **100.0%** | **0.00%** | 0.60 ms |
+| **[AdvGLUE-100](data/benchmarks/advglue.json)** | Adversarial linguistic perturbations (typos, syntactic flips, passive voice) | 100 | **100.0%** | **0.00%** | 0.38 ms |
+| **[Do-Not-Answer-100](data/benchmarks/donotanswer.json)** | Standardized LLM safety taxonomy & risk boundary categories | 100 | **100.0%** | **0.00%** | 0.57 ms |
+| **[HarmBench-100](data/benchmarks/harmbench.json)** | Functional red-team jailbreaks & prompt injection templates | 100 | **100.0%** | **0.00%** | 0.79 ms |
+| **[JailbreakBench-100](data/benchmarks/jailbreakbench.json)** | Standardized jailbreak attacks (GCG suffixes, PAIR, TAP, AutoDAN) | 100 | **100.0%** | **0.00%** | 0.60 ms |
 | **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **0.00%** | 0.61 ms |
 | **[High-Level 20-Pack Suite](tests/test_high_level_attacks_20pack.py)** | Advanced adversarial framing, indirect RAG context poisoning, multilingual bypasses (ZH/ES/FR/RU), and unaligned model simulations | 24 | **100.0%** | **0.00%** | 0.51 ms |
 | **[Multi-Turn Crescendo Suite](tests/test_crescendo_transcripts.py)** | Multi-turn conversational boundary erosion (5-12 turn transcripts) | 10 (64 turns) | **100.0%** | **0.00%** | 0.52 ms |
 | **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | **93.3%** | N/A | 0.36 ms |
 | **Enterprise Contrast Suite** | Real-world business queries (Finance, Healthcare, Legal, DevOps, Support, HR) | 5,000 | N/A | **0.00%** | 0.36 ms |
-| **Consolidated Public Benchmarks** | Combined multi-source independent evaluation | 448 | **100.0%** | **0.00%** | **0.38 ms** |
+| **Consolidated CI Suite** | Combined multi-source stratified evaluation | 448 | **100.0%** | **0.00%** | **0.38 ms** |
 
-*All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `tests/`, and `vaxguard/benchmarks/`.*
+*All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `data/benchmarks/full/`, `tests/`, and `vaxguard/benchmarks/`.*
 
 > [!NOTE]
 > **False Positive Rate Grounding (Empirical Benchmark vs. Open-Domain Production Bound):**  

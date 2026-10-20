@@ -154,18 +154,19 @@ class InoculationEngine:
         }
 
         output_path = self.rules_directory / target_file
-        existing_data = {"version": "1.0", "rules": []}
+        existing_data: Dict[str, Any] = {"version": "1.0", "rules": []}
 
         if output_path.exists():
             try:
                 with open(output_path, "r", encoding="utf-8") as f:
                     content = yaml.safe_load(f)
-                    if isinstance(content, dict) and "rules" in content:
+                    if isinstance(content, dict) and "rules" in content and isinstance(content["rules"], list):
                         existing_data = content
             except Exception as e:
                 logger.warning(f"Could not read existing {output_path}: {e}")
 
-        existing_data["rules"].append(rule_dict)
+        if isinstance(existing_data.get("rules"), list):
+            existing_data["rules"].append(rule_dict)
 
         with open(output_path, "w", encoding="utf-8") as f:
             yaml.dump(existing_data, f, sort_keys=False)
@@ -176,11 +177,14 @@ class InoculationEngine:
             category=category,
             action=GuardrailAction.BLOCK,
             threshold=0.65,
-            description=rule_dict["description"],
             regex_patterns=[regex_pat],
             exact_phrases=exact_phrases,
             lexical_exemplars=[prompt],
-            semantic_exemplars=rule_dict["semantic_exemplars"],
+            semantic_exemplars=(
+                [str(x) for x in rule_dict["semantic_exemplars"]]
+                if "semantic_exemplars" in rule_dict and isinstance(rule_dict["semantic_exemplars"], (list, tuple))
+                else [f"Adversarial vector targeting {category}"]
+            ),
         )
         self.matcher.register_pattern(pattern)
 

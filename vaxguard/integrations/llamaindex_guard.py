@@ -167,9 +167,9 @@ class VaxGuardNodePostprocessor(BaseNodePostprocessor):
         if isinstance(item, dict):
             node_id = str(item.get("node_id", item.get("id", "node_dict")))
             if "node" in item and isinstance(item["node"], dict):
-                text = item["node"].get("text", str(item["node"]))
+                text = str(item["node"].get("text", str(item["node"])))
                 return text, item["node"], node_id
-            text = item.get("text", item.get("content", str(item)))
+            text = str(item.get("text") or item.get("content") or str(item))
             return text, item, node_id
 
         return str(item), item, "node_primitive"

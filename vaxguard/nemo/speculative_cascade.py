@@ -310,8 +310,10 @@ class SpeculativeSemanticCascade:
             if speculative_llm_judge is not None:
                 judge_coro = speculative_llm_judge(prompt)
             elif isinstance(getattr(self.judge_router, "judge", None), AsyncModelJudge):
+                model_judge = self.judge_router.judge
+                assert isinstance(model_judge, AsyncModelJudge)
                 async def _model_judge_call(p: str) -> bool:
-                    v = await self.judge_router.judge.evaluate_async(p)
+                    v = await model_judge.evaluate_async(p)
                     return v.is_malicious
                 judge_coro = _model_judge_call(prompt)
 

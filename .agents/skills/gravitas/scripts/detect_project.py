@@ -5,7 +5,6 @@ Detects the project language and discovers project-declared validators
 (see gravitas_verify). Never assumes toolchains from language alone.
 """
 import json
-import os
 import sys
 from pathlib import Path
 

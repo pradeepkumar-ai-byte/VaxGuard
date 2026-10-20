@@ -52,7 +52,7 @@ class ImmuneMemoryManager:
                     session.add(event_entry)
                     await session.flush()
                     logger.info(f"Recorded anomaly event #{event_entry.id} (Score: {report.anomaly_score})")
-                    return event_entry.id
+                    return int(event_entry.id)
         except Exception as e:
             logger.error(f"Failed to record anomaly event to database: {e}")
             return -1
@@ -75,7 +75,7 @@ class ImmuneMemoryManager:
                         "id": log.id,
                         "event_type": log.event_type,
                         "latency_ms": log.latency_ms,
-                        "details": json.loads(log.details) if log.details else {},
+                        "details": json.loads(str(log.details)) if log.details else {},
                         "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                     }
                     for log in logs

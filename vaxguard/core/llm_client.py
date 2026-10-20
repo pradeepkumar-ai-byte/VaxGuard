@@ -160,8 +160,8 @@ class VaxGuardLLM:
     the global engine_state for provider/model/key selection.
     """
 
-    def __init__(self, model: str = None, provider: str = None,
-                 api_key: str = None, base_url: str = None):
+    def __init__(self, model: Optional[str] = None, provider: Optional[str] = None,
+                 api_key: Optional[str] = None, base_url: Optional[str] = None):
         snap = engine_state.snapshot()
         self.provider = provider or snap["provider"]
         self.model = model or snap["model"]
@@ -174,7 +174,7 @@ class VaxGuardLLM:
             return self._explicit_key
 
         catalog = PROVIDER_CATALOG.get(self.provider, {})
-        env_key = catalog.get("env_key", "")
+        env_key = str(catalog.get("env_key", ""))
 
         # For Groq, use the existing round-robin key manager
         if self.provider == "groq":
@@ -193,7 +193,7 @@ class VaxGuardLLM:
         if self._explicit_base_url:
             return self._explicit_base_url
         catalog = PROVIDER_CATALOG.get(self.provider, {})
-        return catalog.get("base_url", "https://api.openai.com/v1")
+        return str(catalog.get("base_url", "https://api.openai.com/v1"))
 
     async def generate(self, system_prompt: str, user_prompt: str,
                        max_tokens: int = 1000) -> str:

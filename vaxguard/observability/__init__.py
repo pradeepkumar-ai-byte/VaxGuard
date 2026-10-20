@@ -8,27 +8,29 @@ and structured JSON audit logging.
 from __future__ import annotations
 
 from vaxguard.core.telemetry_otel import (
-    PrometheusRegistry,
+    MetricType,
+    PrometheusCounter,
+    PrometheusGauge,
+    PrometheusHistogram,
     Span,
-    SpanKind,
+    SpanEvent,
     SpanStatus,
     StatusCode,
-    Tracer,
-    get_meter,
-    get_tracer,
-    render_prometheus_metrics,
-    trace_guardrail_eval,
+    VaxGuardTelemetry,
+    get_telemetry,
+    reset_telemetry,
 )
 
 __all__ = [
-    "PrometheusRegistry",
+    "MetricType",
+    "PrometheusCounter",
+    "PrometheusGauge",
+    "PrometheusHistogram",
     "Span",
-    "SpanKind",
+    "SpanEvent",
     "SpanStatus",
     "StatusCode",
-    "Tracer",
-    "get_meter",
-    "get_tracer",
-    "render_prometheus_metrics",
-    "trace_guardrail_eval",
+    "VaxGuardTelemetry",
+    "get_telemetry",
+    "reset_telemetry",
 ]

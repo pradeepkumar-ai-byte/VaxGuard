@@ -182,12 +182,18 @@ async def generate(req: GenerateRequest):
     _metrics["generations_total"] += 1
 
     t0 = time.perf_counter()
-    resp_text = await _rails.generate_async(prompt=req.prompt, context=req.context)
+    ctx_dict = {"context": req.context} if req.context else None
+    raw_resp = await _rails.generate_async(prompt=req.prompt, context=ctx_dict)
+    resp_text = raw_resp if isinstance(raw_resp, str) else str(raw_resp.get("content", str(raw_resp)))
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
 
-    is_blocked = "I cannot fulfill this request" in resp_text or "blocked" in resp_text.lower()
     explain_info = _rails.explain()
-    is_blocked = explain_info.status in ("input_blocked", "output_blocked") or "decline to execute" in resp_text.lower()
+    is_blocked = (
+        "I cannot fulfill this request" in resp_text
+        or "blocked" in resp_text.lower()
+        or explain_info.status in ("input_blocked", "output_blocked")
+        or "decline to execute" in resp_text.lower()
+    )
     if is_blocked:
         _metrics["blocks_total"] += 1
 

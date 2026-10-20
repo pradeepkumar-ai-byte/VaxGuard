@@ -258,8 +258,8 @@ class OpenAIAdapter(BaseLLMAdapter):
         }
 
         try:
-            with httpx.Client(timeout=self.timeout) as client:
-                res = client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
+            with httpx.Client(timeout=self.timeout) as http_client:
+                res = http_client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["choices"][0]["message"]["content"]
@@ -306,8 +306,8 @@ class OpenAIAdapter(BaseLLMAdapter):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                res = await client.post(
+            async with httpx.AsyncClient(timeout=self.timeout) as http_async_client:
+                res = await http_async_client.post(
                     f"{self.base_url}/chat/completions", headers=headers, json=payload
                 )
                 res.raise_for_status()
@@ -393,7 +393,7 @@ class AnthropicAdapter(BaseLLMAdapter):
                 logger.warning(f"Anthropic SDK call failed: {e}. Falling back to httpx.")
 
         headers = {
-            "x-api-key": self.api_key,
+            "x-api-key": str(self.api_key or ""),
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
         }
@@ -407,8 +407,8 @@ class AnthropicAdapter(BaseLLMAdapter):
             payload["system"] = system_prompt
 
         try:
-            with httpx.Client(timeout=self.timeout) as client:
-                res = client.post(f"{self.base_url}/messages", headers=headers, json=payload)
+            with httpx.Client(timeout=self.timeout) as http_client:
+                res = http_client.post(f"{self.base_url}/messages", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["content"][0]["text"]
@@ -450,7 +450,7 @@ class AnthropicAdapter(BaseLLMAdapter):
                 logger.warning(f"Anthropic Async SDK call failed: {e}. Falling back to httpx.")
 
         headers = {
-            "x-api-key": self.api_key,
+            "x-api-key": str(self.api_key or ""),
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
         }
@@ -464,8 +464,8 @@ class AnthropicAdapter(BaseLLMAdapter):
             payload["system"] = system_prompt
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                res = await client.post(f"{self.base_url}/messages", headers=headers, json=payload)
+            async with httpx.AsyncClient(timeout=self.timeout) as http_async_client:
+                res = await http_async_client.post(f"{self.base_url}/messages", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["content"][0]["text"]
@@ -542,8 +542,8 @@ class GroqAdapter(BaseLLMAdapter):
         }
 
         try:
-            with httpx.Client(timeout=self.timeout) as client:
-                res = client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
+            with httpx.Client(timeout=self.timeout) as http_client:
+                res = http_client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["choices"][0]["message"]["content"]
@@ -590,8 +590,8 @@ class GroqAdapter(BaseLLMAdapter):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                res = await client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
+            async with httpx.AsyncClient(timeout=self.timeout) as http_async_client:
+                res = await http_async_client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["choices"][0]["message"]["content"]
@@ -648,8 +648,8 @@ class MistralAdapter(BaseLLMAdapter):
         }
 
         try:
-            with httpx.Client(timeout=self.timeout) as client:
-                res = client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
+            with httpx.Client(timeout=self.timeout) as http_client:
+                res = http_client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["choices"][0]["message"]["content"]
@@ -677,8 +677,8 @@ class MistralAdapter(BaseLLMAdapter):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                res = await client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
+            async with httpx.AsyncClient(timeout=self.timeout) as http_async_client:
+                res = await http_async_client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["choices"][0]["message"]["content"]
@@ -735,8 +735,8 @@ class LocalLlamaAdapter(BaseLLMAdapter):
         }
 
         try:
-            with httpx.Client(timeout=self.timeout) as client:
-                res = client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
+            with httpx.Client(timeout=self.timeout) as http_client:
+                res = http_client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["choices"][0]["message"]["content"]
@@ -764,8 +764,8 @@ class LocalLlamaAdapter(BaseLLMAdapter):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                res = await client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
+            async with httpx.AsyncClient(timeout=self.timeout) as http_async_client:
+                res = await http_async_client.post(f"{self.base_url}/chat/completions", headers=headers, json=payload)
                 res.raise_for_status()
                 data = res.json()
                 content = data["choices"][0]["message"]["content"]

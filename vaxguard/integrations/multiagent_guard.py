@@ -688,7 +688,7 @@ class AgentSwarmFirewall:
             return ToolExecutionRequest(
                 agent_id=str(req.get("agent_id", req.get("sender_id", "unknown"))),
                 tool_name=str(req.get("tool_name", req.get("name", "unknown"))),
-                arguments=req.get("arguments", req.get("args", {})),
+                arguments=req.get("arguments") or req.get("args") or {},
                 trace_id=str(req.get("trace_id", "default_swarm")),
                 call_id=req.get("call_id"),
                 metadata=req.get("metadata", {}),
@@ -696,7 +696,7 @@ class AgentSwarmFirewall:
         return ToolExecutionRequest(
             agent_id=str(getattr(req, "agent_id", "unknown")),
             tool_name=str(getattr(req, "tool_name", getattr(req, "name", "unknown"))),
-            arguments=getattr(req, "arguments", getattr(req, "args", {})),
+            arguments=getattr(req, "arguments", None) or getattr(req, "args", None) or {},
             trace_id=str(getattr(req, "trace_id", "default_swarm")),
             metadata=getattr(req, "metadata", {}),
         )

@@ -703,7 +703,7 @@ class LLMRails:
 
     def register_action(self, action: Callable[..., Any], name: Optional[str] = None) -> None:
         """Register a custom action handler into the engine."""
-        act_name = name or getattr(action, "__name__", str(action))
+        act_name = str(name or getattr(action, "__name__", str(action)))
         self.engine.action_registry.register(act_name, action)
         self.engine.flow_manager.register_action(act_name, action)
 
@@ -774,7 +774,7 @@ class LLMRails:
 
         # Output rail evaluation
         out_res = self.engine.evaluate_output_rails(str(raw_output), context=context)
-        final_content = out_res.redacted_content or (out_res.bot_response if not out_res.allowed else str(raw_output))
+        final_content = (out_res.redacted_content or (out_res.bot_response if not out_res.allowed else str(raw_output))) or ""
         tot_lat = (time.perf_counter() - t0) * 1000.0
 
         self._explain_info = ExplainInfo(

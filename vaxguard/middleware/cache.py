@@ -1,10 +1,11 @@
 import asyncio
-from typing import List
+from typing import List, Any
 from cachetools import TTLCache
 from sqlalchemy import select
 from vaxguard.db.session import AsyncSessionLocal
 from vaxguard.db.models import VaccineTable
 from vaxguard.models.vaccine import Vaccine
+from vaxguard.models.attack import AttackCategory
 from vaxguard.core.logger import get_logger
 
 logger = get_logger("VaccineCache")
@@ -15,7 +16,7 @@ class VaccineCacheManager:
     to the middleware without hitting the database on every request.
     """
     def __init__(self, ttl_seconds: int = 300, max_size: int = 100):
-        self._cache = TTLCache(maxsize=max_size, ttl=ttl_seconds)
+        self._cache: TTLCache[str, Any] = TTLCache(maxsize=max_size, ttl=ttl_seconds)
         self._lock = asyncio.Lock()
 
     async def get_active_vaccines(self) -> List[Vaccine]:
@@ -42,11 +43,11 @@ class VaccineCacheManager:
                 
                 return [
                     Vaccine(
-                        id=v.id,
-                        target_category=v.target_category,
-                        system_prompt_extension=v.system_prompt_extension,
-                        version=v.version,
-                        parent_attack_id=v.parent_attack_id
+                        id=str(v.id),
+                        target_category=v.target_category if isinstance(v.target_category, AttackCategory) else AttackCategory(v.target_category),
+                        system_prompt_extension=str(v.system_prompt_extension),
+                        version=int(v.version),
+                        parent_attack_id=str(v.parent_attack_id) if v.parent_attack_id else None
                     ) for v in db_vaccines
                 ]
         except Exception as e:

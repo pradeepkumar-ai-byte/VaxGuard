@@ -1,14 +1,16 @@
 from datetime import datetime, timezone
+from typing import Any
 from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text, Enum as SQLEnum
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 from vaxguard.models.attack import AttackCategory
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 class VaccineTable(Base):
     __tablename__ = 'vaccines'
     id = Column(String, primary_key=True, index=True)
-    target_category = Column(SQLEnum(AttackCategory), nullable=False)
+    target_category: Column[Any] = Column(SQLEnum(AttackCategory), nullable=False)
     system_prompt_extension = Column(Text, nullable=False)
     version = Column(Integer, default=1)
     parent_attack_id = Column(String, index=True)

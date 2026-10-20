@@ -453,7 +453,7 @@ class ColangParser:
                 return
 
             canonical = normalize_name(current_name)
-            meta = {"decorators": list(current_decorators)} if current_decorators else {}
+            meta: Dict[str, Any] = {"decorators": list(current_decorators)} if current_decorators else {}
             if current_block_type == "user":
                 doc.user_intents[current_name] = UserIntent(
                     name=current_name,

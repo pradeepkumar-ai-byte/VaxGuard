@@ -161,7 +161,10 @@ class LLMRails:
     @property
     def matcher(self) -> TriHybridMatcher:
         """Return the underlying TriHybridMatcher."""
-        return getattr(self.engine, "hybrid_matcher", getattr(self.engine, "matcher", None))
+        m = getattr(self.engine, "hybrid_matcher", getattr(self.engine, "matcher", None))
+        if isinstance(m, TriHybridMatcher):
+            return m
+        return self.engine.hybrid_matcher
 
     def register_action(self, action: Callable[..., Any], name: Optional[str] = None) -> None:
         """Register a custom action handler into the engine and flow manager.
@@ -170,7 +173,7 @@ class LLMRails:
             action: Python callable (sync or async) executing the action.
             name: Optional action name identifier. If None, uses action.__name__.
         """
-        act_name = name or getattr(action, "__name__", str(action))
+        act_name = str(name or getattr(action, "__name__", str(action)))
         self.engine.action_registry.register(act_name, action)
         self.engine.flow_manager.register_action(act_name, action)
         if self.verbose:
@@ -293,6 +296,7 @@ class LLMRails:
         final_content = (
             out_res.redacted_content
             or (out_res.bot_response if not out_res.allowed else str(raw_output))
+            or ""
         )
 
         status = "allowed"

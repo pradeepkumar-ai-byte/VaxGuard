@@ -154,7 +154,7 @@ _MULTILINGUAL_EVASION_MAP = {
     "rivelare": "reveal", "rivela": "reveal", "istruzioni": "instructions", "regole": "rules",
     "precedenti": "previous", "disattivare": "disable", "tutte": "all", "tutti": "all",
     # Portuguese
-    "esquecer": "forget", "esquece": "forget", "substituir": "override", "revelar": "reveal",
+    "esquecer": "forget", "esquece": "forget", "substituir": "override",
     "revele": "reveal", "instrucoes": "instructions", "diretrizes": "guidelines", "desativar": "disable",
     # Dutch
     "negeer": "ignore", "negeren": "ignore", "vergeet": "forget", "omzeilen": "bypass",
@@ -1195,12 +1195,14 @@ class HeuristicMatcher:
         self._unicode_rules: Set[int] = set()
         self._catchall_rule_indices: Set[int] = set()
         for rule_def in self.DEFAULT_HEURISTIC_RULES:
+            act_val = rule_def.get("action")
+            action_enum = act_val if isinstance(act_val, GuardrailAction) else GuardrailAction.BLOCK
             self.add_rule(
-                rule_id=rule_def["id"],
-                category=rule_def["category"],
-                regexes=rule_def["regex"],
-                exact_phrases=rule_def.get("exact", []),
-                action=rule_def.get("action", GuardrailAction.BLOCK),
+                rule_id=str(rule_def["id"]),
+                category=str(rule_def["category"]),
+                regexes=list(rule_def["regex"]),
+                exact_phrases=list(rule_def.get("exact", [])),
+                action=action_enum,
             )
 
     def add_rule(
@@ -1727,7 +1729,7 @@ class SparseLexicalMatcher:
         if not scores:
             return None
 
-        best_idx = max(scores, key=scores.get)
+        best_idx = max(scores, key=lambda k: scores[k])
         raw_score = scores[best_idx]
 
         # Normalize BM25 score into [0, 1] using logistic soft-capping

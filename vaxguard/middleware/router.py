@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Callable, Any
 from vaxguard.middleware.cache import VaccineCacheManager
 from vaxguard.telemetry.metrics import track_latency
 from vaxguard.core.logger import get_logger
@@ -38,7 +38,7 @@ class ImmuneMiddleware:
         return fortified_prompt
 
     @track_latency("middleware_roundtrip")
-    async def process_request(self, system_prompt: str, user_prompt: str, generate_callback: callable) -> str:
+    async def process_request(self, system_prompt: str, user_prompt: str, generate_callback: Callable[..., Any]) -> str:
         """
         End-to-end traffic router.
         """
