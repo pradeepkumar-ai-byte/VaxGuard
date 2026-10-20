@@ -10,16 +10,15 @@ def check():
             runs = data.get("workflow_runs", [])
             for r in runs[:3]:
                 print(f"ID: {r['id']} | SHA: {r['head_sha'][:7]} | Status: {r['status']} | Conclusion: {r['conclusion']} | Title: {r['display_title'][:50]}")
-            if runs:
-                jobs_url = f"https://api.github.com/repos/pradeepkumar-ai-byte/VaxGuard/actions/runs/{runs[0]['id']}/jobs"
-                with urllib.request.urlopen(urllib.request.Request(jobs_url, headers={"User-Agent": "Mozilla/5.0"})) as jresp:
-                    jdata = json.loads(jresp.read().decode("utf-8"))
-                    print("\nJobs for run", runs[0]['id'])
-                    for j in jdata.get("jobs", []):
-                        print(f"  {j['name']}: {j['status']} - {j['conclusion']}")
             return runs[0] if runs else None
     except urllib.error.HTTPError as e:
-        print(f"HTTPError {e.code}: {e.reason}")
+        reset_ts = e.headers.get("x-ratelimit-reset")
+        if reset_ts:
+            import datetime
+            reset_dt = datetime.datetime.fromtimestamp(int(reset_ts))
+            print(f"HTTPError {e.code}: rate limited until {reset_dt}")
+        else:
+            print(f"HTTPError {e.code}: {e.reason}")
         return None
     except Exception as e:
         print(f"Error checking CI: {e}")
