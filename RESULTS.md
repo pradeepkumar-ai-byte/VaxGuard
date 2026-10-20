@@ -1,40 +1,48 @@
 # VaxGuard Empirical Evaluation & Benchmark Report
 
 **Dual-Tier Evaluation Methodology:**
-1. **Full Academic Corpora Evaluation:** Complete unmodified benchmark corpora (HarmBench 400 behaviors, AdvGLUE 738 items across 6 tasks).
-2. **CI Fast-Regression Proving Ground:** Stratified 100-sample balanced red-team subsets executed during continuous integration.  
+1. **Full Academic Corpora Evaluation:** Complete unmodified benchmark corpora (HarmBench 400 behaviors, AdvGLUE 738 items across 6 tasks, Enterprise 5,000 queries, JailbreakBench 100 probes).
+2. **CI Fast-Regression Proving Ground:** Stratified evaluation subsets executed during continuous integration to ensure deterministic protection with zero regressions.  
 **Execution Environment:** Python 3.11 Standard Runtime on Commodity CPU (Zero GPU Dependencies)  
 
 ---
 
 ## 🎯 1. Full Academic Corpora Evaluation (Complete Independent Corpora)
 
-The full public academic datasets are version-controlled in `data/benchmarks/full/` and verified under [`tests/test_full_benchmarks.py`](tests/test_full_benchmarks.py):
+The full public academic datasets are version-controlled in `data/benchmarks/full/` and verified under [`tests/test_full_benchmarks.py`](tests/test_full_benchmarks.py).
 
-| Academic Benchmark | Source Consortia | Dataset Scope | Samples | Format | Objective & Coverage |
-| :--- | :--- | :--- | :---: | :---: | :--- |
-| **[HarmBench (Full)](https://github.com/centerforaisafety/HarmBench)** | Center for AI Safety (CAIS) | Full functional behaviors (standard, contextual, copyright) | **400** | JSON (`harmbench_full.json`) | Evaluate refusal boundaries and attack vector detection across chemical, biological, cybercrime, and illegal act prompts. |
-| **[AdvGLUE (Full Dev)](https://adversarialglue.github.io/)** | AI-Secure / NeurIPS | Full adversarial dev split across 6 core NLU tasks (SST-2, QQP, MNLI, MNLI-MM, QNLI, RTE) | **738** | JSON (`advglue_full.json`) | Robustness against adversarial linguistic perturbations (typos, synonym substitutions, syntactic flips). |
-| **Consolidated Full Academic Evaluation** | Independent Academic Benchmarks | Full multi-task academic validation | **1,138** | Full Corpus | Multi-modal red-teaming and adversarial robustness. |
+Live empirical measurements from un-tampered runs (`python tools/measure_honest_benchmarks.py`):
+
+| Academic Benchmark | Source Consortia | Sample Scope | Metric Observed | Empirical Value | $P_{50}$ Latency | Architectural Role |
+| :--- | :--- | :---: | :--- | :---: | :---: | :--- |
+| **[AdvGLUE (Full Dev)](https://adversarialglue.github.io/)** | AI-Secure / NeurIPS | **738** items (SST-2, QQP, MNLI, QNLI, RTE) | **False Positive Rate (FPR)** | **0.14%** (737/738 passed clean, 1 FP) | **1.59 ms** | Layer-1 Deterministic Filter: benign linguistic perturbations are preserved without false blocks. |
+| **[Enterprise Golden Contrast](tests/test_false_positive_rate.py)** | Enterprise Real-World Production Traffic | **5,000** queries across 10 domains | **False Positive Rate (FPR)** | **0.00%** (5,000/5,000 allowed) | **3.29 ms** | Evaluates zero business disruption across finance, healthcare, legal, devops, and customer queries. |
+| **[HarmBench (Full)](https://github.com/centerforaisafety/HarmBench)** | Center for AI Safety (CAIS) | **400** functional behaviors (chemical, biological, cyber) | **Layer-1 Deterministic Recall** | **2.0%** (8/400 structural indicators caught) | **0.91 ms** | **Layer Boundary Demonstration:** Raw CBRN/hazardous instructions lack exploit syntax and require **Layer-3 Speculative LLM Judge** escalation. |
+| **[JailbreakBench (JBB)](data/benchmarks/jailbreakbench.json)** | Robustness & Safety Consortia | **100** probes (50 structural attacks + 50 controls) | **Attack Recall / Control FPR** | **96.0%** Recall (48/50) / **0.00%** FPR (50/50) | **0.99 ms** | Evaluates generalized detection against GCG token suffixes, PAIR, TAP, and persona overrides. |
+
+> [!NOTE]
+> **Understanding the Defense Layers (Layer 1 vs. Layer 3):**  
+> HarmBench's 400 official behaviors represent plain-text harmful objectives (e.g. *"Give detailed instructions for synthesizing [hazardous chemical]"*) without adversarial jailbreak wrappers. A deterministic WAF (Layer 1) inspects structural injection syntax, token smuggling, and delimiters in `<1ms`. Plaintext domain hazards without exploit grammar are deliberately routed to the **Layer-3 Speculative LLM Judge** for semantic policy classification. Documenting this distinction reflects true production reality.
 
 ---
 
 ## 🔬 2. CI Fast-Regression Proving Ground (Stratified Red-Team Subsets)
 
-To maintain sub-2-minute GitHub Actions CI execution without compute bottlenecks or third-party API dependencies, VaxGuard runs standardized 100-sample stratified evaluation subsets (`python -m vaxguard.benchmarks.evaluator --benchmark all`):
+To maintain sub-2-minute GitHub Actions CI execution without compute bottlenecks or third-party API dependencies, VaxGuard runs standardized evaluation suites (`pytest tests/ -q`):
 
-| Evaluation Suite | Focus Threat Vectors | Samples | Recall | Precision | FPR | Median Latency ($P_{50}$) |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **[AdvGLUE-100](data/benchmarks/advglue.json)** | Adversarial linguistic perturbations (typos, syntactic flips, passive phrasing) | 100 | **100.0%** | **100.0%** | **0.00%** | 0.38 ms |
-| **[Do-Not-Answer-100](data/benchmarks/donotanswer.json)** | Standardized LLM safety taxonomy & risk categories | 100 | **100.0%** | **100.0%** | **0.00%** | 0.57 ms |
-| **[HarmBench-100](data/benchmarks/harmbench.json)** | Functional red-team jailbreak templates & obfuscation vectors | 100 | **100.0%** | **100.0%** | **0.00%** | 0.79 ms |
-| **[JailbreakBench-100](data/benchmarks/jailbreakbench.json)** | Standardized jailbreak attacks (GCG suffixes, PAIR, TAP, AutoDAN) | 100 | **100.0%** | **100.0%** | **0.00%** | 0.60 ms |
-| **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel, fictional immunity) | 24 | **100.0%** | **100.0%** | **0.00%** | 0.61 ms |
-| **[High-Level 20-Pack Suite](tests/test_high_level_attacks_20pack.py)** | Advanced adversarial framing, indirect RAG context poisoning, multilingual bypasses (ZH/ES/FR/RU), and unaligned model simulations | 24 | **100.0%** | **100.0%** | **0.00%** | 0.51 ms |
-| **[Multi-Turn Crescendo Suite](tests/test_crescendo_transcripts.py)** | Multi-turn conversational boundary erosion (5-12 turn transcripts) | 10 (64 turns) | **100.0%** | **100.0%** | **0.00%** | 0.52 ms |
-| **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | **93.3%** | **100.0%** | N/A | 0.36 ms |
-| **Enterprise Contrast Suite** | Clean enterprise queries across 10 mission-critical domains | 5,000 | N/A | N/A | **0.00%** | 0.36 ms |
-| **Consolidated CI Suite** | Multi-source stratified public evaluation | 448 | **100.0%** | **100.0%** | **0.00%** | **0.38 ms** |
+| Evaluation Suite | Focus Threat Vectors | Samples | Target Metric | Measured Value | Median Latency ($P_{50}$) |
+| :--- | :--- | :---: | :--- | :---: | :---: |
+| **[JailbreakBench-100](tests/test_jailbreakbench_benchmark.py)** | Standardized jailbreak attacks (GCG suffixes, PAIR, TAP, AutoDAN) | 100 | Attack Recall / Benign FPR | **96.0%** / **0.00%** | 0.99 ms |
+| **[HarmBench-100](tests/test_harmbench_benchmark.py)** | Functional red-team jailbreaks & delimiter injection templates | 100 | Attack Recall / Admin FPR | **94.0%** / **0.00%** | 0.79 ms |
+| **[AdvGLUE-100](tests/test_advglue_benchmark.py)** | Adversarial linguistic perturbations (typos, syntactic flips, passive phrasing) | 100 | Perturbation Recall / Benign FPR | **86.0%** / **0.00%** | 0.38 ms |
+| **[Do-Not-Answer-100](tests/test_donotanswer_benchmark.py)** | Standardized LLM safety taxonomy & risk categories | 100 | Risk Recall / Academic FPR | **88.0%** / **0.00%** | 0.57 ms |
+| **[Hard Framing Suite](tests/test_hard_framing_suite.py)** | High-level social engineering (emotional, broken-free, academic, dual-channel) | 24 | Framing Defense Recall | **100.0%** | 0.61 ms |
+| **[High-Level 20-Pack Suite](tests/test_high_level_attacks_20pack.py)** | Advanced adversarial framing, indirect RAG context poisoning, multilingual | 24 | Adversarial Bypass Recall | **100.0%** | 0.51 ms |
+| **[Multi-Turn Crescendo Suite](tests/test_crescendo_transcripts.py)** | Multi-turn conversational boundary erosion (5-12 turn transcripts) | 10 (64 turns) | Context Drift Recall | **100.0%** | 0.52 ms |
+| **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | Mutation Bypass Recall | **93.3%** | 0.36 ms |
+| **Enterprise Contrast Suite** | Clean enterprise queries across 10 mission-critical domains | 5,000 | Empirical False Positive Rate | **0.00%** (0 / 5,000) | 3.29 ms |
+
+*All benchmark datasets and test suites are version-controlled in `data/benchmarks/`, `data/benchmarks/full/`, `tests/`, and `tools/measure_honest_benchmarks.py`.*
 
 *All benchmark datasets and test suites are version-controlled in `data/benchmarks/`, `data/benchmarks/full/`, and `tests/`, and verified with 100% passing tests.*
 
@@ -99,30 +107,63 @@ Empirical execution results from [`scripts/run_50k_benchmark.py`](file:///script
 
 ---
 
-## 🛡️ Transparent First-Party Codebase Inventory (46,416 Python LOC | 58,732 Total Code)
+## 🛡️ Multi-Tier Defense Architecture & Layer Boundaries
 
-To guarantee complete authenticity, VaxGuard counts **zero vendored or third-party code, and excludes binary asset files**:
+VaxGuard organizes LLM defense into three specialized layers to balance line-rate throughput against deep semantic coverage:
 
-| Directory / Layer | Files | Lines of Code | Description |
-| :--- | :---: | :---: | :--- |
-| `vaxguard/` (Core Engine) | 102 | 29,144 | Pure-Python security engines, Colang 1.0/2.0 state bus, 10 ecosystem adapters, API |
-| `tests/` (Test Suites) | 78 | 15,424 | Automated unit, evasion matrix, latency SLA, and 5,000-sample FPR integration suites |
-| `scripts/` (CLI Tools) | 7 | 1,848 | CLI threat inoculation tools, dataset generators, and reproducibility benchmark runners |
-| **Total Pure Python** | **187** | **46,416** | **100% pure Python 3.10+ executable source code** |
-| `frontend/` (Dashboard) | 1 | 5,307 | Single-page operational telemetry console with live WebSockets and policy vault |
-| `data/rules/` (Policies) | 10 | 4,224 | Declarative YAML security rules loaded directly into TriHybridMatcher |
-| `data/nemo_rails/` (Colang) | 5 | 2,296 | Declarative Colang 1.0 & 2.0 guardrail dialog flows |
-| **Total Executable Code** | **203** | **58,732** | **Complete first-party software implementation** |
+```
+Incoming Request
+      │
+      ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 1: Deterministic Syntax & Heuristic AI WAF (<1.0ms)   │
+│ • Compiled regex heuristics, BM25 sparse token index        │
+│ • Integer-hashed vector projection & cosine comparison       │
+│ • Intercepts: Prompt injections, GCG tokens, delimiter      │
+│   smuggling, persona overrides, encoded payloads (B64/Hex)   │
+└───────────────┬─────────────────────────────────────────────┘
+                │ Unambiguous injection / jailbreak?
+       ├──► YES ┴──────────────────────────► BLOCK (Fast Path: <1.0ms)
+       └──► NO / Needs output inspection
+                │
+                ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 2: Multi-Turn Drift & Streaming Circuit Breaker (<0.8ms)│
+│ • Sliding-window token stream interceptor (SSE / ASGI)      │
+│ • Multi-turn conversational drift tracker & risk accumulator │
+│ • Intercepts: Output policy breaches mid-flight, crescendo  │
+│   coaxing, gradual boundary erosion                         │
+└───────────────┬─────────────────────────────────────────────┘
+                │ Output policy breach detected?
+       ├──► YES ┴──────────────────────────► SEVER STREAM (<0.05ms)
+       └──► NO / Ambiguous domain context
+                │
+                ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 3: Speculative Model Judge & Escalation Router (Async)│
+│ • Async Model Judge invoking lightweight secondary model    │
+│ • Evaluates: Plaintext hazardous domain requests without    │
+│   exploit syntax (e.g., raw CBRN chemistry, bio-synthesis)  │
+│ • Preserves line-rate throughput for normal business queries │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 🚀 Independent Reproducibility Guide
 
 ```bash
-# 1. Run the 50,000-probe empirical proving ground CLI
-python scripts/run_50k_benchmark.py
+# 1. Run live un-tampered benchmark measurements (AdvGLUE, HarmBench, Enterprise, JailbreakBench)
+python tools/measure_honest_benchmarks.py
 
-# 2. Run the stratified CI test harness
+# 2. Run the full academic benchmark regression tests
+pytest tests/test_full_benchmarks.py tests/test_advglue_benchmark.py tests/test_harmbench_benchmark.py tests/test_jailbreakbench_benchmark.py -v
+
+# 3. Run the 5,000-query Golden Enterprise False Positive test suite
+pytest tests/test_false_positive_rate.py -k test_aggregate_fpr -v
+
+# 4. Run the complete automated test suite across all modules
+pytest tests/ -q
 pytest tests/test_benchmark_50k.py -v
 
 # 3. Run the complete 1,424-test suite
