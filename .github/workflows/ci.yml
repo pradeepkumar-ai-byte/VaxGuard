@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies and package
       run: |
         python -m pip install --upgrade pip
-        pip install "sqlalchemy[asyncio]" greenlet pytest pytest-asyncio pytest-xdist
+        pip install "sqlalchemy[asyncio]" greenlet pytest pytest-asyncio
         pip install -r requirements.txt
         pip install -e .
 
@@ -36,14 +36,14 @@ jobs:
       run: |
         mkdir -p data/nemo_rails/rails
 
-    - name: Run Core & Benchmark Suites (Parallelized)
+    - name: Run Pytest Suite
       env:
         PYTHONPATH: .
       run: |
-        pytest -n auto --ignore=tests/test_false_positive_rate.py -q --tb=short
-
-    - name: Run 5,000-Sample False Positive Rate (FPR) Proving Ground
-      env:
-        PYTHONPATH: .
-      run: |
-        pytest tests/test_false_positive_rate.py -k test_aggregate_fpr -q --tb=short
+        pytest -v --tb=short || {
+          echo "## ❌ Test Failures Occurred" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pytest --last-failed -vv --tb=long >> $GITHUB_STEP_SUMMARY 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit 1
+        }
