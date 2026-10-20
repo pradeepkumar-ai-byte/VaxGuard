@@ -18,7 +18,7 @@ Evaluates TriHybridMatcher against 15 adversarial bypass categories (170 tests):
 14. Completion continuation (10 tests)
 15. Prompt chaining (10 tests)
 
-Known coverage gaps are documented honestly with @pytest.mark.xfail.
+Known coverage gaps and limitations are marked with @pytest.mark.xfail.
 Basic and handled variants assert result.matched is True.
 """
 

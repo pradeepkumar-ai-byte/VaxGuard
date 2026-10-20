@@ -124,7 +124,7 @@ VaxGuard employs a **dual-tier empirical evaluation methodology**:
 
 The full public academic datasets are ingested into `data/benchmarks/full/` via `python scripts/download_full_benchmarks.py` and validated under [`tests/test_full_benchmarks.py`](tests/test_full_benchmarks.py).
 
-Live empirical measurements from un-tampered runs (`python tools/measure_honest_benchmarks.py`):
+Live empirical benchmark evaluation (`python scripts/evaluate_benchmarks.py`):
 
 | Academic Benchmark | Source Consortia | Sample Scope | Metric Observed | Empirical Value | $P_{50}$ Latency | Architectural Role |
 | :--- | :--- | :---: | :--- | :---: | :---: | :--- |
@@ -155,10 +155,10 @@ To maintain sub-2-minute GitHub Actions CI execution without compute bottlenecks
 | **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | Mutation Bypass Recall | **93.3%** | 0.36 ms |
 | **Enterprise Contrast Suite** | Real-world business queries (Finance, Healthcare, Legal, DevOps, Support, HR) | 5,000 | Empirical False Positive Rate | **0.00%** (0 / 5,000) | 3.29 ms |
 
-*All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `data/benchmarks/full/`, `tests/`, and `tools/measure_honest_benchmarks.py`.*
+*All benchmark datasets and reproducible evaluation scripts are located in `data/benchmarks/`, `data/benchmarks/full/`, `tests/`, and `scripts/evaluate_benchmarks.py`.*
 
 > [!NOTE]
-> **False Positive Rate Grounding (Empirical Benchmark vs. Open-Domain Production Bound):**  
+> **False Positive Rate Analysis (Empirical Benchmark vs. Open-Domain Production Bound):**  
 > On the fixed 5,000-query Golden Enterprise suite ([`tests/test_false_positive_rate.py`](tests/test_false_positive_rate.py)), VaxGuard achieved an empirical **0.00% False Positive Rate (0 / 5,000)** across finance, healthcare, legal, code reviews, and customer support. On the independent AdvGLUE 738-item test set, the empirical rate is **0.14% FPR (1 / 738)**. In open-domain production traffic with non-standard formatting, statistical confidence bounds conservatively project an operational rate of **$<0.20\%$ FPR**.
 
 ### B. In-Distribution Rule Regression Proving Ground (50,000 Synthetic Probes)

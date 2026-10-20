@@ -11,7 +11,7 @@
 
 The full public academic datasets are version-controlled in `data/benchmarks/full/` and verified under [`tests/test_full_benchmarks.py`](tests/test_full_benchmarks.py).
 
-Live empirical measurements from un-tampered runs (`python tools/measure_honest_benchmarks.py`):
+Live empirical benchmark evaluation (`python scripts/evaluate_benchmarks.py`):
 
 | Academic Benchmark | Source Consortia | Sample Scope | Metric Observed | Empirical Value | $P_{50}$ Latency | Architectural Role |
 | :--- | :--- | :---: | :--- | :---: | :---: | :--- |
@@ -42,9 +42,7 @@ To maintain sub-2-minute GitHub Actions CI execution without compute bottlenecks
 | **Adversarial Mutation Stress** | Automated perturbations (leetspeak, zero-width, case flips, whitespace, Base64) | 30 | Mutation Bypass Recall | **93.3%** | 0.36 ms |
 | **Enterprise Contrast Suite** | Clean enterprise queries across 10 mission-critical domains | 5,000 | Empirical False Positive Rate | **0.00%** (0 / 5,000) | 3.29 ms |
 
-*All benchmark datasets and test suites are version-controlled in `data/benchmarks/`, `data/benchmarks/full/`, `tests/`, and `tools/measure_honest_benchmarks.py`.*
-
-*All benchmark datasets and test suites are version-controlled in `data/benchmarks/`, `data/benchmarks/full/`, and `tests/`, and verified with 100% passing tests.*
+*All benchmark datasets and test suites are version-controlled in `data/benchmarks/`, `data/benchmarks/full/`, `tests/`, and `scripts/evaluate_benchmarks.py`.*
 
 ---
 
@@ -153,8 +151,8 @@ Incoming Request
 ## 🚀 Independent Reproducibility Guide
 
 ```bash
-# 1. Run live un-tampered benchmark measurements (AdvGLUE, HarmBench, Enterprise, JailbreakBench)
-python tools/measure_honest_benchmarks.py
+# 1. Run the comprehensive benchmark evaluation suite (AdvGLUE, HarmBench, Enterprise, JailbreakBench)
+python scripts/evaluate_benchmarks.py
 
 # 2. Run the full academic benchmark regression tests
 pytest tests/test_full_benchmarks.py tests/test_advglue_benchmark.py tests/test_harmbench_benchmark.py tests/test_jailbreakbench_benchmark.py -v
@@ -162,10 +160,9 @@ pytest tests/test_full_benchmarks.py tests/test_advglue_benchmark.py tests/test_
 # 3. Run the 5,000-query Golden Enterprise False Positive test suite
 pytest tests/test_false_positive_rate.py -k test_aggregate_fpr -v
 
-# 4. Run the complete automated test suite across all modules
-pytest tests/ -q
+# 4. Run the 50,000-sample in-distribution regression suite
 pytest tests/test_benchmark_50k.py -v
 
-# 3. Run the complete 1,424-test suite
+# 5. Run the complete test suite
 pytest tests/ -q
 ```
