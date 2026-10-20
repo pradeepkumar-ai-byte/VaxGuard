@@ -1,6 +1,5 @@
 import urllib.request
 import json
-import time
 
 def check():
     url = "https://api.github.com/repos/pradeepkumar-ai-byte/VaxGuard/actions/runs?per_page=3"
