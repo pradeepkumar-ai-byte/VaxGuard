@@ -3,7 +3,7 @@ rules:
   # ─── 1. Social Security Number (SSN) ──────────────────────────────────────────
   - id: "rule_compliance_ssn"
     category: "pii"
-    action: "redact"
+    action: "block"
     threshold: 0.70
     description: "Detects Social Security Number (SSN) patterns formatted with standard delimiters or explicit context markers"
     regex_patterns:
@@ -30,7 +30,7 @@ rules:
   # ─── 2. Credit Card Numbers ───────────────────────────────────────────────────
   - id: "rule_compliance_credit_card"
     category: "pii"
-    action: "redact"
+    action: "block"
     threshold: 0.70
     description: "Detects major credit and debit card number patterns (Visa, MasterCard, AmEx, Discover) with delimiter variations"
     regex_patterns:
@@ -58,7 +58,7 @@ rules:
   # ─── 3. API Key / Secret Token Leakage ────────────────────────────────────────
   - id: "rule_compliance_api_keys"
     category: "secret_leakage"
-    action: "redact"
+    action: "block"
     threshold: 0.68
     description: "Detects exposed API keys and secret tokens including OpenAI, AWS access keys, GitHub tokens, and Anthropic keys"
     regex_patterns:
@@ -85,7 +85,7 @@ rules:
   # ─── 4. Private Key Material ──────────────────────────────────────────────────
   - id: "rule_compliance_private_keys"
     category: "secret_leakage"
-    action: "redact"
+    action: "block"
     threshold: 0.70
     description: "Detects private cryptographic key material including RSA, EC, OpenSSH, and PGP private key headers and blocks"
     regex_patterns:
@@ -112,7 +112,7 @@ rules:
   # ─── 5. Bearer Token / OAuth Token Exposure ───────────────────────────────────
   - id: "rule_compliance_bearer_tokens"
     category: "secret_leakage"
-    action: "redact"
+    action: "block"
     threshold: 0.68
     description: "Detects Bearer authentication headers, signed JWT strings, and OAuth 2.0 access/refresh token exposures"
     regex_patterns:
@@ -138,7 +138,7 @@ rules:
   # ─── 6. Medical Record Number (MRN) ───────────────────────────────────────────
   - id: "rule_compliance_mrn"
     category: "hipaa"
-    action: "redact"
+    action: "block"
     threshold: 0.69
     description: "Detects Medical Record Numbers (MRN) and institutional patient identifiers in clinical health records"
     regex_patterns:
@@ -164,7 +164,7 @@ rules:
   # ─── 7. National Provider Identifier (NPI) ────────────────────────────────────
   - id: "rule_compliance_npi"
     category: "hipaa"
-    action: "redact"
+    action: "block"
     threshold: 0.68
     description: "Detects 10-digit National Provider Identifier (NPI) numbers identifying healthcare clinicians and healthcare organizations"
     regex_patterns:
@@ -190,7 +190,7 @@ rules:
   # ─── 8. DEA Registration Number Patterns ──────────────────────────────────────
   - id: "rule_compliance_dea_number"
     category: "hipaa"
-    action: "redact"
+    action: "block"
     threshold: 0.70
     description: "Detects Drug Enforcement Administration (DEA) registration numbers authorizing controlled substance prescribing"
     regex_patterns:
@@ -216,7 +216,7 @@ rules:
   # ─── 9. Date of Birth in Leakage Contexts ─────────────────────────────────────
   - id: "rule_compliance_dob_leakage"
     category: "pii"
-    action: "redact"
+    action: "block"
     threshold: 0.67
     description: "Detects individual and patient Date of Birth (DOB) in explicit identity and clinical context markers"
     regex_patterns:
@@ -242,7 +242,7 @@ rules:
   # ─── 10. Health Plan Beneficiary Number ────────────────────────────────────────
   - id: "rule_compliance_health_plan_beneficiary"
     category: "hipaa"
-    action: "redact"
+    action: "block"
     threshold: 0.68
     description: "Detects Medicare Beneficiary Identifiers (MBI), Health Insurance Claim Numbers (HICN), and health plan policy numbers"
     regex_patterns:
@@ -268,7 +268,7 @@ rules:
   # ─── 11. ICD-10 / CPT Code Leakage in Patient Context ─────────────────────────
   - id: "rule_compliance_icd_cpt_leakage"
     category: "hipaa"
-    action: "redact"
+    action: "block"
     threshold: 0.69
     description: "Detects diagnostic ICD-10 and procedural CPT medical billing codes exposed in identifiable patient health contexts"
     regex_patterns:
@@ -494,7 +494,7 @@ rules:
   # ─── 19. Phone Number Pattern Leakage with Context ────────────────────────────
   - id: "rule_compliance_phone_leakage"
     category: "pii"
-    action: "redact"
+    action: "block"
     threshold: 0.66
     description: "Detects telephone numbers exposed in sensitive identity, patient, or confidential customer context markers"
     regex_patterns:
@@ -520,7 +520,7 @@ rules:
   # ─── 20. Internal IP Address / Hostname Exposure ──────────────────────────────
   - id: "rule_compliance_internal_ip_hostname"
     category: "compliance"
-    action: "redact"
+    action: "block"
     threshold: 0.67
     description: "Detects internal private network IP addresses (RFC 1918) and intranet corporate hostnames exposed in logs or outputs"
     regex_patterns:
@@ -547,7 +547,7 @@ rules:
   # ─── 21. Passport Number Leakage ──────────────────────────────────────────────
   - id: "rule_compliance_passport_number"
     category: "pii"
-    action: "redact"
+    action: "block"
     threshold: 0.69
     description: "Detects United States and international passport numbers in identity verification and travel record contexts"
     regex_patterns:

@@ -10,6 +10,14 @@ def check():
             runs = data.get("workflow_runs", [])
             for r in runs[:3]:
                 print(f"ID: {r['id']} | SHA: {r['head_sha'][:7]} | Status: {r['status']} | Conclusion: {r['conclusion']} | Title: {r['display_title'][:50]}")
+            if runs:
+                jobs_url = f"https://api.github.com/repos/pradeepkumar-ai-byte/VaxGuard/actions/runs/{runs[0]['id']}/jobs"
+                j_req = urllib.request.Request(jobs_url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(j_req) as j_resp:
+                    j_data = json.loads(j_resp.read().decode("utf-8"))
+                    for j in j_data.get('jobs', []):
+                        failed_step = next((s['name'] for s in j.get('steps', []) if s.get('conclusion') == 'failure'), None)
+                        print(f"  --> Job: {j['name']} | ID: {j['id']} | Failed Step: {failed_step} | Conclusion: {j['conclusion']}")
             return runs[0] if runs else None
     except urllib.error.HTTPError as e:
         reset_ts = e.headers.get("x-ratelimit-reset")

@@ -15,6 +15,7 @@ and universal multi-provider LLM protection.
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 from enum import Enum
 from pathlib import Path
@@ -357,6 +358,16 @@ class HyperEngine:
                 confidence=match.confidence,
                 metadata={"rule_id": match.rule_id, "engine": match.engine_type.value},
             )
+
+        # 3. Mask output leakage of sensitive keys and credentials
+        if "sk-" in bot_response or "AKIA" in bot_response:
+            redacted = re.sub(r"(?:sk-proj-|sk-ant-|sk-)[a-zA-Z0-9_\-]{20,}", "[REDACTED_API_KEY]", bot_response)
+            if redacted != bot_response:
+                return RailCheckResult(
+                    allowed=True,
+                    redacted_content=redacted,
+                    triggered_flow="redact_api_key_output",
+                )
 
         return RailCheckResult(allowed=True)
 

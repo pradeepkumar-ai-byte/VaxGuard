@@ -425,6 +425,17 @@ def _decode_hex_payloads(text: str) -> List[str]:
 
     # 2. 0x hex numbers (e.g. 0x63, 0x61, 0x74 or [0x63, 0x61, ...])
     if "0x" in text:
+        # In-place reconstruction for composite payloads (e.g. [0x63, 0x61, ..., 0x70asswd])
+        try:
+            in_place = re.sub(r"0x([0-9a-fA-F]{1,2})", lambda m: chr(int(m.group(1), 16)), text)
+            cand = in_place.replace("[", "").replace("]", "").replace("'", "").replace('"', "")
+            cand = re.sub(r"\s*,\s*", "", cand).strip()
+            if len(cand) >= 3 and cand not in seen:
+                seen.add(cand)
+                decoded_strings.append(cand)
+        except Exception:
+            pass
+
         matches = re.findall(r"(?:0x[0-9a-fA-F]{1,2}(?:[\s,]+0x[0-9a-fA-F]{1,2}){2,})", text)
         for m in matches:
             hex_nums = [int(h, 16) for h in re.findall(r"0x([0-9a-fA-F]{1,2})\b", m)]
@@ -1339,17 +1350,12 @@ class HeuristicMatcher:
                 candidate_indices.update(self._inverted_triggers[t])
 
         has_unicode = ("\\u" in text_lower or "\\x" in text_lower or any(ord(c) > 127 for c in text))
-        has_digits = bool(re.search(r"\d{3,}", text))
-        has_delims = any(d in text_lower or d in norm_lower for d in _SPECIAL_DELIMITERS)
 
         # 3. Fast Regex & Substring Scan across candidates only
         for rule_idx in sorted(candidate_indices):
             if rule_idx in self._unicode_rules and not has_unicode:
                 continue
-            if rule_idx in self._digit_rules and not has_digits:
-                continue
-            if rule_idx in self._delimiter_rules and not has_delims:
-                continue
+
             rule = self._compiled_rules[rule_idx]
             # Substring exact check first
             for phrase in rule["exact_phrases"]:
