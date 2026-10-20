@@ -48,7 +48,10 @@ class SpeculativeSignatureCache:
         """
         Compute an ultra-fast 64-bit cryptographic digest of input text.
         Executes in ~0.001ms in pure standard library C-extension.
+        Caps raw input to 32KB to eliminate algorithmic DoS hashing attacks.
         """
+        if len(text) > 32768:
+            text = text[:32768]
         return hashlib.blake2b(text.encode("utf-8", errors="ignore"), digest_size=8).hexdigest()
 
     def get_verdict(self, prompt: str) -> Optional[MatchResult]:

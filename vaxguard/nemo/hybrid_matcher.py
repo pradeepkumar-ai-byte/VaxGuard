@@ -33,6 +33,9 @@ from vaxguard.core.logger import get_logger
 
 logger = get_logger("HybridMatcher")
 
+# Physical payload ceiling to prevent Algorithmic Denial-of-Service (ReDoS) and memory exhaustion
+MAX_RAW_PAYLOAD_CHARS: int = 32768
+
 
 # ─── Data Structures ───────────────────────────────────────────────────────────
 
@@ -1178,7 +1181,7 @@ class HeuristicMatcher:
             "id": "heur_injection_multilingual_switching",
             "category": "prompt_injection",
             "regex": [
-                r"(?i)\b(?:ignorer?|ignorar?|vergiss(?:en)?|dimenticare?|esquecer?|negeer(?:en)?)\s+(?:all\s+|todas?\s+|toutes?\s+|alle\s+|tutte\s+|tous\s+)?(?:previous|anteriores?|precedentes?|vorherigen?|precedenti|vorige)?\s*(?:instructions?|directrices?|regles?|anweisungen|istruzioni|instrucoes|instructies)\b",
+                r"(?i)\b(?:ignorer?|ignorar?|vergiss(?:en)?|dimenticare?|esquecer?|negeer(?:en)?)\s+(?:(?:all|todas?|toutes?|alle|tutte|tous)\s+)?(?:(?:previous|anteriores?|precedentes?|vorherigen?|precedenti|vorige)\s+)?(?:instructions?|directrices?|regles?|anweisungen|istruzioni|instrucoes|instructies)\b",
                 r"(?i)\b(?:contourner?|burlar?|omzeilen?|umgehen)\s+(?:all\s+)?(?:guardrails?|filters?|filtres?|reglas?|regeln?)\b",
             ],
             "exact": [],
@@ -1289,7 +1292,11 @@ class HeuristicMatcher:
     ) -> Optional[MatchResult]:
         """Evaluate text against exact phrases and compiled regexes."""
         t0 = time.perf_counter()
+        if len(text) > MAX_RAW_PAYLOAD_CHARS:
+            text = text[:MAX_RAW_PAYLOAD_CHARS]
         normalized = normalized_text if normalized_text is not None else normalize_adversarial_text(text)
+        if len(normalized) > MAX_RAW_PAYLOAD_CHARS:
+            normalized = normalized[:MAX_RAW_PAYLOAD_CHARS]
         if not normalized:
             return None
 
@@ -1331,8 +1338,18 @@ class HeuristicMatcher:
             if t in self._inverted_triggers:
                 candidate_indices.update(self._inverted_triggers[t])
 
+        has_unicode = ("\\u" in text_lower or "\\x" in text_lower or any(ord(c) > 127 for c in text))
+        has_digits = bool(re.search(r"\d{3,}", text))
+        has_delims = any(d in text_lower or d in norm_lower for d in _SPECIAL_DELIMITERS)
+
         # 3. Fast Regex & Substring Scan across candidates only
         for rule_idx in sorted(candidate_indices):
+            if rule_idx in self._unicode_rules and not has_unicode:
+                continue
+            if rule_idx in self._digit_rules and not has_digits:
+                continue
+            if rule_idx in self._delimiter_rules and not has_delims:
+                continue
             rule = self._compiled_rules[rule_idx]
             # Substring exact check first
             for phrase in rule["exact_phrases"]:
@@ -1355,7 +1372,8 @@ class HeuristicMatcher:
             for reg in rule["regexes"]:
                 m = reg.search(normalized)
                 if not m and text != normalized:
-                    m = reg.search(text)
+                    raw_eval = re.sub(r"[ \t]{3,}", " ", text) if "   " in text else text
+                    m = reg.search(raw_eval)
                 if m:
                     matched_str = m.group(0)
                     latency = (time.perf_counter() - t0) * 1000.0
@@ -1706,6 +1724,8 @@ class SparseLexicalMatcher:
     ) -> Optional[MatchResult]:
         """Compute BM25 score against indexed exemplars in sub-0.1ms."""
         t0 = time.perf_counter()
+        if len(query) > MAX_RAW_PAYLOAD_CHARS:
+            query = query[:MAX_RAW_PAYLOAD_CHARS]
         num_docs = len(self.documents)
         if num_docs == 0:
             return None
@@ -1794,6 +1814,8 @@ class FastLocalEmbedder:
 
     def embed(self, text: str) -> np.ndarray:
         """Embed text string into a normalized 384-d dense vector in < 0.05ms."""
+        if len(text) > 8192:
+            text = text[:8192]
         norm_text = normalize_adversarial_text(text)
         if not norm_text:
             return np.zeros(self.dim, dtype=np.float32)
@@ -1889,6 +1911,8 @@ class DenseSemanticVectorMatcher:
     def match(self, query: str, threshold: float = 0.70) -> Optional[MatchResult]:
         """Compute cosine similarity via matrix dot product in < 0.15ms."""
         t0 = time.perf_counter()
+        if len(query) > MAX_RAW_PAYLOAD_CHARS:
+            query = query[:MAX_RAW_PAYLOAD_CHARS]
         if self.embeddings_matrix is None or len(self.doc_texts) == 0:
             return None
 
@@ -2239,6 +2263,8 @@ class TriHybridMatcher:
 
         Target total latency: < 1.0ms (Well below 3.0ms requirement).
         """
+        if len(query) > MAX_RAW_PAYLOAD_CHARS:
+            query = query[:MAX_RAW_PAYLOAD_CHARS]
         # 0. Check Speculative Signature Cache for instant deflection (<0.02ms)
         cached = self.signature_cache.get_verdict(query)
         if cached is not None:
@@ -2366,6 +2392,8 @@ class TriHybridMatcher:
 
     def evaluate(self, text: str, threshold: Optional[float] = None) -> MatchResult:
         """Alias for match(text, threshold)."""
+        if len(text) > MAX_RAW_PAYLOAD_CHARS:
+            text = text[:MAX_RAW_PAYLOAD_CHARS]
         return self.match(text, threshold=threshold)
 
 

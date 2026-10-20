@@ -448,7 +448,7 @@ rules:
     regex_patterns:
       - '(?i)[\u202E\u202D\u202A\u202B\u202C]'
       - '(?i)(?:[\u200B-\u200D\uFEFF].*?){3,}(?:ignore|override|system|prompt)'
-      - '(?i)\b(?=.*[\u200B-\u200D\uFEFF])i[\u200B-\u200D\uFEFF]*g[\u200B-\u200D\uFEFF]*n[\u200B-\u200D\uFEFF]*o[\u200B-\u200D\uFEFF]*r[\u200B-\u200D\uFEFF]*e\b'
+      - '(?i)\b(?=[^\s]*[\u200B-\u200D\uFEFF])i[\u200B-\u200D\uFEFF]*g[\u200B-\u200D\uFEFF]*n[\u200B-\u200D\uFEFF]*o[\u200B-\u200D\uFEFF]*r[\u200B-\u200D\uFEFF]*e\b'
       - '(?i)[\u202E].*?(?:noitcurtsni|rotartsinimda|metsys)'
     exact_phrases:
       - "\u202E"

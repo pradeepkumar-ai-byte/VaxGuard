@@ -25,6 +25,7 @@ import fnmatch
 import inspect
 import logging
 import re
+import threading
 import time
 import uuid
 from enum import Enum
@@ -500,6 +501,7 @@ class ScopedContext:
         self.session_id: str = session_id or f"sess_{uuid.uuid4().hex[:8]}"
         self.turn_id: int = 1
         self.event_bus = event_bus
+        self._lock = threading.RLock()
 
         self._turn_vars: Dict[str, Any] = {}
         self._session_vars: Dict[str, Any] = {}
@@ -519,105 +521,116 @@ class ScopedContext:
         return clean, default_scope
 
     def get(self, key: str, default: Any = None, scope: Optional[ScopeLevel] = None) -> Any:
-        """Retrieve variable value hierarchically or from explicit scope."""
+        """Retrieve variable value hierarchically or from explicit scope (thread-safe)."""
         parsed_name, resolved_scope = self._parse_key_scope(key, default_scope=scope or ScopeLevel.TURN)
         
-        # If explicit scope was specified or parsed via prefix:
-        if scope is not None or (key.startswith(("turn.", "session.", "global.", "$turn.", "$session.", "$global."))):
-            target_scope = resolved_scope
-            if target_scope == ScopeLevel.TURN:
-                return self._turn_vars.get(parsed_name, default)
-            elif target_scope == ScopeLevel.SESSION:
-                return self._session_vars.get(parsed_name, default)
-            elif target_scope == ScopeLevel.GLOBAL:
-                return self._global_vars.get(parsed_name, default)
+        with self._lock:
+            # If explicit scope was specified or parsed via prefix:
+            if scope is not None or (key.startswith(("turn.", "session.", "global.", "$turn.", "$session.", "$global."))):
+                target_scope = resolved_scope
+                if target_scope == ScopeLevel.TURN:
+                    return self._turn_vars.get(parsed_name, default)
+                elif target_scope == ScopeLevel.SESSION:
+                    return self._session_vars.get(parsed_name, default)
+                elif target_scope == ScopeLevel.GLOBAL:
+                    return self._global_vars.get(parsed_name, default)
 
-        # Hierarchical lookup: turn -> session -> global
-        if parsed_name in self._turn_vars:
-            return self._turn_vars[parsed_name]
-        if parsed_name in self._session_vars:
-            return self._session_vars[parsed_name]
-        if parsed_name in self._global_vars:
-            return self._global_vars[parsed_name]
-        return default
+            # Hierarchical lookup: turn -> session -> global
+            if parsed_name in self._turn_vars:
+                return self._turn_vars[parsed_name]
+            if parsed_name in self._session_vars:
+                return self._session_vars[parsed_name]
+            if parsed_name in self._global_vars:
+                return self._global_vars[parsed_name]
+            return default
 
     def set(self, key: str, value: Any, scope: ScopeLevel = ScopeLevel.TURN) -> None:
-        """Store variable into designated scope."""
+        """Store variable into designated scope (thread-safe)."""
         parsed_name, resolved_scope = self._parse_key_scope(key, default_scope=scope)
-        if resolved_scope == ScopeLevel.TURN:
-            self._turn_vars[parsed_name] = value
-        elif resolved_scope == ScopeLevel.SESSION:
-            self._session_vars[parsed_name] = value
-        elif resolved_scope == ScopeLevel.GLOBAL:
-            self._global_vars[parsed_name] = value
+        with self._lock:
+            if resolved_scope == ScopeLevel.TURN:
+                self._turn_vars[parsed_name] = value
+            elif resolved_scope == ScopeLevel.SESSION:
+                self._session_vars[parsed_name] = value
+            elif resolved_scope == ScopeLevel.GLOBAL:
+                self._global_vars[parsed_name] = value
 
     def has(self, key: str, scope: Optional[ScopeLevel] = None) -> bool:
-        """Check if variable exists."""
+        """Check if variable exists (thread-safe)."""
         return self.get(key, default=None, scope=scope) is not None
 
     def delete(self, key: str, scope: Optional[ScopeLevel] = None) -> bool:
-        """Delete variable from designated or all scopes."""
+        """Delete variable from designated or all scopes (thread-safe)."""
         parsed_name, resolved_scope = self._parse_key_scope(key, default_scope=scope or ScopeLevel.TURN)
-        deleted = False
-        if scope is not None or key.startswith(("turn.", "session.", "global.", "$")):
-            d = {
-                ScopeLevel.TURN: self._turn_vars,
-                ScopeLevel.SESSION: self._session_vars,
-                ScopeLevel.GLOBAL: self._global_vars
-            }[resolved_scope]
-            if parsed_name in d:
-                del d[parsed_name]
-                return True
-            return False
+        with self._lock:
+            if scope is not None or key.startswith(("turn.", "session.", "global.", "$")):
+                d = {
+                    ScopeLevel.TURN: self._turn_vars,
+                    ScopeLevel.SESSION: self._session_vars,
+                    ScopeLevel.GLOBAL: self._global_vars
+                }[resolved_scope]
+                if parsed_name in d:
+                    del d[parsed_name]
+                    return True
+                return False
 
-        for d in (self._turn_vars, self._session_vars, self._global_vars):
-            if parsed_name in d:
-                del d[parsed_name]
-                deleted = True
-        return deleted
+            deleted = False
+            for d in (self._turn_vars, self._session_vars, self._global_vars):
+                if parsed_name in d:
+                    del d[parsed_name]
+                    deleted = True
+            return deleted
 
     def new_turn(self) -> int:
-        """Advance dialogue turn: resets turn-scoped variables while preserving session & global."""
-        self._turn_vars.clear()
-        self.turn_id += 1
-        return self.turn_id
+        """Advance dialogue turn: resets turn-scoped variables while preserving session & global (thread-safe)."""
+        with self._lock:
+            self._turn_vars.clear()
+            self.turn_id += 1
+            return self.turn_id
 
     def snapshot(self) -> ContextSnapshot:
-        """Create a deep snapshot for potential rollback."""
-        return ContextSnapshot(
-            turn_vars=copy.deepcopy(self._turn_vars),
-            session_vars=copy.deepcopy(self._session_vars),
-            global_vars=copy.deepcopy(self._global_vars),
-            turn_id=self.turn_id,
-        )
+        """Create a deep snapshot for potential rollback (thread-safe)."""
+        with self._lock:
+            return ContextSnapshot(
+                turn_vars=copy.deepcopy(self._turn_vars),
+                session_vars=copy.deepcopy(self._session_vars),
+                global_vars=copy.deepcopy(self._global_vars),
+                turn_id=self.turn_id,
+            )
 
     def rollback(self, snapshot: ContextSnapshot) -> None:
-        """Rollback state to specified snapshot."""
-        self._turn_vars = copy.deepcopy(snapshot.turn_vars)
-        self._session_vars = copy.deepcopy(snapshot.session_vars)
-        self._global_vars = copy.deepcopy(snapshot.global_vars)
-        self.turn_id = snapshot.turn_id
+        """Rollback state to specified snapshot (thread-safe)."""
+        with self._lock:
+            self._turn_vars = copy.deepcopy(snapshot.turn_vars)
+            self._session_vars = copy.deepcopy(snapshot.session_vars)
+            self._global_vars = copy.deepcopy(snapshot.global_vars)
+            self.turn_id = snapshot.turn_id
 
     def create_child_context(self) -> ScopedContext:
-        """Create a child ScopedContext sharing session and global scopes with isolated local turn scope."""
-        child = ScopedContext(
-            session_id=self.session_id,
-            event_bus=self.event_bus,
-            global_vars=self._global_vars,
-        )
-        child._session_vars = self._session_vars
-        child._turn_vars = copy.deepcopy(self._turn_vars)
-        child.turn_id = self.turn_id
-        return child
+        """Create a child ScopedContext sharing session and global scopes with isolated local turn scope (thread-safe)."""
+        with self._lock:
+            child = ScopedContext(
+                session_id=self.session_id,
+                event_bus=self.event_bus,
+                global_vars=self._global_vars,
+            )
+            child._session_vars = copy.deepcopy(self._session_vars)
+            child._turn_vars = copy.deepcopy(self._turn_vars)
+            child.turn_id = self.turn_id
+            return child
 
     def register_compensation(self, fn: Callable[[], Union[None, Awaitable[None]]]) -> None:
-        """Register an undo/compensation handler for rollback transitions."""
-        self._compensations.append(fn)
+        """Register an undo/compensation handler for rollback transitions (thread-safe)."""
+        with self._lock:
+            self._compensations.append(fn)
 
     async def execute_compensations(self) -> None:
         """Execute registered compensation handlers in LIFO order."""
-        while self._compensations:
-            comp = self._compensations.pop()
+        with self._lock:
+            comps = list(self._compensations)
+            self._compensations.clear()
+        while comps:
+            comp = comps.pop()
             try:
                 res = comp()
                 if inspect.isawaitable(res):
@@ -626,11 +639,13 @@ class ScopedContext:
                 logger.error("Error executing compensation handler: %s", e, exc_info=True)
 
     def all_variables(self) -> Dict[str, Any]:
-        """Combined dictionary of active variables with turn overriding session overriding global."""
-        combined: Dict[str, Any] = {}
-        combined.update(self._global_vars)
-        combined.update(self._session_vars)
-        combined.update(self._turn_vars)
+        """Combined dictionary of active variables with turn overriding session overriding global (thread-safe)."""
+        with self._lock:
+            combined: Dict[str, Any] = {}
+            combined.update(self._global_vars)
+            combined.update(self._session_vars)
+            combined.update(self._turn_vars)
+            return combined
         return combined
 
 
@@ -1453,7 +1468,11 @@ class Colang2Parser:
 # ─── 8. HIGH-LEVEL COLANG 2.0 ENGINE / RUNTIME ───────────────────────────────
 
 class Colang2Engine:
-    """Central Colang 2.0 Engine coordinating flows, event bus, scoped context, and actions."""
+    """Central Colang 2.0 Engine coordinating flows, event bus, scoped context, and actions.
+    
+    Supports multi-tenant session isolation: concurrent client sessions receive
+    strictly isolated ScopedContext instances while sharing global flows and actions.
+    """
 
     def __init__(
         self,
@@ -1462,10 +1481,40 @@ class Colang2Engine:
         action_registry: Optional[Any] = None,
     ) -> None:
         self.event_bus = event_bus or EventBus()
-        self.context = context or ScopedContext(event_bus=self.event_bus)
+        self._global_vars: Dict[str, Any] = {}
+        self.context = context or ScopedContext(event_bus=self.event_bus, global_vars=self._global_vars)
         self.action_registry = action_registry
         self.custom_actions: Dict[str, Callable[..., Any]] = {}
         self.flows: Dict[str, Flow2] = {}
+
+        # Multi-tenant session isolation
+        self._sessions: Dict[str, ScopedContext] = {}
+        self._sessions_lock = threading.RLock()
+        if self.context.session_id:
+            self._sessions[self.context.session_id] = self.context
+
+    def get_session(self, session_id: str) -> Optional[ScopedContext]:
+        """Retrieve existing session context if present (thread-safe)."""
+        with self._sessions_lock:
+            return self._sessions.get(session_id)
+
+    def get_or_create_session(self, session_id: Optional[str] = None) -> ScopedContext:
+        """Retrieve or atomically create an isolated ScopedContext for a tenant session."""
+        if not session_id:
+            return self.context
+        with self._sessions_lock:
+            if session_id not in self._sessions:
+                self._sessions[session_id] = ScopedContext(
+                    session_id=session_id,
+                    event_bus=self.event_bus,
+                    global_vars=self._global_vars,
+                )
+            return self._sessions[session_id]
+
+    def clear_session(self, session_id: str) -> bool:
+        """Evict a session context from memory upon disconnect or termination."""
+        with self._sessions_lock:
+            return self._sessions.pop(session_id, None) is not None
 
     def register_action(self, name: str, fn: Callable[..., Any]) -> None:
         """Register a custom Python action callable."""
@@ -1474,8 +1523,11 @@ class Colang2Engine:
     def register_flow(self, flow: Flow2) -> None:
         """Register a Flow2 definition."""
         self.flows[flow.name] = flow
-        # Store in context for dynamic lookup
+        self._global_vars[f"_flow_{flow.name}"] = flow
         self.context.set(f"_flow_{flow.name}", flow, scope=ScopeLevel.GLOBAL)
+        with self._sessions_lock:
+            for s in self._sessions.values():
+                s.set(f"_flow_{flow.name}", flow, scope=ScopeLevel.GLOBAL)
 
     def load_flows_from_text(self, script: str) -> List[Flow2]:
         """Parse Colang 2.0 source code and register all declared flows."""
@@ -1499,11 +1551,14 @@ class Colang2Engine:
                 if isinstance(step, WhenStep):
                     await step.execute(ctx)
 
-    async def send_user_utterance(self, text: str) -> List[str]:
-        """High-level interaction helper.
+    async def send_user_utterance(self, text: str, session_id: Optional[str] = None) -> List[str]:
+        """High-level interaction helper with optional session routing.
 
         Dispatches UserUtterance onto the event bus and collects resulting BotUtterance texts.
         """
+        if session_id:
+            self.get_or_create_session(session_id)
+
         bot_replies: List[str] = []
 
         async def _bot_listener(event: Event) -> None:
@@ -1526,19 +1581,27 @@ class Colang2Engine:
 
         return bot_replies
 
-    async def execute_flow(self, flow_name: str, inputs: Optional[Dict[str, Any]] = None) -> FlowResult:
-        """Execute a specific flow by name."""
+    async def execute_flow(
+        self,
+        flow_name: str,
+        inputs: Optional[Dict[str, Any]] = None,
+        session_id: Optional[str] = None,
+        context: Optional[ScopedContext] = None,
+    ) -> FlowResult:
+        """Execute a specific flow by name with multi-tenant session isolation."""
         if flow_name not in self.flows:
             raise ValueError(f"Flow '{flow_name}' not found in registry.")
         flow = self.flows[flow_name]
+        exec_context = context or (self.get_or_create_session(session_id) if session_id else self.context)
         return await flow.execute(
-            context=self.context,
+            context=exec_context,
             event_bus=self.event_bus,
             action_registry=self.action_registry,
             custom_actions=self.custom_actions,
             inputs=inputs,
         )
 
-    def new_turn(self) -> int:
-        """Advance dialogue turn."""
-        return self.context.new_turn()
+    def new_turn(self, session_id: Optional[str] = None) -> int:
+        """Advance dialogue turn for the designated session."""
+        target = self.get_or_create_session(session_id) if session_id else self.context
+        return target.new_turn()

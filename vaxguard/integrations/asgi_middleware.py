@@ -532,15 +532,18 @@ class VaxGuardASGIMiddleware:
             elif isinstance(inp, list):
                 texts.extend(str(i) for i in inp if i)
 
-            return "\n".join(texts) if texts else None
+            res = "\n".join(texts) if texts else None
+            return res[:32768] if res else None
 
         # Plain text payload
-        return body_bytes.decode("utf-8", errors="ignore")
+        return body_bytes[:32768].decode("utf-8", errors="ignore")
 
     # ── Guardrail Evaluation ─────────────────────────────────────────────────
 
     def _evaluate_prompt(self, prompt: str) -> Optional[MatchResult]:
         """Evaluate input prompt against Tri-Hybrid matcher and Colang rules (<1ms)."""
+        if len(prompt) > 32768:
+            prompt = prompt[:32768]
         match = self.hybrid_matcher.match(prompt)
         if match.matched and match.action == GuardrailAction.BLOCK:
             return match
